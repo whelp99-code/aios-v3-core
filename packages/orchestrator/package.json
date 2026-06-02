@@ -1,0 +1,22 @@
+{
+  "name": "@aios/orchestrator",
+  "version": "1.0.0",
+  "description": "AIOS Orchestrator package for multi-agent swarm management and workflow execution.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "Manus AI",
+  "license": "MIT",
+  "dependencies": {
+    "@langchain/langgraph": "^0.0.1",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "typescript": "^5.0.0"
+  }
+}

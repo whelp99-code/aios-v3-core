@@ -1,0 +1,15 @@
+{
+  "name": "aios-monorepo",
+  "private": true,
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build && pnpm --filter desktop build",
+    "desktop": "pnpm --filter desktop dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

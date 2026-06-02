@@ -1,0 +1,120 @@
+direction: right
+
+# AIOS Modular Architecture Data Flow
+
+UI_Presentation_Layer: {
+  shape: cloud
+  label: "UI & Presentation Layer\n(AIOS Command Center)"
+}
+
+Orchestration_Layer: {
+  shape: rectangle
+  label: "Orchestration Layer\n(AIOS Core Engine)"
+  Planner: {
+    shape: rectangle
+    label: "Planner"
+  }
+  Executor: {
+    shape: rectangle
+    label: "Executor"
+  }
+  Critic: {
+    shape: rectangle
+    label: "Critic"
+  }
+  Workflow_Manager: {
+    shape: rectangle
+    label: "Workflow Manager"
+  }
+}
+
+AI_Core_Layer: {
+  shape: rectangle
+  label: "AI Core Layer"
+  Rapid_MLX_Client: {
+    shape: rectangle
+    label: "Rapid-MLX Client"
+  }
+  Model_Router: {
+    shape: rectangle
+    label: "Model Router"
+  }
+  Tool_Call_Parser: {
+    shape: rectangle
+    label: "Tool Call Parser"
+  }
+}
+
+Data_Knowledge_Layer: {
+  shape: rectangle
+  label: "Data & Knowledge Layer\n(Medallion Architecture)"
+  Bronze_Layer: {
+    shape: rectangle
+    label: "Bronze Layer"
+  }
+  Silver_Layer: {
+    shape: rectangle
+    label: "Silver Layer"
+  }
+  Gold_Layer: {
+    shape: rectangle
+    label: "Gold Layer"
+  }
+}
+
+Integration_System_Services_Layer: {
+  shape: rectangle
+  label: "Integration & System Services Layer"
+  MCP_Adapters: {
+    shape: rectangle
+    label: "MCP Adapters"
+  }
+  Sandbox_Environment: {
+    shape: rectangle
+    label: "Sandbox Environment"
+  }
+  Monitoring_Logging: {
+    shape: rectangle
+    label: "Monitoring & Logging"
+  }
+}
+
+External_Apps: {
+  shape: square
+  label: "External Apps\n(vibe-coding-os, etc.)"
+}
+
+User: {
+  shape: person
+  label: "User"
+}
+
+User -> UI_Presentation_Layer: "Commands"
+UI_Presentation_Layer -> Orchestration_Layer.Planner: "User Intent"
+
+Orchestration_Layer.Planner -> Orchestration_Layer.Workflow_Manager: "Execution Plan (TODO.md)"
+Orchestration_Layer.Workflow_Manager -> Orchestration_Layer.Executor: "Task Execution Order"
+
+Orchestration_Layer.Executor -> AI_Core_Layer.Model_Router: "LLM Request (Task Type)"
+AI_Core_Layer.Model_Router -> AI_Core_Layer.Rapid_MLX_Client: "Routed LLM Request"
+AI_Core_Layer.Rapid_MLX_Client -> AI_Core_Layer.Tool_Call_Parser: "LLM Raw Output"
+AI_Core_Layer.Tool_Call_Parser -> Integration_System_Services_Layer.MCP_Adapters: "Parsed Tool Calls"
+AI_Core_Layer.Tool_Call_Parser -> Orchestration_Layer.Executor: "LLM Response (Text)"
+
+Integration_System_Services_Layer.MCP_Adapters -> External_Apps: "API Calls / Events"
+External_Apps -> Integration_System_Services_Layer.MCP_Adapters: "API Responses / Events"
+Integration_System_Services_Layer.MCP_Adapters -> Orchestration_Layer.Executor: "Execution Results"
+
+Orchestration_Layer.Executor -> Data_Knowledge_Layer.Bronze_Layer: "Raw Data / Undo Log / Snapshot"
+Data_Knowledge_Layer.Bronze_Layer -> Data_Knowledge_Layer.Silver_Layer: "Raw Data"
+Data_Knowledge_Layer.Silver_Layer -> Data_Knowledge_Layer.Gold_Layer: "Enriched Data / Skill Suggestions"
+Data_Knowledge_Layer.Gold_Layer -> UI_Presentation_Layer: "BI Insights / Wiki Content"
+
+Orchestration_Layer.Executor -> Integration_System_Services_Layer.Sandbox_Environment: "Code/Skill Test"
+Integration_System_Services_Layer.Sandbox_Environment -> Orchestration_Layer.Critic: "Test Results"
+
+Orchestration_Layer.Critic -> Orchestration_Layer.Workflow_Manager: "Feedback / Skill Update Proposal"
+Orchestration_Layer.Workflow_Manager -> UI_Presentation_Layer: "Approval Requests / Status Updates"
+
+All -> Integration_System_Services_Layer.Monitoring_Logging: "Logs / Metrics"
+Integration_System_Services_Layer.Monitoring_Logging -> UI_Presentation_Layer: "Monitoring Dashboard"

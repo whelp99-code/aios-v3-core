@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es2021",
+    "module": "commonjs",
+    "lib": ["es2021", "dom"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "baseUrl": "../../", // Set baseUrl to the workspace root: /home/ubuntu/aios
+    "paths": {
+      "@aios/ai-core/*": ["packages/ai-core/dist/*"], // Path relative to baseUrl, pointing to dist
+      "@aios/orchestrator/*": ["packages/orchestrator/src/*"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "**/*.spec.ts"]
+}

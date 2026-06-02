@@ -1,0 +1,20 @@
+{
+  "name": "aios-desktop",
+  "version": "0.1.0",
+  "description": "AIOS Autonomous Intelligence Operating System - Desktop App",
+  "main": "dist/main.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "electron .",
+    "build": "tsc && electron-builder"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "next": "^16.0.0"
+  }
+}
