@@ -17,6 +17,10 @@
       "@aios/ai-core/*": ["packages/ai-core/dist/*"],
       "@aios/mcp-adapters": ["packages/mcp-adapters/dist/index"],
       "@aios/mcp-adapters/*": ["packages/mcp-adapters/dist/*"],
+      "@aios/knowledge-graph": ["packages/knowledge-graph/dist/index"],
+      "@aios/knowledge-graph/*": ["packages/knowledge-graph/dist/*"],
+      "@aios/self-evolution": ["packages/self-evolution/dist/index"],
+      "@aios/self-evolution/*": ["packages/self-evolution/dist/*"],
       "@aios/orchestrator/*": ["packages/orchestrator/src/*"]
     }
   },

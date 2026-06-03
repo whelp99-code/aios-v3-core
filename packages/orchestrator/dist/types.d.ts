@@ -1,4 +1,4 @@
-export type AgentState = 'planner' | 'executor' | 'critic' | 'user_approval' | 'skill_refinement' | 'knowledge_updater' | 'completed' | 'failed';
+export type AgentState = 'planner' | 'executor' | 'critic' | 'user_approval' | 'skill_refinement' | 'self_corrector' | 'knowledge_updater' | 'completed' | 'failed';
 export interface CodeChange {
     filePath: string;
     diff: string;

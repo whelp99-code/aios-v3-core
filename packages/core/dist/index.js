@@ -1,0 +1,122 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.CommunityRegistry = exports.WebhookPublisher = exports.PluginManager = exports.AIOS = void 0;
+const path_1 = __importDefault(require("path"));
+const ai_core_1 = require("@aios/ai-core");
+const knowledge_graph_1 = require("@aios/knowledge-graph");
+const mcp_adapters_1 = require("@aios/mcp-adapters");
+const orchestrator_1 = require("@aios/orchestrator");
+const self_evolution_1 = require("@aios/self-evolution");
+const plugin_manager_1 = require("./plugin-manager");
+const webhook_publisher_1 = require("./webhook-publisher");
+const community_registry_1 = require("./community-registry");
+class AIOS {
+    constructor(config = {}) {
+        this.config = config;
+        const dataDir = config.dataDir ?? path_1.default.resolve(process.cwd(), 'data');
+        const client = new ai_core_1.RapidMLXClient({
+            baseURL: config.rapidMLXBaseURL ?? 'http://localhost:8000/v1',
+            timeout: 60000,
+        });
+        this.knowledge = new knowledge_graph_1.OpenKB(path_1.default.join(dataDir, 'knowledge'));
+        this.evolution = new self_evolution_1.EvolutionKernel();
+        this.plugins = new plugin_manager_1.PluginManager();
+        this.webhooks = new webhook_publisher_1.WebhookPublisher();
+        this.community = new community_registry_1.CommunityRegistry();
+        this.mcp = new mcp_adapters_1.MCPRegistry(config.mcp ?? {});
+        this.orchestrator = new orchestrator_1.Orchestrator(client, new ai_core_1.ModelRouter(client), new orchestrator_1.SkillParser(), {
+            maxIterations: config.maxIterations ?? 10,
+            skillsDirectory: config.skillsDirectory,
+            mcpRegistry: this.mcp,
+            knowledgeGraph: this.knowledge,
+            evolutionKernel: this.evolution,
+        });
+        this.plugins.setEventEmitter((event, data) => {
+            this.webhooks.publish(event, data).catch(() => { });
+        });
+    }
+    getOrchestrator() {
+        return this.orchestrator;
+    }
+    async run(taskInput, options = {}) {
+        const steps = [];
+        await this.webhooks.publish('workflow.started', { taskInput });
+        const relevantMemories = this.knowledge.memory.recallForTask(taskInput);
+        const projectContext = {
+            recalledProjects: relevantMemories.map((m) => ({ id: m.projectId, name: m.name, summary: m.summary })),
+        };
+        const state = await this.orchestrator.run((0, orchestrator_1.createInitialWorkflowState)(taskInput, { projectContext }), {
+            onStep: (step) => {
+                steps.push(step);
+                options.onStep?.(step);
+            },
+            userApprovalHandler: options.userApprovalHandler ?? (async () => options.autoApprove !== false),
+        });
+        await this.knowledge.ingestion.ingest({
+            type: 'workflow',
+            data: {
+                taskInput,
+                plan: state.plan,
+                executionResult: state.executionResult,
+                mcpToolResults: state.mcpToolResults,
+                consensusResult: state.consensusResult,
+                knowledgeGraphUpdates: state.knowledgeGraphUpdates,
+            },
+        });
+        this.knowledge.memory.indexProject(`proj-${Date.now()}`, taskInput.slice(0, 50), this.knowledge.store.getAllNodes().slice(-5).map((n) => n.id), state.lastOutput ?? taskInput);
+        this.evolution.experience.add({
+            taskInput,
+            plan: state.plan,
+            executionResult: state.executionResult,
+            review: state.review,
+            success: state.currentAgent === 'completed',
+            reward: state.currentAgent === 'completed' ? 1 : -0.5,
+        });
+        let evolutionProposalId;
+        if (state.review && state.codeChangesProposed?.length) {
+            const proposal = await this.evolution.proposals.generate(state.review, state.executionResult, state.codeChangesProposed);
+            evolutionProposalId = proposal.id;
+            await this.webhooks.publish('evolution.proposal', { proposalId: proposal.id, patches: proposal.patches.length });
+        }
+        const event = state.currentAgent === 'completed' ? 'workflow.completed' : 'workflow.failed';
+        await this.webhooks.publish(event, { taskInput, agent: state.currentAgent });
+        return {
+            state,
+            steps,
+            knowledgeNodes: this.knowledge.store.getStats().nodeCount,
+            evolutionProposalId,
+        };
+    }
+    queryKnowledge(question) {
+        return this.knowledge.rag.query(question);
+    }
+    validateKnowledge() {
+        return this.knowledge.validator.validate();
+    }
+    getStats() {
+        return {
+            knowledge: this.knowledge.store.getStats(),
+            evolution: {
+                experienceSize: this.evolution.experience.size(),
+                successRate: this.evolution.experience.getSuccessRate(),
+                pendingProposals: this.evolution.hotPatch.getPendingProposals().length,
+                appliedPatches: this.evolution.hotPatch.getAppliedPatches().length,
+            },
+            plugins: this.plugins.getAllPlugins().length,
+            webhooks: this.webhooks.getSubscriptions().length,
+            community: this.community.list().length,
+            mcp: this.mcp.getAllTools().length,
+        };
+    }
+}
+exports.AIOS = AIOS;
+var plugin_manager_2 = require("./plugin-manager");
+Object.defineProperty(exports, "PluginManager", { enumerable: true, get: function () { return plugin_manager_2.PluginManager; } });
+var webhook_publisher_2 = require("./webhook-publisher");
+Object.defineProperty(exports, "WebhookPublisher", { enumerable: true, get: function () { return webhook_publisher_2.WebhookPublisher; } });
+var community_registry_2 = require("./community-registry");
+Object.defineProperty(exports, "CommunityRegistry", { enumerable: true, get: function () { return community_registry_2.CommunityRegistry; } });
+//# sourceMappingURL=index.js.map

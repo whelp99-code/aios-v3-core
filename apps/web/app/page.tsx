@@ -75,6 +75,13 @@ export default function Home() {
   const [workflowSteps, setWorkflowSteps] = useState<WorkflowStep[]>([]);
   const [workflowState, setWorkflowState] = useState<WorkflowState | null>(null);
   const [pendingApproval, setPendingApproval] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState<'workflow' | 'knowledge' | 'evolution'>('workflow');
+  const [knowledgeStats, setKnowledgeStats] = useState<{ nodeCount: number; edgeCount: number; byType: Record<string, number> } | null>(null);
+  const [knowledgeNodes, setKnowledgeNodes] = useState<{ id: string; label: string; type: string }[]>([]);
+  const [knowledgeQuery, setKnowledgeQuery] = useState('');
+  const [knowledgeAnswer, setKnowledgeAnswer] = useState('');
+  const [evolutionProposals, setEvolutionProposals] = useState<{ id: string; status: string; description: string; patches: { filePath: string }[] }[]>([]);
+  const [systemStats, setSystemStats] = useState<Record<string, unknown> | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -102,15 +109,51 @@ export default function Home() {
     }
   }, []);
 
+  const fetchKnowledge = useCallback(async () => {
+    try {
+      const response = await fetch('/api/knowledge');
+      const data = await response.json();
+      setKnowledgeStats(data.stats);
+      setKnowledgeNodes(data.nodes?.slice(-10) ?? []);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const fetchEvolution = useCallback(async () => {
+    try {
+      const response = await fetch('/api/evolution');
+      const data = await response.json();
+      setEvolutionProposals(data.proposals ?? []);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const fetchSystemStats = useCallback(async () => {
+    try {
+      const response = await fetch('/api/stats');
+      setSystemStats(await response.json());
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   useEffect(() => {
     checkHealth();
     checkMCPStatus();
+    fetchKnowledge();
+    fetchEvolution();
+    fetchSystemStats();
     const interval = setInterval(() => {
       checkHealth();
       checkMCPStatus();
+      fetchKnowledge();
+      fetchEvolution();
+      fetchSystemStats();
     }, 10000);
     return () => clearInterval(interval);
-  }, [checkHealth, checkMCPStatus]);
+  }, [checkHealth, checkMCPStatus, fetchKnowledge, fetchEvolution, fetchSystemStats]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -294,6 +337,26 @@ export default function Home() {
     }
   };
 
+  const handleEvolutionAction = async (proposalId: string, action: 'approve' | 'reject' | 'apply') => {
+    await fetch('/api/evolution', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proposalId, action }),
+    });
+    fetchEvolution();
+  };
+
+  const handleKnowledgeQuery = async () => {
+    if (!knowledgeQuery.trim()) return;
+    const response = await fetch('/api/knowledge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'query', question: knowledgeQuery }),
+    });
+    const data = await response.json();
+    setKnowledgeAnswer(data.answer ?? 'No results');
+  };
+
   const getAgentStepStatus = (agent: string) => {
     const completed = workflowSteps.some((s) => s.agent === agent && s.status === 'completed');
     const started = workflowSteps.some((s) => s.agent === agent && s.status === 'started');
@@ -464,93 +527,148 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Right sidebar - Workflow */}
-      <div className="w-72 bg-zinc-900 border-l border-zinc-800 p-4 overflow-y-auto">
-        <h2 className="text-lg font-bold mb-4">워크플로우</h2>
+      {/* Right sidebar */}
+      <div className="w-80 bg-zinc-900 border-l border-zinc-800 p-4 overflow-y-auto">
+        <div className="flex gap-1 mb-4">
+          {(['workflow', 'knowledge', 'evolution'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setSidebarTab(tab)}
+              className={`flex-1 py-1.5 text-xs rounded-lg font-medium capitalize ${
+                sidebarTab === tab ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+              }`}
+            >
+              {tab === 'workflow' ? '워크플로우' : tab === 'knowledge' ? '지식' : '진화'}
+            </button>
+          ))}
+        </div>
 
-        {workflowStatus === 'idle' ? (
-          <div className="bg-zinc-800 p-3 rounded-lg text-sm text-zinc-400">활성 워크플로우 없음</div>
-        ) : (
+        {sidebarTab === 'workflow' && (
           <>
-            <div className="bg-zinc-800 p-3 rounded-lg mb-4">
-              <div className="text-xs text-zinc-500 mb-1">상태</div>
-              <div className="text-sm font-medium capitalize">{workflowStatus}</div>
-              {workflowSessionId && (
-                <div className="text-xs text-zinc-600 mt-1 truncate">{workflowSessionId.slice(0, 8)}...</div>
+            <h2 className="text-lg font-bold mb-4">워크플로우</h2>
+            {workflowStatus === 'idle' ? (
+              <div className="bg-zinc-800 p-3 rounded-lg text-sm text-zinc-400">활성 워크플로우 없음</div>
+            ) : (
+              <>
+                <div className="bg-zinc-800 p-3 rounded-lg mb-4">
+                  <div className="text-xs text-zinc-500 mb-1">상태</div>
+                  <div className="text-sm font-medium capitalize">{workflowStatus}</div>
+                </div>
+                <div className="space-y-2 mb-4">
+                  {['planner', 'user_approval', 'executor', 'critic', 'knowledge_updater', 'completed'].map((agent) => {
+                    const stepStatus = getAgentStepStatus(agent);
+                    return (
+                      <div
+                        key={agent}
+                        className={`p-2 rounded-lg text-sm flex items-center gap-2 ${
+                          stepStatus === 'active'
+                            ? 'bg-blue-900/50 border border-blue-700'
+                            : stepStatus === 'completed'
+                              ? 'bg-green-900/30 border border-green-800'
+                              : 'bg-zinc-800/50'
+                        }`}
+                      >
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            stepStatus === 'active'
+                              ? 'bg-blue-400 animate-pulse'
+                              : stepStatus === 'completed'
+                                ? 'bg-green-400'
+                                : 'bg-zinc-600'
+                          }`}
+                        />
+                        {AGENT_LABELS[agent] ?? agent}
+                      </div>
+                    );
+                  })}
+                </div>
+                {workflowState?.consensusResult && (
+                  <div className="bg-zinc-800 p-3 rounded-lg mb-4">
+                    <h3 className="text-sm font-semibold mb-1">Consensus</h3>
+                    <div className="text-xs text-zinc-400">
+                      {workflowState.consensusResult.verdict} ({Math.round(workflowState.consensusResult.confidence * 100)}%)
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </>
+        )}
+
+        {sidebarTab === 'knowledge' && (
+          <>
+            <h2 className="text-lg font-bold mb-4">지식 그래프</h2>
+            {knowledgeStats && (
+              <div className="bg-zinc-800 p-3 rounded-lg mb-4 text-xs text-zinc-400 space-y-1">
+                <p>노드: {knowledgeStats.nodeCount}</p>
+                <p>엣지: {knowledgeStats.edgeCount}</p>
+                {Object.entries(knowledgeStats.byType).map(([type, count]) => (
+                  <p key={type}>{type}: {count as number}</p>
+                ))}
+              </div>
+            )}
+            <div className="mb-4">
+              <input
+                value={knowledgeQuery}
+                onChange={(e) => setKnowledgeQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleKnowledgeQuery()}
+                placeholder="지식 그래프 질의..."
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-white mb-2"
+              />
+              <button onClick={handleKnowledgeQuery} className="w-full bg-purple-600 hover:bg-purple-700 py-1.5 rounded-lg text-xs">
+                GraphRAG 질의
+              </button>
+              {knowledgeAnswer && (
+                <p className="text-xs text-zinc-400 mt-2 whitespace-pre-wrap max-h-32 overflow-y-auto">{knowledgeAnswer}</p>
               )}
             </div>
-
-            <div className="space-y-2 mb-4">
-              {['planner', 'user_approval', 'executor', 'critic', 'knowledge_updater', 'completed'].map((agent) => {
-                const stepStatus = getAgentStepStatus(agent);
-                return (
-                  <div
-                    key={agent}
-                    className={`p-2 rounded-lg text-sm flex items-center gap-2 ${
-                      stepStatus === 'active'
-                        ? 'bg-blue-900/50 border border-blue-700'
-                        : stepStatus === 'completed'
-                          ? 'bg-green-900/30 border border-green-800'
-                          : 'bg-zinc-800/50'
-                    }`}
-                  >
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        stepStatus === 'active'
-                          ? 'bg-blue-400 animate-pulse'
-                          : stepStatus === 'completed'
-                            ? 'bg-green-400'
-                            : 'bg-zinc-600'
-                      }`}
-                    />
-                    {AGENT_LABELS[agent] ?? agent}
-                  </div>
-                );
-              })}
-            </div>
-
-            {workflowState?.subTasks && workflowState.subTasks.length > 0 && (
-              <div className="mb-4">
-                <h3 className="text-sm font-semibold mb-2 text-zinc-400">Sub-tasks</h3>
-                {workflowState.subTasks.map((t) => (
-                  <div key={t.id} className="text-xs text-zinc-500 mb-1">
-                    {t.priority}. {t.description.slice(0, 60)}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {workflowState?.mcpToolResults && workflowState.mcpToolResults.length > 0 && (
-              <div className="mb-4">
-                <h3 className="text-sm font-semibold mb-2 text-zinc-400">MCP Tools</h3>
-                {workflowState.mcpToolResults.map((r, i) => (
-                  <div key={i} className="text-xs mb-1 flex items-center gap-1">
-                    <span className={r.success ? 'text-green-400' : 'text-red-400'}>
-                      {r.success ? '✓' : '✗'}
-                    </span>
-                    <span className="text-zinc-400">{r.toolName}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {workflowState?.consensusResult && (
-              <div className="bg-zinc-800 p-3 rounded-lg">
-                <h3 className="text-sm font-semibold mb-1">Consensus</h3>
-                <div className="text-xs text-zinc-400">
-                  {workflowState.consensusResult.verdict} ({Math.round(workflowState.consensusResult.confidence * 100)}%)
+            <div className="space-y-1">
+              {knowledgeNodes.map((n) => (
+                <div key={n.id} className="text-xs bg-zinc-800 p-2 rounded">
+                  <span className="text-purple-400">{n.type}</span> {n.label.slice(0, 40)}
                 </div>
-              </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {sidebarTab === 'evolution' && (
+          <>
+            <h2 className="text-lg font-bold mb-4">자가 진화</h2>
+            {evolutionProposals.length === 0 ? (
+              <div className="bg-zinc-800 p-3 rounded-lg text-sm text-zinc-400">진화 제안 없음</div>
+            ) : (
+              evolutionProposals.slice(0, 5).map((p) => (
+                <div key={p.id} className="bg-zinc-800 p-3 rounded-lg mb-3">
+                  <div className="text-xs text-zinc-500 mb-1">{p.id.slice(0, 12)}...</div>
+                  <div className="text-sm mb-1 capitalize">{p.status}</div>
+                  <p className="text-xs text-zinc-400 mb-2">{p.description.slice(0, 80)}</p>
+                  <p className="text-xs text-zinc-500 mb-2">{p.patches.length} patches</p>
+                  {(p.status === 'validated' || p.status === 'pending') && (
+                    <div className="flex gap-1">
+                      <button onClick={() => handleEvolutionAction(p.id, 'approve')} className="flex-1 bg-green-700 py-1 rounded text-xs">승인</button>
+                      <button onClick={() => handleEvolutionAction(p.id, 'reject')} className="flex-1 bg-red-700 py-1 rounded text-xs">거부</button>
+                    </div>
+                  )}
+                  {p.status === 'approved' && (
+                    <button onClick={() => handleEvolutionAction(p.id, 'apply')} className="w-full bg-blue-700 py-1 rounded text-xs mt-1">Hot-Patch 적용</button>
+                  )}
+                </div>
+              ))
             )}
           </>
         )}
 
         <div className="mt-6 bg-zinc-800 p-3 rounded-lg">
-          <h3 className="text-sm font-semibold mb-2">성능 지표</h3>
+          <h3 className="text-sm font-semibold mb-2">시스템</h3>
           <div className="text-xs text-zinc-400 space-y-1">
-            <p>TTFT: 0.08초</p>
-            <p>처리량: 108 tok/s</p>
             <p>MCP: {mcpAdapters.filter((a) => a.status === 'connected' || a.status === 'simulated').length}/3</p>
+            {systemStats && typeof systemStats.knowledge === 'object' && systemStats.knowledge !== null && (
+              <p>Knowledge: {(systemStats.knowledge as { nodeCount: number }).nodeCount} nodes</p>
+            )}
+            {systemStats && typeof systemStats.evolution === 'object' && systemStats.evolution !== null && (
+              <p>Success: {Math.round(((systemStats.evolution as { successRate: number }).successRate ?? 0) * 100)}%</p>
+            )}
           </div>
         </div>
       </div>

@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@aios/core": "workspace:*",
     "@aios/ai-core": "workspace:*",
     "@aios/mcp-adapters": "workspace:*",
     "@aios/orchestrator": "workspace:*",

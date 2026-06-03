@@ -1,0 +1,23 @@
+{
+  "name": "@aios/core",
+  "version": "1.0.0",
+  "description": "AIOS Core SDK - Unified agent operating system package",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@aios/ai-core": "workspace:*",
+    "@aios/knowledge-graph": "workspace:*",
+    "@aios/mcp-adapters": "workspace:*",
+    "@aios/orchestrator": "workspace:*",
+    "@aios/self-evolution": "workspace:*",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

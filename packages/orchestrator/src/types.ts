@@ -4,6 +4,7 @@ export type AgentState =
   | 'critic'
   | 'user_approval'
   | 'skill_refinement'
+  | 'self_corrector'
   | 'knowledge_updater'
   | 'completed'
   | 'failed';

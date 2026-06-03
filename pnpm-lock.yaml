@@ -36,6 +36,9 @@ importers:
       '@aios/ai-core':
         specifier: workspace:*
         version: link:../../packages/ai-core
+      '@aios/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@aios/mcp-adapters':
         specifier: workspace:*
         version: link:../../packages/mcp-adapters
@@ -93,6 +96,47 @@ importers:
         specifier: ^5.0.0
         version: 5.9.3
 
+  packages/core:
+    dependencies:
+      '@aios/ai-core':
+        specifier: workspace:*
+        version: link:../ai-core
+      '@aios/knowledge-graph':
+        specifier: workspace:*
+        version: link:../knowledge-graph
+      '@aios/mcp-adapters':
+        specifier: workspace:*
+        version: link:../mcp-adapters
+      '@aios/orchestrator':
+        specifier: workspace:*
+        version: link:../orchestrator
+      '@aios/self-evolution':
+        specifier: workspace:*
+        version: link:../self-evolution
+      axios:
+        specifier: ^1.6.0
+        version: 1.16.1
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.41
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
+  packages/knowledge-graph:
+    dependencies:
+      axios:
+        specifier: ^1.6.0
+        version: 1.16.1
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.41
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
   packages/mcp-adapters:
     dependencies:
       axios:
@@ -111,9 +155,15 @@ importers:
       '@aios/ai-core':
         specifier: workspace:*
         version: link:../ai-core
+      '@aios/knowledge-graph':
+        specifier: workspace:*
+        version: link:../knowledge-graph
       '@aios/mcp-adapters':
         specifier: workspace:*
         version: link:../mcp-adapters
+      '@aios/self-evolution':
+        specifier: workspace:*
+        version: link:../self-evolution
       '@langchain/langgraph':
         specifier: ^0.0.1
         version: 0.0.1(axios@1.16.1)(encoding@0.1.13)(ignore@5.3.2)(lodash@4.18.1)(openai@4.104.0(encoding@0.1.13)(zod@3.25.76))
@@ -124,6 +174,15 @@ importers:
       '@types/js-yaml':
         specifier: ^4.0.9
         version: 4.0.9
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.41
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+
+  packages/self-evolution:
+    devDependencies:
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.41

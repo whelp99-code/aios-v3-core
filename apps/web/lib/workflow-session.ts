@@ -1,6 +1,5 @@
 import { randomUUID } from 'crypto';
-import { createInitialWorkflowState } from '@aios/orchestrator';
-import { getOrchestrator } from './aios';
+import { getAIOS } from './aios';
 
 export type WorkflowSessionStatus = 'running' | 'pending_approval' | 'completed' | 'failed';
 
@@ -30,6 +29,8 @@ export interface WorkflowSession {
   status: WorkflowSessionStatus;
   steps: WorkflowStepEvent[];
   state?: WorkflowStateSnapshot;
+  evolutionProposalId?: string;
+  knowledgeNodes?: number;
   createdAt: string;
   completedAt?: string;
   approvalResolver?: (approved: boolean) => void;
@@ -76,32 +77,31 @@ export class WorkflowSessionManager {
   }
 
   private runInBackground(session: WorkflowSession, autoApprove: boolean): void {
-    const orchestrator = getOrchestrator();
+    const aios = getAIOS();
 
-    orchestrator
-      .run(createInitialWorkflowState(session.taskInput), {
-        userApprovalHandler: async (state) => {
-          if (autoApprove) return true;
-
-          session.status = 'pending_approval';
-          session.state = {
-            currentAgent: state.currentAgent,
-            plan: state.plan,
-            executionResult: state.executionResult,
-            review: state.review,
-            lastOutput: state.lastOutput,
-            subTasks: state.subTasks,
-          };
-
-          return new Promise<boolean>((resolve) => {
-            session.approvalResolver = resolve;
-          });
-        },
-        onStep: (step) => {
-          session.steps.push(step);
-        },
+    aios
+      .run(session.taskInput, {
+        autoApprove,
+        onStep: (step) => session.steps.push(step),
+        userApprovalHandler: autoApprove
+          ? undefined
+          : async (state) => {
+              session.status = 'pending_approval';
+              session.state = {
+                currentAgent: state.currentAgent,
+                plan: state.plan,
+                executionResult: state.executionResult,
+                review: state.review,
+                lastOutput: state.lastOutput,
+                subTasks: state.subTasks,
+              };
+              return new Promise<boolean>((resolve) => {
+                session.approvalResolver = resolve;
+              });
+            },
       })
-      .then((finalState) => {
+      .then((result) => {
+        const finalState = result.state;
         session.state = {
           currentAgent: finalState.currentAgent,
           plan: finalState.plan,
@@ -114,6 +114,8 @@ export class WorkflowSessionManager {
           knowledgeGraphUpdates: finalState.knowledgeGraphUpdates,
           agentTeam: finalState.agentTeam,
         };
+        session.evolutionProposalId = result.evolutionProposalId;
+        session.knowledgeNodes = result.knowledgeNodes;
         session.completedAt = new Date().toISOString();
         session.status =
           finalState.currentAgent === 'completed'

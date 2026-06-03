@@ -1,0 +1,15 @@
+{
+  "name": "@aios/self-evolution",
+  "version": "1.0.0",
+  "description": "Hyper-Self-Evolution Kernel for AIOS",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}

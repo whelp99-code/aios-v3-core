@@ -51,6 +51,8 @@ class Orchestrator {
         this.skillParser = skillParser;
         this.maxIterations = options.maxIterations ?? 10;
         this.mcpRegistry = options.mcpRegistry;
+        this.knowledgeGraph = options.knowledgeGraph;
+        this.evolutionKernel = options.evolutionKernel;
         if (options.skillsDirectory) {
             this.loadSkillsFromDirectory(options.skillsDirectory);
         }
@@ -123,8 +125,15 @@ class Orchestrator {
             this.emitStep('planner', 'started');
             console.log('Planner: Analyzing task and creating initial plan...');
             const skillsContext = this.buildSkillsContext(state.availableSkills);
+            let memoryContext = '';
+            if (this.knowledgeGraph) {
+                const memories = this.knowledgeGraph.memory.recallForTask(state.taskInput, 3);
+                if (memories.length) {
+                    memoryContext = `\nRecalled Projects:\n${memories.map((m) => `- ${m.name}: ${m.summary}`).join('\n')}`;
+                }
+            }
             const plan = await this.callLLM('reasoning', 'You are the Planner agent in AIOS. Create a detailed, step-by-step execution plan. ' +
-                'Break the task into numbered sub-tasks. Reference relevant skills and MCP tools when applicable.', `Task: ${state.taskInput}\n\nProject Context: ${JSON.stringify(state.projectContext)}\n\n` +
+                'Break the task into numbered sub-tasks. Reference relevant skills and MCP tools when applicable.', `Task: ${state.taskInput}\n\nProject Context: ${JSON.stringify(state.projectContext)}${memoryContext}\n\n` +
                 `Available Skills:\n${skillsContext}\n\n` +
                 (state.review ? `Previous Review Feedback:\n${state.review}\n\n` : '') +
                 'Generate a structured plan with clear execution steps.');
@@ -186,9 +195,15 @@ class Orchestrator {
             };
         });
         graphBuilder.addNode('self_corrector', async (state) => {
+            this.emitStep('self_corrector', 'started');
             console.log('Self-Corrector: Applying feedback and refining plan/code...');
-            const refinedPlan = await this.callLLM('reasoning', 'You are the Self-Corrector agent in AIOS. Refine the plan based on critic feedback.', `Original Plan:\n${state.plan}\n\nCritic Review:\n${state.review}\n\n` +
+            let refinedPlan = await this.callLLM('reasoning', 'You are the Self-Corrector agent in AIOS. Refine the plan based on critic feedback.', `Original Plan:\n${state.plan}\n\nCritic Review:\n${state.review}\n\n` +
                 'Produce an improved plan that addresses all issues raised.');
+            if (this.evolutionKernel && state.review) {
+                const proposal = await this.evolutionKernel.proposals.generate(state.review, state.executionResult, state.codeChangesProposed ?? []);
+                refinedPlan += `\n\n[Evolution Proposal ${proposal.id}]: ${proposal.description}`;
+            }
+            this.emitStep('self_corrector', 'completed', refinedPlan);
             return {
                 currentAgent: 'planner',
                 plan: refinedPlan,
@@ -198,6 +213,7 @@ class Orchestrator {
             };
         });
         graphBuilder.addNode('knowledge_updater', async (state) => {
+            this.emitStep('knowledge_updater', 'started');
             console.log('Knowledge Updater: Integrating new insights into Knowledge Graph...');
             const newKnowledge = {
                 type: 'task_completion',
@@ -209,10 +225,24 @@ class Orchestrator {
                 newKnowledge.type = 'code_evolution';
                 newKnowledge.content = `Code changes proposed for: ${state.codeChangesProposed.map((c) => c.filePath).join(', ')}`;
             }
+            if (this.knowledgeGraph) {
+                await this.knowledgeGraph.ingestion.ingest({
+                    type: 'workflow',
+                    data: {
+                        taskInput: state.taskInput,
+                        plan: state.plan,
+                        executionResult: state.executionResult,
+                        mcpToolResults: state.mcpToolResults,
+                        consensusResult: state.consensusResult,
+                        knowledgeGraphUpdates: [newKnowledge],
+                    },
+                });
+            }
+            this.emitStep('knowledge_updater', 'completed', 'Knowledge Graph updated');
             return {
                 currentAgent: 'knowledge_updater',
                 knowledgeGraphUpdates: [newKnowledge],
-                lastOutput: 'Knowledge Graph updated',
+                lastOutput: `Knowledge Graph updated (${this.knowledgeGraph?.store.getStats().nodeCount ?? 0} nodes)`,
             };
         });
         graphBuilder.addNode('user_approval', async (state) => {
