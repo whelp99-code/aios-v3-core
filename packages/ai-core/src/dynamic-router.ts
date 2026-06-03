@@ -17,12 +17,14 @@ import { ILLMProvider } from './providers/base-provider';
 import { RapidMLXProvider } from './providers/rapid-mlx-provider';
 import { OpenAIProvider } from './providers/openai-provider';
 import { AnthropicProvider } from './providers/anthropic-provider';
+import { HuggingFaceProvider } from './providers/huggingface-provider';
 import RapidMLXClient from './rapid-mlx-client';
 
 export interface DynamicRouterConfig {
   rapidMLXClient?: RapidMLXClient;
   openaiApiKey?: string;
   anthropicApiKey?: string;
+  huggingfaceApiKey?: string;
   preferences?: EnginePreferences;
 }
 
@@ -45,6 +47,7 @@ export class DynamicRouter {
       ['local', new RapidMLXProvider(client)],
       ['openai', new OpenAIProvider({ apiKey: config.openaiApiKey })],
       ['anthropic', new AnthropicProvider({ apiKey: config.anthropicApiKey })],
+      ['huggingface', new HuggingFaceProvider({ apiKey: config.huggingfaceApiKey })],
     ]);
     this.preferences = config.preferences ?? { mode: 'auto' };
   }
@@ -220,7 +223,7 @@ export class DynamicRouter {
     const primary = await this.route(role, taskType);
     targets.push(primary);
 
-    for (const provider of ['openai', 'anthropic', 'local'] as ModelProvider[]) {
+    for (const provider of ['openai', 'anthropic', 'huggingface', 'local'] as ModelProvider[]) {
       if (provider === primary.provider) continue;
       const p = this.providers.get(provider);
       if (!p?.isConfigured()) continue;
@@ -229,7 +232,7 @@ export class DynamicRouter {
     }
 
     const results = await Promise.all(
-      targets.slice(0, 3).map(async (decision) => {
+      targets.slice(0, 4).map(async (decision) => {
         try {
           const provider = this.providers.get(decision.provider)!;
           const response = await provider.chatCompletion({
@@ -289,7 +292,7 @@ export class DynamicRouter {
       if (local) chain.push({ modelId: local.modelId, provider: 'local', reason: 'Fallback to local' });
     }
 
-    for (const provider of ['openai', 'anthropic'] as ModelProvider[]) {
+    for (const provider of ['openai', 'anthropic', 'huggingface'] as ModelProvider[]) {
       if (provider === primary.provider) continue;
       const p = this.providers.get(provider);
       if (!p?.isConfigured()) continue;

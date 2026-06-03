@@ -9,10 +9,13 @@ async function main() {
 
   console.log('Models registered:', registry.getAll().length);
   const models = registry.getAll();
-  if (models.length < 6) throw new Error('Expected at least 6 default models');
+  if (models.length < 9) throw new Error(`Expected at least 9 default models, got ${models.length}`);
 
   const health = await router.getAllProviderHealth();
   console.log('Providers:', health.map((h) => `${h.provider}:${h.healthy}`).join(', '));
+
+  const hf = health.find((h) => h.provider === 'huggingface');
+  console.log('HuggingFace configured:', hf?.healthy ?? false);
 
   const snapshot = await router.getResourceSnapshot();
   console.log('Resource snapshot:', snapshot.recommendedMode, 'load=', snapshot.localLoad);
@@ -41,6 +44,10 @@ async function main() {
     router.getAllProviders().filter((p) => p.provider !== 'local')
   );
   console.log('Overloaded recommends:', overloaded.recommendedMode);
+
+  router.setPreferences({ mode: 'cloud', preferredCloudProvider: 'huggingface' });
+  const hfRoute = await router.route('executor', 'code');
+  console.log('Cloud+HF preference ->', hfRoute.provider, hfRoute.modelId);
 
   for (const mode of ['auto', 'local', 'cloud']) {
     router.setPreferences({ mode });

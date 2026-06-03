@@ -16,6 +16,7 @@
 | `RAPID_MLX_BASE_URL` | 로컬 Rapid-MLX URL (기본: `http://localhost:8000/v1`) |
 | `OPENAI_API_KEY` | OpenAI GPT-4o / GPT-4o-mini |
 | `ANTHROPIC_API_KEY` | Anthropic Claude 3.5 |
+| `HF_TOKEN` / `HUGGINGFACE_API_KEY` | Hugging Face Inference Router (Llama, Qwen, DeepSeek) |
 | `AIOS_ENGINE_MODE` | `auto` \| `local` \| `cloud` (기본: auto) |
 | `RAPID_MLX_LOAD` | 로컬 GPU 부하 시뮬레이션 (0-1, Dynamic Resource Allocator) |
 
@@ -31,7 +32,7 @@ pnpm install
 | # | 항목 | 내용 |
 |---|------|------|
 | 1 | `build:packages` | 6개 패키지 TypeScript 빌드 |
-| 2 | Hybrid AI Core | ModelRegistry + DynamicRouter + Multi-engine |
+| 2 | Hybrid AI Core | ModelRegistry + DynamicRouter + Multi-engine (incl. HuggingFace) |
 | 3 | MCP Adapters | 3개 앱 어댑터 + 도구 호출 |
 | 4 | Knowledge Graph | ingest + GraphRAG |
 | 5 | Orchestrator | Swarm 워크플로우 → `completed` |

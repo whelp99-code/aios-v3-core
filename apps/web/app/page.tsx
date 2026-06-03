@@ -20,6 +20,7 @@ interface EngineStatus {
 }
 
 type EngineMode = 'auto' | 'local' | 'cloud';
+type CloudProvider = 'openai' | 'anthropic' | 'huggingface';
 
 interface MCPAdapterStatus {
   id: string;
@@ -73,6 +74,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [useWorkflow, setUseWorkflow] = useState(true);
   const [engineMode, setEngineMode] = useState<EngineMode>('auto');
+  const [cloudProvider, setCloudProvider] = useState<CloudProvider>('huggingface');
   const [parallelExecution, setParallelExecution] = useState(true);
   const [engineStatus, setEngineStatus] = useState<EngineStatus>({
     status: 'checking',
@@ -116,10 +118,20 @@ export default function Home() {
     await fetch('/api/engines', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode }),
+      body: JSON.stringify({ mode, preferredCloudProvider: cloudProvider }),
     });
     checkHealth();
-  }, [checkHealth]);
+  }, [checkHealth, cloudProvider]);
+
+  const updateCloudProvider = useCallback(async (provider: CloudProvider) => {
+    setCloudProvider(provider);
+    await fetch('/api/engines', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: engineMode, preferredCloudProvider: provider }),
+    });
+    checkHealth();
+  }, [checkHealth, engineMode]);
 
   const checkMCPStatus = useCallback(async () => {
     try {
@@ -430,6 +442,21 @@ export default function Home() {
           ))}
         </div>
 
+        <h3 className="text-sm font-semibold mb-2 text-zinc-400">클라우드 Provider</h3>
+        <div className="flex gap-1 mb-4">
+          {(['huggingface', 'openai', 'anthropic'] as CloudProvider[]).map((provider) => (
+            <button
+              key={provider}
+              onClick={() => updateCloudProvider(provider)}
+              className={`flex-1 py-1.5 text-xs rounded-lg font-medium ${
+                cloudProvider === provider ? 'bg-orange-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+              }`}
+            >
+              {provider === 'huggingface' ? 'HF' : provider === 'openai' ? 'GPT' : 'Claude'}
+            </button>
+          ))}
+        </div>
+
         <label className="flex items-center gap-2 text-xs text-zinc-400 mb-4 cursor-pointer">
           <input
             type="checkbox"
@@ -446,7 +473,9 @@ export default function Home() {
             { provider: 'local', healthy: engineStatus.rapidMLX?.healthy ?? false },
           ]).map((p) => (
             <div key={p.provider} className="bg-zinc-800 p-2 rounded-lg flex items-center justify-between">
-              <span className="text-xs font-medium capitalize">{p.provider}</span>
+              <span className="text-xs font-medium">
+                {p.provider === 'huggingface' ? '🤗 HuggingFace' : p.provider}
+              </span>
               <span className={`text-xs ${p.healthy ? 'text-green-400' : 'text-zinc-500'}`}>
                 {p.healthy ? '●' : '○'}
               </span>

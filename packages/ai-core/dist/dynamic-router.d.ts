@@ -7,6 +7,7 @@ export interface DynamicRouterConfig {
     rapidMLXClient?: RapidMLXClient;
     openaiApiKey?: string;
     anthropicApiKey?: string;
+    huggingfaceApiKey?: string;
     preferences?: EnginePreferences;
 }
 export declare class DynamicRouter {

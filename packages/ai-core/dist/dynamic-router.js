@@ -9,6 +9,7 @@ const resource_allocator_1 = require("./resource-allocator");
 const rapid_mlx_provider_1 = require("./providers/rapid-mlx-provider");
 const openai_provider_1 = require("./providers/openai-provider");
 const anthropic_provider_1 = require("./providers/anthropic-provider");
+const huggingface_provider_1 = require("./providers/huggingface-provider");
 const rapid_mlx_client_1 = __importDefault(require("./rapid-mlx-client"));
 class DynamicRouter {
     constructor(config = {}) {
@@ -21,6 +22,7 @@ class DynamicRouter {
             ['local', new rapid_mlx_provider_1.RapidMLXProvider(client)],
             ['openai', new openai_provider_1.OpenAIProvider({ apiKey: config.openaiApiKey })],
             ['anthropic', new anthropic_provider_1.AnthropicProvider({ apiKey: config.anthropicApiKey })],
+            ['huggingface', new huggingface_provider_1.HuggingFaceProvider({ apiKey: config.huggingfaceApiKey })],
         ]);
         this.preferences = config.preferences ?? { mode: 'auto' };
     }
@@ -157,7 +159,7 @@ class DynamicRouter {
         const targets = [];
         const primary = await this.route(role, taskType);
         targets.push(primary);
-        for (const provider of ['openai', 'anthropic', 'local']) {
+        for (const provider of ['openai', 'anthropic', 'huggingface', 'local']) {
             if (provider === primary.provider)
                 continue;
             const p = this.providers.get(provider);
@@ -167,7 +169,7 @@ class DynamicRouter {
             if (model)
                 targets.push({ modelId: model.modelId, provider, reason: 'Multi-consensus reviewer' });
         }
-        const results = await Promise.all(targets.slice(0, 3).map(async (decision) => {
+        const results = await Promise.all(targets.slice(0, 4).map(async (decision) => {
             try {
                 const provider = this.providers.get(decision.provider);
                 const response = await provider.chatCompletion({
@@ -220,7 +222,7 @@ class DynamicRouter {
             if (local)
                 chain.push({ modelId: local.modelId, provider: 'local', reason: 'Fallback to local' });
         }
-        for (const provider of ['openai', 'anthropic']) {
+        for (const provider of ['openai', 'anthropic', 'huggingface']) {
             if (provider === primary.provider)
                 continue;
             const p = this.providers.get(provider);

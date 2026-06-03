@@ -25,6 +25,9 @@ class AIOS {
             rapidMLXClient: client,
             openaiApiKey: config.openaiApiKey ?? process.env.OPENAI_API_KEY,
             anthropicApiKey: config.anthropicApiKey ?? process.env.ANTHROPIC_API_KEY,
+            huggingfaceApiKey: config.huggingfaceApiKey ??
+                process.env.HF_TOKEN ??
+                process.env.HUGGINGFACE_API_KEY,
             preferences: {
                 mode: config.engineMode ?? 'auto',
                 ...config.enginePreferences,

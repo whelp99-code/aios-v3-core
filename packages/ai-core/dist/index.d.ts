@@ -8,6 +8,7 @@ export { ResourceAllocator } from './resource-allocator';
 export type { EngineMode, EnginePreferences, ModelProvider, ModelEntry, RoutingDecision, ResourceSnapshot, ProviderHealth, RoleEngineOverride, } from './types';
 export { OpenAIProvider } from './providers/openai-provider';
 export { AnthropicProvider } from './providers/anthropic-provider';
+export { HuggingFaceProvider } from './providers/huggingface-provider';
 export { RapidMLXProvider } from './providers/rapid-mlx-provider';
 export type { ILLMProvider } from './providers/base-provider';
 //# sourceMappingURL=index.d.ts.map

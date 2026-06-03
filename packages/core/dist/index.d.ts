@@ -10,6 +10,7 @@ export interface AIOSConfig {
     rapidMLXBaseURL?: string;
     openaiApiKey?: string;
     anthropicApiKey?: string;
+    huggingfaceApiKey?: string;
     dataDir?: string;
     skillsDirectory?: string;
     engineMode?: EngineMode;
