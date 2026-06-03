@@ -1,13 +1,13 @@
 {
   "name": "@aios/ai-core",
   "version": "0.1.0",
-  "description": "AIOS AI Core - Ollama integration and model routing",
-  "type": "module",
+  "description": "AIOS AI Core - Hybrid model routing and provider adapters",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch"
+    "dev": "tsc --watch",
+    "smoke": "node scripts/smoke-test.js"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

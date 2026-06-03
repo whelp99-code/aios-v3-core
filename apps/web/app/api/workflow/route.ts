@@ -4,13 +4,16 @@ import { workflowSessionManager } from '@/lib/workflow-session';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { taskInput, autoApprove = true } = body;
+    const { taskInput, autoApprove = true, engineMode, parallelExecution } = body;
 
     if (!taskInput || typeof taskInput !== 'string') {
       return NextResponse.json({ error: 'taskInput is required' }, { status: 400 });
     }
 
-    const session = workflowSessionManager.start(taskInput.trim(), autoApprove);
+    const session = workflowSessionManager.start(taskInput.trim(), autoApprove, {
+      engineMode,
+      parallelExecution,
+    });
 
     return NextResponse.json({
       sessionId: session.id,
@@ -53,6 +56,7 @@ export async function GET(request: NextRequest) {
           consensusResult: session.state.consensusResult,
           knowledgeGraphUpdates: session.state.knowledgeGraphUpdates,
           agentTeam: session.state.agentTeam,
+          engineMode: session.state.engineMode,
         }
       : undefined,
     createdAt: session.createdAt,

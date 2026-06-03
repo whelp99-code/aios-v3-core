@@ -17,4 +17,5 @@ export {
   type WorkflowStepEvent,
   type SubTaskSummary,
   type ConsensusSummary,
+  type EngineMode,
 } from './types';

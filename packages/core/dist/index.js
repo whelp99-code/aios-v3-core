@@ -21,34 +21,65 @@ class AIOS {
             baseURL: config.rapidMLXBaseURL ?? 'http://localhost:8000/v1',
             timeout: 60000,
         });
+        this.dynamicRouter = new ai_core_1.DynamicRouter({
+            rapidMLXClient: client,
+            openaiApiKey: config.openaiApiKey ?? process.env.OPENAI_API_KEY,
+            anthropicApiKey: config.anthropicApiKey ?? process.env.ANTHROPIC_API_KEY,
+            preferences: {
+                mode: config.engineMode ?? 'auto',
+                ...config.enginePreferences,
+            },
+        });
+        const modelRouter = new ai_core_1.ModelRouter(client, undefined, this.dynamicRouter);
         this.knowledge = new knowledge_graph_1.OpenKB(path_1.default.join(dataDir, 'knowledge'));
         this.evolution = new self_evolution_1.EvolutionKernel();
         this.plugins = new plugin_manager_1.PluginManager();
         this.webhooks = new webhook_publisher_1.WebhookPublisher();
         this.community = new community_registry_1.CommunityRegistry();
         this.mcp = new mcp_adapters_1.MCPRegistry(config.mcp ?? {});
-        this.orchestrator = new orchestrator_1.Orchestrator(client, new ai_core_1.ModelRouter(client), new orchestrator_1.SkillParser(), {
+        this.orchestrator = new orchestrator_1.Orchestrator(client, modelRouter, new orchestrator_1.SkillParser(), {
             maxIterations: config.maxIterations ?? 10,
             skillsDirectory: config.skillsDirectory,
             mcpRegistry: this.mcp,
             knowledgeGraph: this.knowledge,
             evolutionKernel: this.evolution,
+            engineMode: config.engineMode ?? 'auto',
+            parallelExecution: config.parallelExecution ?? true,
         });
         this.plugins.setEventEmitter((event, data) => {
             this.webhooks.publish(event, data).catch(() => { });
         });
     }
+    setEnginePreferences(prefs) {
+        this.dynamicRouter.setPreferences(prefs);
+    }
+    getEnginePreferences() {
+        return this.dynamicRouter.getPreferences();
+    }
+    async getEngineStatus() {
+        const health = await this.dynamicRouter.getAllProviderHealth();
+        const snapshot = await this.dynamicRouter.getResourceSnapshot();
+        const models = this.dynamicRouter.registry.getAll();
+        return { health, snapshot, models, preferences: this.getEnginePreferences() };
+    }
     getOrchestrator() {
         return this.orchestrator;
     }
     async run(taskInput, options = {}) {
+        if (options.engineMode) {
+            this.dynamicRouter.setPreferences({ mode: options.engineMode });
+        }
         const steps = [];
-        await this.webhooks.publish('workflow.started', { taskInput });
+        await this.webhooks.publish('workflow.started', { taskInput, engineMode: options.engineMode });
         const relevantMemories = this.knowledge.memory.recallForTask(taskInput);
         const projectContext = {
             recalledProjects: relevantMemories.map((m) => ({ id: m.projectId, name: m.name, summary: m.summary })),
         };
-        const state = await this.orchestrator.run((0, orchestrator_1.createInitialWorkflowState)(taskInput, { projectContext }), {
+        const state = await this.orchestrator.run((0, orchestrator_1.createInitialWorkflowState)(taskInput, {
+            projectContext,
+            engineMode: options.engineMode ?? this.getEnginePreferences().mode,
+            parallelExecution: options.parallelExecution ?? this.config.parallelExecution ?? true,
+        }), {
             onStep: (step) => {
                 steps.push(step);
                 options.onStep?.(step);
@@ -64,6 +95,7 @@ class AIOS {
                 mcpToolResults: state.mcpToolResults,
                 consensusResult: state.consensusResult,
                 knowledgeGraphUpdates: state.knowledgeGraphUpdates,
+                engineMode: state.engineMode,
             },
         });
         this.knowledge.memory.indexProject(`proj-${Date.now()}`, taskInput.slice(0, 50), this.knowledge.store.getAllNodes().slice(-5).map((n) => n.id), state.lastOutput ?? taskInput);
@@ -109,6 +141,7 @@ class AIOS {
             webhooks: this.webhooks.getSubscriptions().length,
             community: this.community.list().length,
             mcp: this.mcp.getAllTools().length,
+            engine: this.getEnginePreferences(),
         };
     }
 }

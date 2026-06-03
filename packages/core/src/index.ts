@@ -1,5 +1,11 @@
 import path from 'path';
-import { RapidMLXClient, ModelRouter } from '@aios/ai-core';
+import {
+  RapidMLXClient,
+  ModelRouter,
+  DynamicRouter,
+  type EngineMode,
+  type EnginePreferences,
+} from '@aios/ai-core';
 import { OpenKB } from '@aios/knowledge-graph';
 import { MCPRegistry } from '@aios/mcp-adapters';
 import {
@@ -16,8 +22,13 @@ import { CommunityRegistry } from './community-registry';
 
 export interface AIOSConfig {
   rapidMLXBaseURL?: string;
+  openaiApiKey?: string;
+  anthropicApiKey?: string;
   dataDir?: string;
   skillsDirectory?: string;
+  engineMode?: EngineMode;
+  enginePreferences?: EnginePreferences;
+  parallelExecution?: boolean;
   mcp?: {
     vibeCodingOSUrl?: string;
     automationPortalUrl?: string;
@@ -40,6 +51,7 @@ export class AIOS {
   readonly webhooks: WebhookPublisher;
   readonly mcp: MCPRegistry;
   readonly community: CommunityRegistry;
+  readonly dynamicRouter: DynamicRouter;
 
   private orchestrator: Orchestrator;
   private config: AIOSConfig;
@@ -52,6 +64,18 @@ export class AIOS {
       timeout: 60000,
     });
 
+    this.dynamicRouter = new DynamicRouter({
+      rapidMLXClient: client,
+      openaiApiKey: config.openaiApiKey ?? process.env.OPENAI_API_KEY,
+      anthropicApiKey: config.anthropicApiKey ?? process.env.ANTHROPIC_API_KEY,
+      preferences: {
+        mode: config.engineMode ?? 'auto',
+        ...config.enginePreferences,
+      },
+    });
+
+    const modelRouter = new ModelRouter(client, undefined, this.dynamicRouter);
+
     this.knowledge = new OpenKB(path.join(dataDir, 'knowledge'));
     this.evolution = new EvolutionKernel();
     this.plugins = new PluginManager();
@@ -61,7 +85,7 @@ export class AIOS {
 
     this.orchestrator = new Orchestrator(
       client,
-      new ModelRouter(client),
+      modelRouter,
       new SkillParser(),
       {
         maxIterations: config.maxIterations ?? 10,
@@ -69,12 +93,29 @@ export class AIOS {
         mcpRegistry: this.mcp,
         knowledgeGraph: this.knowledge,
         evolutionKernel: this.evolution,
+        engineMode: config.engineMode ?? 'auto',
+        parallelExecution: config.parallelExecution ?? true,
       }
     );
 
     this.plugins.setEventEmitter((event, data) => {
       this.webhooks.publish(event as WebhookEvent, data as Record<string, unknown>).catch(() => {});
     });
+  }
+
+  setEnginePreferences(prefs: Partial<EnginePreferences>): void {
+    this.dynamicRouter.setPreferences(prefs);
+  }
+
+  getEnginePreferences(): EnginePreferences {
+    return this.dynamicRouter.getPreferences();
+  }
+
+  async getEngineStatus() {
+    const health = await this.dynamicRouter.getAllProviderHealth();
+    const snapshot = await this.dynamicRouter.getResourceSnapshot();
+    const models = this.dynamicRouter.registry.getAll();
+    return { health, snapshot, models, preferences: this.getEnginePreferences() };
   }
 
   getOrchestrator(): Orchestrator {
@@ -85,13 +126,19 @@ export class AIOS {
     taskInput: string,
     options: {
       autoApprove?: boolean;
+      engineMode?: EngineMode;
+      parallelExecution?: boolean;
       onStep?: (step: WorkflowStepEvent) => void;
       userApprovalHandler?: (state: AgentWorkflowState) => Promise<boolean>;
     } = {}
   ): Promise<AIOSRunResult> {
+    if (options.engineMode) {
+      this.dynamicRouter.setPreferences({ mode: options.engineMode });
+    }
+
     const steps: WorkflowStepEvent[] = [];
 
-    await this.webhooks.publish('workflow.started', { taskInput });
+    await this.webhooks.publish('workflow.started', { taskInput, engineMode: options.engineMode });
 
     const relevantMemories = this.knowledge.memory.recallForTask(taskInput);
     const projectContext: Record<string, unknown> = {
@@ -99,7 +146,11 @@ export class AIOS {
     };
 
     const state = await this.orchestrator.run(
-      createInitialWorkflowState(taskInput, { projectContext }),
+      createInitialWorkflowState(taskInput, {
+        projectContext,
+        engineMode: options.engineMode ?? this.getEnginePreferences().mode,
+        parallelExecution: options.parallelExecution ?? this.config.parallelExecution ?? true,
+      }),
       {
         onStep: (step) => {
           steps.push(step);
@@ -118,6 +169,7 @@ export class AIOS {
         mcpToolResults: state.mcpToolResults,
         consensusResult: state.consensusResult,
         knowledgeGraphUpdates: state.knowledgeGraphUpdates,
+        engineMode: state.engineMode,
       },
     });
 
@@ -180,6 +232,7 @@ export class AIOS {
       webhooks: this.webhooks.getSubscriptions().length,
       community: this.community.list().length,
       mcp: this.mcp.getAllTools().length,
+      engine: this.getEnginePreferences(),
     };
   }
 }

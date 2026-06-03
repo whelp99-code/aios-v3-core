@@ -1,8 +1,14 @@
-import axios from 'axios';
-export class RapidMLXClient {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.RapidMLXClient = void 0;
+const axios_1 = __importDefault(require("axios"));
+class RapidMLXClient {
     constructor(config = { baseURL: 'http://localhost:8000/v1', timeout: 60000 }) {
         this.config = config;
-        this.client = axios.create({
+        this.client = axios_1.default.create({
             baseURL: config.baseURL,
             timeout: config.timeout,
         });
@@ -47,5 +53,6 @@ export class RapidMLXClient {
         return this.chatCompletion(request);
     }
 }
-export default RapidMLXClient;
+exports.RapidMLXClient = RapidMLXClient;
+exports.default = RapidMLXClient;
 //# sourceMappingURL=rapid-mlx-client.js.map

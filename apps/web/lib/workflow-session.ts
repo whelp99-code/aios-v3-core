@@ -16,11 +16,12 @@ export interface WorkflowStateSnapshot {
   executionResult?: string | null;
   review?: string | null;
   lastOutput?: string | null;
-  subTasks?: { id: string; description: string; priority: number }[];
+  subTasks?: { id: string; description: string; priority: number; status?: string; assignedEngine?: string }[];
   mcpToolResults?: { toolName: string; adapterId: string; success: boolean; result?: unknown }[];
-  consensusResult?: { verdict: string; confidence: number; summary: string };
+  consensusResult?: { verdict: string; confidence: number; summary: string; reviewers?: { provider: string; modelId: string; verdict: string }[] };
   knowledgeGraphUpdates?: unknown[];
-  agentTeam?: { role: string; model: string }[];
+  agentTeam?: { role: string; model: string; provider?: string }[];
+  engineMode?: string;
 }
 
 export interface WorkflowSession {
@@ -46,7 +47,7 @@ const sessions: Map<string, WorkflowSession> =
 globalThis.__aiosWorkflowSessions = sessions;
 
 export class WorkflowSessionManager {
-  start(taskInput: string, autoApprove = true): WorkflowSession {
+  start(taskInput: string, autoApprove = true, options: { engineMode?: 'auto' | 'local' | 'cloud'; parallelExecution?: boolean } = {}): WorkflowSession {
     const id = randomUUID();
     const session: WorkflowSession = {
       id,
@@ -57,7 +58,7 @@ export class WorkflowSessionManager {
     };
 
     sessions.set(id, session);
-    this.runInBackground(session, autoApprove);
+    this.runInBackground(session, autoApprove, options);
     return session;
   }
 
@@ -76,12 +77,18 @@ export class WorkflowSessionManager {
     return true;
   }
 
-  private runInBackground(session: WorkflowSession, autoApprove: boolean): void {
+  private runInBackground(
+    session: WorkflowSession,
+    autoApprove: boolean,
+    options: { engineMode?: 'auto' | 'local' | 'cloud'; parallelExecution?: boolean } = {}
+  ): void {
     const aios = getAIOS();
 
     aios
       .run(session.taskInput, {
         autoApprove,
+        engineMode: options.engineMode,
+        parallelExecution: options.parallelExecution,
         onStep: (step) => session.steps.push(step),
         userApprovalHandler: autoApprove
           ? undefined
@@ -113,6 +120,7 @@ export class WorkflowSessionManager {
           consensusResult: finalState.consensusResult ?? undefined,
           knowledgeGraphUpdates: finalState.knowledgeGraphUpdates,
           agentTeam: finalState.agentTeam,
+          engineMode: finalState.engineMode,
         };
         session.evolutionProposalId = result.evolutionProposalId;
         session.knowledgeNodes = result.knowledgeNodes;

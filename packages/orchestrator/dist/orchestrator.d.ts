@@ -1,6 +1,7 @@
 import { AgentWorkflowState, WorkflowStepEvent, createInitialWorkflowState } from './types';
 import { RapidMLXClient } from '@aios/ai-core/rapid-mlx-client';
 import { ModelRouter } from '@aios/ai-core/model-router';
+import type { EngineMode } from './types';
 import { MCPRegistry } from '@aios/mcp-adapters';
 import type { OpenKB } from '@aios/knowledge-graph';
 import type { EvolutionKernel } from '@aios/self-evolution';
@@ -11,6 +12,8 @@ export interface OrchestratorOptions {
     mcpRegistry?: MCPRegistry;
     knowledgeGraph?: OpenKB;
     evolutionKernel?: EvolutionKernel;
+    engineMode?: EngineMode;
+    parallelExecution?: boolean;
 }
 export interface OrchestratorRunOptions {
     userApprovalHandler?: (state: AgentWorkflowState) => Promise<boolean>;
@@ -31,6 +34,9 @@ export declare class Orchestrator {
     private evolutionKernel?;
     private taskSplitter;
     private consensusEngine;
+    private dynamicRouter;
+    private defaultEngineMode;
+    private parallelExecution;
     constructor(rapidMLXClient: RapidMLXClient, modelRouter: ModelRouter, skillParser: SkillParser, options?: OrchestratorOptions);
     private buildWorkflow;
     run(initialState: AgentWorkflowState, options?: OrchestratorRunOptions): Promise<AgentWorkflowState>;
@@ -45,6 +51,8 @@ export declare class Orchestrator {
     }[]): void;
     identifyRelevantSkills(taskInput: string, skillNames?: string[]): string[];
     private emitStep;
+    private applyEngineMode;
+    private executeSubTaskParallel;
     private executeWithMCP;
     private buildAgentTeam;
     private buildSkillsContext;

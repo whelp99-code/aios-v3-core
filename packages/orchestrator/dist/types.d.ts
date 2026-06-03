@@ -3,9 +3,11 @@ export interface CodeChange {
     filePath: string;
     diff: string;
 }
+export type EngineMode = 'auto' | 'local' | 'cloud';
 export interface AgentTeamMember {
     role: string;
     model: string;
+    provider?: string;
 }
 export interface KnowledgeGraphUpdate {
     type: string;
@@ -30,11 +32,19 @@ export interface SubTaskSummary {
     description: string;
     priority: number;
     assignedTools: string[];
+    status?: 'pending' | 'running' | 'completed' | 'failed';
+    result?: string;
+    assignedEngine?: string;
 }
 export interface ConsensusSummary {
     verdict: string;
     confidence: number;
     summary: string;
+    reviewers?: Array<{
+        provider: string;
+        modelId: string;
+        verdict: string;
+    }>;
 }
 export interface AgentWorkflowState {
     currentAgent: AgentState;
@@ -55,6 +65,8 @@ export interface AgentWorkflowState {
     subTasks: SubTaskSummary[];
     mcpToolResults: MCPToolResultSummary[];
     consensusResult: ConsensusSummary | null;
+    engineMode: EngineMode;
+    parallelExecution: boolean;
 }
 export declare function createInitialWorkflowState(taskInput: string, overrides?: Partial<AgentWorkflowState>): AgentWorkflowState;
 //# sourceMappingURL=types.d.ts.map

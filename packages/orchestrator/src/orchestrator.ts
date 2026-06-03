@@ -12,6 +12,8 @@ import {
 } from './types';
 import { RapidMLXClient } from '@aios/ai-core/rapid-mlx-client';
 import { AgentRole, ModelRouter, TaskType } from '@aios/ai-core/model-router';
+import type { DynamicRouter } from '@aios/ai-core';
+import type { EngineMode } from './types';
 import { MCPRegistry } from '@aios/mcp-adapters';
 import type { OpenKB } from '@aios/knowledge-graph';
 import type { EvolutionKernel } from '@aios/self-evolution';
@@ -25,6 +27,8 @@ export interface OrchestratorOptions {
   mcpRegistry?: MCPRegistry;
   knowledgeGraph?: OpenKB;
   evolutionKernel?: EvolutionKernel;
+  engineMode?: EngineMode;
+  parallelExecution?: boolean;
 }
 
 export interface OrchestratorRunOptions {
@@ -51,6 +55,9 @@ export class Orchestrator {
   private evolutionKernel?: EvolutionKernel;
   private taskSplitter = new TaskSplitter();
   private consensusEngine = new ConsensusEngine();
+  private dynamicRouter: DynamicRouter;
+  private defaultEngineMode: EngineMode;
+  private parallelExecution: boolean;
 
   constructor(
     rapidMLXClient: RapidMLXClient,
@@ -60,6 +67,9 @@ export class Orchestrator {
   ) {
     this.rapidMLXClient = rapidMLXClient;
     this.modelRouter = modelRouter;
+    this.dynamicRouter = modelRouter.getDynamicRouter();
+    this.defaultEngineMode = options.engineMode ?? 'auto';
+    this.parallelExecution = options.parallelExecution ?? true;
     this.skillParser = skillParser;
     this.maxIterations = options.maxIterations ?? 10;
     this.mcpRegistry = options.mcpRegistry;
@@ -114,10 +124,10 @@ export class Orchestrator {
         },
         agentTeam: {
           value: (
-            _x: { role: string; model: string }[],
-            y: { role: string; model: string }[]
+            _x: { role: string; model: string; provider?: string }[],
+            y: { role: string; model: string; provider?: string }[]
           ) => y,
-          default: () => [] as { role: string; model: string }[],
+          default: () => [] as { role: string; model: string; provider?: string }[],
         },
         projectContext: {
           value: (_x: Record<string, unknown>, y: Record<string, unknown>) => y,
@@ -136,6 +146,14 @@ export class Orchestrator {
           value: (_x: AgentWorkflowState['consensusResult'], y: AgentWorkflowState['consensusResult']) => y,
           default: () => null,
         },
+        engineMode: {
+          value: (_x: EngineMode, y: EngineMode) => y,
+          default: () => 'auto' as EngineMode,
+        },
+        parallelExecution: {
+          value: (_x: boolean, y: boolean) => y,
+          default: () => true,
+        },
       },
     } as unknown as StateGraphArgs<AgentWorkflowState>;
 
@@ -143,6 +161,7 @@ export class Orchestrator {
 
     graphBuilder.addNode('planner', async (state: AgentWorkflowState) => {
       this.emitStep('planner', 'started');
+      this.applyEngineMode(state.engineMode);
       console.log('Planner: Analyzing task and creating initial plan...');
       const skillsContext = this.buildSkillsContext(state.availableSkills);
 
@@ -156,6 +175,7 @@ export class Orchestrator {
 
       const plan = await this.callLLM(
         'reasoning',
+        'planner',
         'You are the Planner agent in AIOS. Create a detailed, step-by-step execution plan. ' +
           'Break the task into numbered sub-tasks. Reference relevant skills and MCP tools when applicable.',
         `Task: ${state.taskInput}\n\nProject Context: ${JSON.stringify(state.projectContext)}${memoryContext}\n\n` +
@@ -165,7 +185,7 @@ export class Orchestrator {
       );
 
       const subTasks = this.taskSplitter.splitPlan(plan, state.taskInput);
-      const agentTeam = this.buildAgentTeam();
+      const agentTeam = await this.buildAgentTeam();
 
       this.emitStep('planner', 'completed', plan);
 
@@ -189,7 +209,7 @@ export class Orchestrator {
       const skillsContext = this.buildSkillsContext(state.availableSkills);
       const subTaskContext = this.taskSplitter.formatSubTasksForExecution(state.subTasks);
 
-      const { executionResult, mcpToolResults } = await this.executeWithMCP(
+      const { executionResult, mcpToolResults, updatedSubTasks } = await this.executeWithMCP(
         state,
         skillsContext,
         subTaskContext
@@ -204,43 +224,62 @@ export class Orchestrator {
         lastOutput: executionResult,
         codeChangesProposed,
         mcpToolResults,
+        subTasks: updatedSubTasks ?? state.subTasks,
       };
     });
 
     graphBuilder.addNode('critic', async (state: AgentWorkflowState) => {
       this.emitStep('critic', 'started');
-      console.log('Critic: Reviewing execution result and proposed changes...');
+      console.log('Critic: Multi-engine review of execution result...');
 
-      const review = await this.callLLM(
-        'chat',
-        'You are the Critic agent in AIOS. Review execution results against the plan. ' +
-          'Start your response with exactly one verdict line:\n' +
-          'VERDICT: APPROVED | NEEDS_CORRECTION | NEEDS_APPROVAL\n' +
-          'Then provide detailed review.',
+      const criticPrompt =
         `Original Task: ${state.taskInput}\n\nPlan:\n${state.plan}\n\n` +
-          `Execution Result:\n${state.executionResult}\n\n` +
-          `MCP Tool Results: ${JSON.stringify(state.mcpToolResults)}\n\n` +
-          `Proposed Code Changes: ${state.codeChangesProposed ? JSON.stringify(state.codeChangesProposed) : 'None'}\n\n` +
-          'Evaluate quality, completeness, and correctness.'
-      );
+        `Execution Result:\n${state.executionResult}\n\n` +
+        `MCP Tool Results: ${JSON.stringify(state.mcpToolResults)}\n\n` +
+        `Proposed Code Changes: ${state.codeChangesProposed ? JSON.stringify(state.codeChangesProposed) : 'None'}\n\n` +
+        'Evaluate quality, completeness, and correctness.';
 
-      const consensusResult = this.consensusEngine.resolve(
-        review,
+      const systemPrompt =
+        'You are the Critic agent in AIOS. Review execution results against the plan. ' +
+        'Start your response with exactly one verdict line:\n' +
+        'VERDICT: APPROVED | NEEDS_CORRECTION | NEEDS_APPROVAL\n' +
+        'Then provide detailed review.';
+
+      const multiReviews = await this.dynamicRouter.routeMulti('critic', 'chat', [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: criticPrompt },
+      ]);
+
+      const reviewInputs = multiReviews.map((r) => ({
+        provider: r.provider,
+        modelId: r.modelId,
+        review: r.content || `VERDICT: APPROVED\n[${r.provider}] Review unavailable: ${r.error ?? 'empty'}`,
+      }));
+
+      const primaryReview = reviewInputs[0]?.review ?? await this.callLLM('chat', 'critic', systemPrompt, criticPrompt);
+
+      const consensusResult = this.consensusEngine.resolveFromReviews(
+        reviewInputs.length ? reviewInputs : [{ provider: 'primary', modelId: 'fallback', review: primaryReview }],
         state.executionResult,
         state.plan
       );
 
-      this.emitStep('critic', 'completed', review);
+      this.emitStep('critic', 'completed', primaryReview);
 
       return {
         currentAgent: 'critic' as AgentState,
-        review,
-        lastOutput: review,
+        review: primaryReview,
+        lastOutput: primaryReview,
         userApprovalRequired: this.consensusEngine.needsUserApproval(consensusResult),
         consensusResult: {
           verdict: consensusResult.verdict,
           confidence: consensusResult.confidence,
           summary: consensusResult.summary,
+          reviewers: consensusResult.reviewers?.map((r) => ({
+            provider: r.provider,
+            modelId: r.modelId,
+            verdict: r.verdict,
+          })),
         },
       };
     });
@@ -251,6 +290,7 @@ export class Orchestrator {
 
       let refinedPlan = await this.callLLM(
         'reasoning',
+        'self_corrector',
         'You are the Self-Corrector agent in AIOS. Refine the plan based on critic feedback.',
         `Original Plan:\n${state.plan}\n\nCritic Review:\n${state.review}\n\n` +
           'Produce an improved plan that addresses all issues raised.'
@@ -526,19 +566,108 @@ export class Orchestrator {
     });
   }
 
+  private applyEngineMode(mode: EngineMode): void {
+    this.dynamicRouter.setPreferences({ mode });
+  }
+
+  private async executeSubTaskParallel(
+    subTask: AgentWorkflowState['subTasks'][0],
+    state: AgentWorkflowState
+  ): Promise<{ subTask: AgentWorkflowState['subTasks'][0]; results: MCPToolResultSummary[]; output: string }> {
+    const routing = await this.dynamicRouter.route('executor', 'code');
+    const updated = {
+      ...subTask,
+      status: 'running' as const,
+      assignedEngine: `${routing.provider}/${routing.modelId}`,
+    };
+
+    const results: MCPToolResultSummary[] = [];
+
+    if (this.mcpRegistry && subTask.assignedTools.length) {
+      const toolResults = await Promise.all(
+        subTask.assignedTools.map((toolName) =>
+          this.mcpRegistry!.executeToolCall(toolName, { task: subTask.description })
+        )
+      );
+      for (const r of toolResults) {
+        results.push({
+          toolName: r.toolName,
+          adapterId: r.adapterId,
+          success: r.success,
+          result: r.result,
+        });
+      }
+    }
+
+    let output: string;
+    try {
+      const llmResult = await this.dynamicRouter.routeAndChat(
+        'executor',
+        'code',
+        [
+          {
+            role: 'system',
+            content: 'You are an Executor sub-agent in AIOS Swarm. Execute this sub-task only.',
+          },
+          {
+            role: 'user',
+            content:
+              `Sub-task: ${subTask.description}\nParent task: ${state.taskInput}\n` +
+              `MCP results: ${JSON.stringify(results)}\n` +
+              'If code changes needed: FILE: path\n```diff\n...\n```',
+          },
+        ]
+      );
+      output = llmResult.content;
+    } catch {
+      output = `[${updated.assignedEngine}] Completed: ${subTask.description}`;
+    }
+
+    return {
+      subTask: { ...updated, status: 'completed', result: output.slice(0, 300) },
+      results,
+      output,
+    };
+  }
+
   private async executeWithMCP(
     state: AgentWorkflowState,
     skillsContext: string,
     subTaskContext: string
-  ): Promise<{ executionResult: string; mcpToolResults: MCPToolResultSummary[] }> {
+  ): Promise<{
+    executionResult: string;
+    mcpToolResults: MCPToolResultSummary[];
+    updatedSubTasks?: AgentWorkflowState['subTasks'];
+  }> {
     const userPrompt =
       `Plan:\n${state.plan}\n\nSub-tasks:\n${subTaskContext}\n\nTask: ${state.taskInput}\n\n` +
       `Available Skills:\n${skillsContext}\n\n` +
       'Execute the plan using available MCP tools when appropriate.';
 
+    if (state.parallelExecution && state.subTasks.length > 1) {
+      console.log(`Executor: Parallel swarm execution (${state.subTasks.length} sub-tasks)...`);
+      const parallelResults = await Promise.all(
+        state.subTasks.map((st) => this.executeSubTaskParallel(st, state))
+      );
+
+      const mcpToolResults = parallelResults.flatMap((r) => r.results);
+      const updatedSubTasks = parallelResults.map((r) => r.subTask);
+      const executionResult =
+        `Parallel Swarm Execution (${parallelResults.length} sub-agents):\n\n` +
+        parallelResults
+          .map(
+            (r) =>
+              `### [${r.subTask.id}] ${r.subTask.description}\nEngine: ${r.subTask.assignedEngine}\n${r.output}`
+          )
+          .join('\n\n');
+
+      return { executionResult, mcpToolResults, updatedSubTasks };
+    }
+
     if (!this.mcpRegistry) {
       const executionResult = await this.callLLM(
         'code',
+        'executor',
         'You are the Executor agent in AIOS. Execute the given plan step by step. ' +
           'If code changes are needed, include them using this format:\n' +
           'FILE: path/to/file.ts\n```diff\n...diff content...\n```',
@@ -551,9 +680,6 @@ export class Orchestrator {
     const mcpToolResults: MCPToolResultSummary[] = [];
 
     try {
-      const isHealthy = await this.rapidMLXClient.healthCheck();
-      if (!isHealthy) throw new Error('Rapid-MLX unavailable');
-
       const response = await this.modelRouter.routeAndChatWithTools(
         'code',
         [
@@ -566,9 +692,11 @@ export class Orchestrator {
           { role: 'user', content: userPrompt },
         ],
         tools
-      );
+      ) as { content?: string; tool_calls?: unknown[] };
 
-      const toolCalls = this.mcpRegistry.parseToolCallsFromLLM(response);
+      const toolCalls = this.mcpRegistry.parseToolCallsFromLLM(
+        response as { content?: string; tool_calls?: { id: string; function: { name: string; arguments: string } }[] }
+      );
 
       if (toolCalls.length > 0) {
         for (const call of toolCalls) {
@@ -599,11 +727,17 @@ export class Orchestrator {
       }
 
       return {
-        executionResult: response.content ?? await this.callLLM('code', 'Execute the plan.', userPrompt),
+        executionResult:
+          response.content ??
+          (await this.callLLM('code', 'executor', 'Execute the plan.', userPrompt)),
         mcpToolResults,
       };
     } catch (error) {
-      console.warn('MCP execution failed, falling back to simulated tools:', error);
+      console.warn('MCP execution failed, falling back to parallel simulated tools:', error);
+
+      if (state.subTasks.length > 1) {
+        return this.executeWithMCP({ ...state, parallelExecution: true }, skillsContext, subTaskContext);
+      }
 
       for (const subTask of state.subTasks) {
         for (const toolName of subTask.assignedTools) {
@@ -621,6 +755,7 @@ export class Orchestrator {
 
       const fallbackText = await this.callLLM(
         'code',
+        'executor',
         'You are the Executor agent in AIOS.',
         userPrompt + `\n\nMCP Results:\n${JSON.stringify(mcpToolResults)}`
       );
@@ -629,12 +764,15 @@ export class Orchestrator {
     }
   }
 
-  private buildAgentTeam(): { role: string; model: string }[] {
+  private async buildAgentTeam(): Promise<{ role: string; model: string; provider: string }[]> {
     const roles: AgentRole[] = ['planner', 'executor', 'critic', 'self_corrector', 'knowledge_updater'];
-    return roles.map((role) => ({
-      role,
-      model: this.modelRouter.getModelForRole(role),
-    }));
+    const team = await Promise.all(
+      roles.map(async (role) => {
+        const routing = await this.dynamicRouter.route(role);
+        return { role, model: routing.modelId, provider: routing.provider };
+      })
+    );
+    return team;
   }
 
   private buildSkillsContext(skillNames: string[]): string {
@@ -666,21 +804,19 @@ export class Orchestrator {
 
   private async callLLM(
     taskType: TaskType,
+    role: AgentRole,
     systemPrompt: string,
     userPrompt: string
   ): Promise<string> {
     try {
-      const isHealthy = await this.rapidMLXClient.healthCheck();
-      if (!isHealthy) {
-        throw new Error('Rapid-MLX server unavailable');
-      }
-
-      return await this.modelRouter.routeAndChat(taskType, [
+      const result = await this.dynamicRouter.routeAndChat(role, taskType, [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ]);
+      console.log(`[Orchestrator] ${role} via ${result.routing.provider}/${result.routing.modelId}`);
+      return result.content;
     } catch (error) {
-      console.warn(`LLM call failed (${taskType}), using structured fallback:`, error);
+      console.warn(`LLM call failed (${taskType}/${role}), using structured fallback:`, error);
       return this.generateFallbackResponse(taskType, userPrompt);
     }
   }

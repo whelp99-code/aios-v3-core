@@ -57,14 +57,16 @@ echo "▶ Health & Status"
 HEALTH_BODY=$(curl -s -w "\n%{http_code}" "$BASE/api/health" 2>/dev/null || echo -e "\n000")
 HEALTH_CODE=$(echo "$HEALTH_BODY" | tail -1)
 HEALTH_RESP=$(echo "$HEALTH_BODY" | sed '$d')
-if { [ "$HEALTH_CODE" = "200" ] || [ "$HEALTH_CODE" = "503" ]; } && echo "$HEALTH_RESP" | grep -q "rapid-mlx"; then
-  echo "  ✅ GET /api/health — HTTP $HEALTH_CODE (Rapid-MLX $(echo "$HEALTH_RESP" | grep -o '"status":"[^"]*"' | head -1))"
+if { [ "$HEALTH_CODE" = "200" ] || [ "$HEALTH_CODE" = "503" ]; } && echo "$HEALTH_RESP" | grep -qE '"engine":"hybrid"|"providers"'; then
+  echo "  ✅ GET /api/health — HTTP $HEALTH_CODE (Hybrid $(echo "$HEALTH_RESP" | grep -o '"status":"[^"]*"' | head -1))"
   PASS=$((PASS + 1))
 else
   echo "  ❌ GET /api/health — HTTP $HEALTH_CODE"
   FAIL=$((FAIL + 1))
 fi
 check "GET /api/mcp/status" GET "/api/mcp/status" "" "adapters"
+check "GET /api/engines" GET "/api/engines" "" "models"
+check "POST /api/engines set mode" POST "/api/engines" '{"mode":"auto"}' "preferences"
 check "GET /api/stats" GET "/api/stats" "" "knowledge"
 
 echo ""
@@ -80,7 +82,7 @@ check "GET /api/knowledge" GET "/api/knowledge" "" "nodeCount"
 echo ""
 echo "▶ Workflow (Swarm)"
 WF=$(curl -sf -X POST -H "Content-Type: application/json" \
-  -d '{"taskInput":"Verify AIOS integration test","autoApprove":true}' \
+  -d '{"taskInput":"Verify AIOS integration test","autoApprove":true,"engineMode":"auto","parallelExecution":true}' \
   "$BASE/api/workflow" 2>/dev/null || echo '{}')
 SESSION=$(echo "$WF" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.parse(d).sessionId||'')}catch{console.log('')}})" 2>/dev/null)
 

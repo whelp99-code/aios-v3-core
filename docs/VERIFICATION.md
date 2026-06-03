@@ -7,6 +7,17 @@
 - Node.js >= 22
 - pnpm
 - (선택) Rapid-MLX 로컬 서버 — 없어도 Fallback/시뮬레이션 모드로 검증 가능
+- (선택) 클라우드 API 키 — `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` 설정 시 Hybrid Router가 클라우드 엔진 사용
+
+### Hybrid AI Core 환경변수
+
+| 변수 | 설명 |
+|------|------|
+| `RAPID_MLX_BASE_URL` | 로컬 Rapid-MLX URL (기본: `http://localhost:8000/v1`) |
+| `OPENAI_API_KEY` | OpenAI GPT-4o / GPT-4o-mini |
+| `ANTHROPIC_API_KEY` | Anthropic Claude 3.5 |
+| `AIOS_ENGINE_MODE` | `auto` \| `local` \| `cloud` (기본: auto) |
+| `RAPID_MLX_LOAD` | 로컬 GPU 부하 시뮬레이션 (0-1, Dynamic Resource Allocator) |
 
 ## 1단계: 패키지 빌드 + 단위 검증
 
@@ -20,11 +31,12 @@ pnpm install
 | # | 항목 | 내용 |
 |---|------|------|
 | 1 | `build:packages` | 6개 패키지 TypeScript 빌드 |
-| 2 | MCP Adapters | 3개 앱 어댑터 + 도구 호출 |
-| 3 | Knowledge Graph | ingest + GraphRAG |
-| 4 | Orchestrator | Swarm 워크플로우 → `completed` |
-| 5 | Self-Evolution | proposal → approve → apply |
-| 6 | Web Build | Next.js 프로덕션 빌드 |
+| 2 | Hybrid AI Core | ModelRegistry + DynamicRouter + Multi-engine |
+| 3 | MCP Adapters | 3개 앱 어댑터 + 도구 호출 |
+| 4 | Knowledge Graph | ingest + GraphRAG |
+| 5 | Orchestrator | Swarm 워크플로우 → `completed` |
+| 6 | Self-Evolution | proposal → approve → apply |
+| 7 | Web Build | Next.js 프로덕션 빌드 |
 
 ## 2단계: Web 서버 실행
 

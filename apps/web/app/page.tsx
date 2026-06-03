@@ -9,11 +9,17 @@ interface Message {
 }
 
 interface EngineStatus {
-  status: 'healthy' | 'unhealthy' | 'checking';
+  status: 'healthy' | 'unhealthy' | 'degraded' | 'checking';
   engine: string;
-  models?: { id: string }[];
+  models?: { modelId?: string; id?: string; provider?: string; displayName?: string }[];
+  providers?: Array<{ provider: string; healthy: boolean; error?: string }>;
+  resource?: { localLoad: number; localHealthy: boolean; recommendedMode: string; cloudAvailable: boolean };
+  preferences?: { mode: string };
+  rapidMLX?: { healthy: boolean };
   error?: string;
 }
+
+type EngineMode = 'auto' | 'local' | 'cloud';
 
 interface MCPAdapterStatus {
   id: string;
@@ -36,10 +42,11 @@ interface WorkflowState {
   executionResult?: string | null;
   review?: string | null;
   lastOutput?: string | null;
-  subTasks?: { id: string; description: string; priority: number }[];
+  subTasks?: { id: string; description: string; priority: number; status?: string; assignedEngine?: string }[];
   mcpToolResults?: { toolName: string; adapterId: string; success: boolean }[];
-  consensusResult?: { verdict: string; confidence: number; summary: string };
-  agentTeam?: { role: string; model: string }[];
+  consensusResult?: { verdict: string; confidence: number; summary: string; reviewers?: { provider: string; modelId: string; verdict: string }[] };
+  agentTeam?: { role: string; model: string; provider?: string }[];
+  engineMode?: string;
 }
 
 const AGENT_LABELS: Record<string, string> = {
@@ -65,6 +72,8 @@ export default function Home() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [useWorkflow, setUseWorkflow] = useState(true);
+  const [engineMode, setEngineMode] = useState<EngineMode>('auto');
+  const [parallelExecution, setParallelExecution] = useState(true);
   const [engineStatus, setEngineStatus] = useState<EngineStatus>({
     status: 'checking',
     engine: 'rapid-mlx',
@@ -90,14 +99,27 @@ export default function Home() {
       const response = await fetch('/api/health');
       const data = await response.json();
       setEngineStatus(data);
+      if (data.preferences?.mode) {
+        setEngineMode(data.preferences.mode as EngineMode);
+      }
     } catch {
       setEngineStatus({
         status: 'unhealthy',
-        engine: 'rapid-mlx',
-        error: 'Failed to connect to Rapid-MLX server',
+        engine: 'hybrid',
+        error: 'Failed to connect to AI engine',
       });
     }
   }, []);
+
+  const updateEngineMode = useCallback(async (mode: EngineMode) => {
+    setEngineMode(mode);
+    await fetch('/api/engines', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode }),
+    });
+    checkHealth();
+  }, [checkHealth]);
 
   const checkMCPStatus = useCallback(async () => {
     try {
@@ -254,7 +276,7 @@ export default function Home() {
         const response = await fetch('/api/workflow', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ taskInput, autoApprove: false }),
+          body: JSON.stringify({ taskInput, autoApprove: false, engineMode, parallelExecution }),
         });
 
         const data = await response.json();
@@ -320,9 +342,11 @@ export default function Home() {
   const statusColor =
     engineStatus.status === 'healthy'
       ? 'bg-green-500'
-      : engineStatus.status === 'unhealthy'
-        ? 'bg-red-500'
-        : 'bg-yellow-500';
+      : engineStatus.status === 'degraded'
+        ? 'bg-yellow-500'
+        : engineStatus.status === 'unhealthy'
+          ? 'bg-red-500'
+          : 'bg-yellow-500';
 
   const mcpStatusColor = (status: string) => {
     switch (status) {
@@ -375,14 +399,59 @@ export default function Home() {
         <div className="bg-zinc-800 p-3 rounded-lg mb-4">
           <div className="flex items-center gap-2 mb-2">
             <div className={`w-3 h-3 rounded-full ${statusColor}`} />
-            <div className="font-semibold text-sm">Rapid-MLX</div>
+            <div className="font-semibold text-sm">Hybrid AI Core</div>
           </div>
           <div className="text-xs text-zinc-400">
-            {engineStatus.status === 'healthy' ? '정상 작동' : '연결 안 됨 (Fallback 모드)'}
+            {engineStatus.status === 'healthy'
+              ? '로컬/클라우드 사용 가능'
+              : engineStatus.status === 'degraded'
+                ? 'Fallback 모드 (일부 엔진)'
+                : 'Fallback 모드'}
           </div>
-          {engineStatus.models && engineStatus.models.length > 0 && (
-            <div className="text-xs text-zinc-500 mt-2">모델: {engineStatus.models[0]?.id}</div>
+          {engineStatus.resource && (
+            <div className="text-xs text-zinc-500 mt-2">
+              로컬 부하: {Math.round(engineStatus.resource.localLoad * 100)}% · 권장: {engineStatus.resource.recommendedMode}
+            </div>
           )}
+        </div>
+
+        <h3 className="text-sm font-semibold mb-2 text-zinc-400">엔진 모드</h3>
+        <div className="flex gap-1 mb-4">
+          {(['auto', 'local', 'cloud'] as EngineMode[]).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => updateEngineMode(mode)}
+              className={`flex-1 py-1.5 text-xs rounded-lg font-medium uppercase ${
+                engineMode === mode ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+              }`}
+            >
+              {mode === 'auto' ? '자동' : mode === 'local' ? '로컬' : '클라우드'}
+            </button>
+          ))}
+        </div>
+
+        <label className="flex items-center gap-2 text-xs text-zinc-400 mb-4 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={parallelExecution}
+            onChange={(e) => setParallelExecution(e.target.checked)}
+            className="rounded"
+          />
+          병렬 Swarm (서브태스크 동시 실행)
+        </label>
+
+        <h3 className="text-sm font-semibold mb-2 text-zinc-400">Provider 상태</h3>
+        <div className="space-y-2 mb-4">
+          {(engineStatus.providers ?? [
+            { provider: 'local', healthy: engineStatus.rapidMLX?.healthy ?? false },
+          ]).map((p) => (
+            <div key={p.provider} className="bg-zinc-800 p-2 rounded-lg flex items-center justify-between">
+              <span className="text-xs font-medium capitalize">{p.provider}</span>
+              <span className={`text-xs ${p.healthy ? 'text-green-400' : 'text-zinc-500'}`}>
+                {p.healthy ? '●' : '○'}
+              </span>
+            </div>
+          ))}
         </div>
 
         <h3 className="text-sm font-semibold mb-2 text-zinc-400">MCP 연동 앱</h3>
@@ -584,10 +653,40 @@ export default function Home() {
                 </div>
                 {workflowState?.consensusResult && (
                   <div className="bg-zinc-800 p-3 rounded-lg mb-4">
-                    <h3 className="text-sm font-semibold mb-1">Consensus</h3>
+                    <h3 className="text-sm font-semibold mb-1">Multi-Engine Consensus</h3>
                     <div className="text-xs text-zinc-400">
                       {workflowState.consensusResult.verdict} ({Math.round(workflowState.consensusResult.confidence * 100)}%)
                     </div>
+                    {workflowState.consensusResult.reviewers && (
+                      <div className="mt-2 space-y-1">
+                        {workflowState.consensusResult.reviewers.map((r) => (
+                          <div key={`${r.provider}-${r.modelId}`} className="text-xs text-zinc-500">
+                            {r.provider}: {r.verdict}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {workflowState?.subTasks && workflowState.subTasks.length > 0 && (
+                  <div className="bg-zinc-800 p-3 rounded-lg mb-4">
+                    <h3 className="text-sm font-semibold mb-2">Sub-Tasks (Swarm)</h3>
+                    {workflowState.subTasks.map((st) => (
+                      <div key={st.id} className="text-xs text-zinc-400 mb-1">
+                        [{st.status ?? 'pending'}] {st.description.slice(0, 40)}
+                        {st.assignedEngine && <span className="text-zinc-600"> · {st.assignedEngine}</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {workflowState?.agentTeam && workflowState.agentTeam.length > 0 && (
+                  <div className="bg-zinc-800 p-3 rounded-lg mb-4">
+                    <h3 className="text-sm font-semibold mb-2">Agent Team</h3>
+                    {workflowState.agentTeam.map((m) => (
+                      <div key={m.role} className="text-xs text-zinc-400 mb-1">
+                        {m.role}: {m.provider}/{m.model}
+                      </div>
+                    ))}
                   </div>
                 )}
               </>

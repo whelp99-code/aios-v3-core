@@ -1,3 +1,4 @@
+import { DynamicRouter, type EngineMode, type EnginePreferences } from '@aios/ai-core';
 import { OpenKB } from '@aios/knowledge-graph';
 import { MCPRegistry } from '@aios/mcp-adapters';
 import { Orchestrator, type AgentWorkflowState, type WorkflowStepEvent } from '@aios/orchestrator';
@@ -7,8 +8,13 @@ import { WebhookPublisher } from './webhook-publisher';
 import { CommunityRegistry } from './community-registry';
 export interface AIOSConfig {
     rapidMLXBaseURL?: string;
+    openaiApiKey?: string;
+    anthropicApiKey?: string;
     dataDir?: string;
     skillsDirectory?: string;
+    engineMode?: EngineMode;
+    enginePreferences?: EnginePreferences;
+    parallelExecution?: boolean;
     mcp?: {
         vibeCodingOSUrl?: string;
         automationPortalUrl?: string;
@@ -29,12 +35,23 @@ export declare class AIOS {
     readonly webhooks: WebhookPublisher;
     readonly mcp: MCPRegistry;
     readonly community: CommunityRegistry;
+    readonly dynamicRouter: DynamicRouter;
     private orchestrator;
     private config;
     constructor(config?: AIOSConfig);
+    setEnginePreferences(prefs: Partial<EnginePreferences>): void;
+    getEnginePreferences(): EnginePreferences;
+    getEngineStatus(): Promise<{
+        health: import("@aios/ai-core").ProviderHealth[];
+        snapshot: import("@aios/ai-core").ResourceSnapshot;
+        models: import("@aios/ai-core").ModelEntry[];
+        preferences: EnginePreferences;
+    }>;
     getOrchestrator(): Orchestrator;
     run(taskInput: string, options?: {
         autoApprove?: boolean;
+        engineMode?: EngineMode;
+        parallelExecution?: boolean;
         onStep?: (step: WorkflowStepEvent) => void;
         userApprovalHandler?: (state: AgentWorkflowState) => Promise<boolean>;
     }): Promise<AIOSRunResult>;
@@ -56,6 +73,7 @@ export declare class AIOS {
         webhooks: number;
         community: number;
         mcp: number;
+        engine: EnginePreferences;
     };
 }
 export { PluginManager, type AIOSPlugin } from './plugin-manager';

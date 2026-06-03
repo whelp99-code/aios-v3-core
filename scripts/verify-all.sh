@@ -12,28 +12,35 @@ log() { echo ""; echo "━━━━━━━━━━━━━━━━━━━
 pass() { PASS=$((PASS + 1)); RESULTS+=("✅ $1"); echo "  ✅ PASS: $1"; }
 fail() { FAIL=$((FAIL + 1)); RESULTS+=("❌ $1"); echo "  ❌ FAIL: $1"; [ -n "${2:-}" ] && echo "     $2"; }
 
-log "1/6 패키지 빌드 (build:packages)"
+log "1/7 패키지 빌드 (build:packages)"
 if pnpm build:packages > /tmp/aios-build.log 2>&1; then
   pass "pnpm build:packages"
 else
   fail "pnpm build:packages" "$(tail -5 /tmp/aios-build.log)"
 fi
 
-log "2/6 MCP Adapters smoke test"
+log "2/7 Hybrid AI Core smoke test"
+if node packages/ai-core/scripts/smoke-test.js > /tmp/aios-hybrid.log 2>&1; then
+  pass "Hybrid AI Core (registry + router + multi-engine)"
+else
+  fail "Hybrid AI Core" "$(tail -3 /tmp/aios-hybrid.log)"
+fi
+
+log "3/7 MCP Adapters smoke test"
 if node packages/mcp-adapters/scripts/smoke-test.js > /tmp/aios-mcp.log 2>&1; then
   pass "MCP adapters (3 apps, tool call)"
 else
   fail "MCP adapters" "$(tail -3 /tmp/aios-mcp.log)"
 fi
 
-log "3/6 Knowledge Graph smoke test"
+log "4/7 Knowledge Graph smoke test"
 if node packages/knowledge-graph/scripts/smoke-test.js > /tmp/aios-kg.log 2>&1; then
   pass "Knowledge Graph (ingest + GraphRAG)"
 else
   fail "Knowledge Graph" "$(tail -3 /tmp/aios-kg.log)"
 fi
 
-log "4/6 Orchestrator smoke test"
+log "5/7 Orchestrator smoke test"
 if node packages/orchestrator/scripts/smoke-test.js > /tmp/aios-orch.log 2>&1; then
   if grep -q "Final Agent: completed" /tmp/aios-orch.log; then
     pass "Orchestrator workflow → completed"
@@ -44,7 +51,7 @@ else
   fail "Orchestrator" "$(tail -3 /tmp/aios-orch.log)"
 fi
 
-log "5/6 Self-Evolution unit checks"
+log "6/7 Self-Evolution unit checks"
 if node -e "
 const { EvolutionKernel } = require('./packages/self-evolution/dist/index');
 (async () => {
@@ -62,7 +69,7 @@ else
   fail "Self-Evolution" "$(tail -3 /tmp/aios-evo.log)"
 fi
 
-log "6/6 Web App build"
+log "7/7 Web App build"
 if cd apps/web && pnpm build > /tmp/aios-web.log 2>&1; then
   pass "Next.js production build"
 else

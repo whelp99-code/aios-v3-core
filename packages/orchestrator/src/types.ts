@@ -14,9 +14,12 @@ export interface CodeChange {
   diff: string;
 }
 
+export type EngineMode = 'auto' | 'local' | 'cloud';
+
 export interface AgentTeamMember {
   role: string;
   model: string;
+  provider?: string;
 }
 
 export interface KnowledgeGraphUpdate {
@@ -45,12 +48,16 @@ export interface SubTaskSummary {
   description: string;
   priority: number;
   assignedTools: string[];
+  status?: 'pending' | 'running' | 'completed' | 'failed';
+  result?: string;
+  assignedEngine?: string;
 }
 
 export interface ConsensusSummary {
   verdict: string;
   confidence: number;
   summary: string;
+  reviewers?: Array<{ provider: string; modelId: string; verdict: string }>;
 }
 
 export interface AgentWorkflowState {
@@ -76,6 +83,10 @@ export interface AgentWorkflowState {
   subTasks: SubTaskSummary[];
   mcpToolResults: MCPToolResultSummary[];
   consensusResult: ConsensusSummary | null;
+
+  // Hybrid AI Core
+  engineMode: EngineMode;
+  parallelExecution: boolean;
 }
 
 export function createInitialWorkflowState(
@@ -101,6 +112,8 @@ export function createInitialWorkflowState(
     subTasks: [],
     mcpToolResults: [],
     consensusResult: null,
+    engineMode: 'auto',
+    parallelExecution: true,
     ...overrides,
   };
 }

@@ -1,8 +1,14 @@
-import axios from 'axios';
-export class OllamaClient {
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.OllamaClient = void 0;
+const axios_1 = __importDefault(require("axios"));
+class OllamaClient {
     constructor(config = { baseURL: 'http://localhost:11434', timeout: 30000 }) {
         this.config = config;
-        this.client = axios.create({
+        this.client = axios_1.default.create({
             baseURL: config.baseURL,
             timeout: config.timeout,
         });
@@ -52,5 +58,6 @@ export class OllamaClient {
         }
     }
 }
-export default OllamaClient;
+exports.OllamaClient = OllamaClient;
+exports.default = OllamaClient;
 //# sourceMappingURL=ollama-client.js.map
