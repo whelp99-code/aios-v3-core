@@ -82,7 +82,7 @@ export class AIOS {
     const modelRouter = new ModelRouter(client, undefined, this.dynamicRouter);
 
     this.knowledge = new OpenKB(path.join(dataDir, 'knowledge'));
-    this.evolution = new EvolutionKernel();
+    this.evolution = new EvolutionKernel(path.join(dataDir, 'learned'));
     this.plugins = new PluginManager();
     this.webhooks = new WebhookPublisher();
     this.community = new CommunityRegistry();
@@ -106,6 +106,56 @@ export class AIOS {
     this.plugins.setEventEmitter((event, data) => {
       this.webhooks.publish(event as WebhookEvent, data as Record<string, unknown>).catch(() => {});
     });
+
+    this.applyLearnedPolicy();
+  }
+
+  private applyLearnedPolicy(): void {
+    const policy = this.evolution.policyStore.get();
+    const preferred = policy.routingBias.preferredProvider;
+    if (preferred && preferred !== 'local') {
+      this.dynamicRouter.setPreferences({
+        preferredCloudProvider: preferred,
+        mode: this.getEnginePreferences().mode,
+      });
+    }
+  }
+
+  async runTraining(options: {
+    dataset?: string;
+    iterations?: number;
+  } = {}) {
+    const dataset = options.dataset ?? 'databricks/databricks-dolly-15k';
+    const report = await this.evolution.training.runFullLoop({
+      dataset,
+      iterations: options.iterations ?? 10,
+      dataDir: path.join(this.config.dataDir ?? path.resolve(process.cwd(), 'data'), 'learned'),
+      ingestSample: async (sample, iteration) => {
+        await this.knowledge.ingestion.ingest({
+          type: 'dataset',
+          data: {
+            instruction: sample.instruction,
+            response: sample.review,
+            success: sample.success,
+            reward: sample.reward,
+            category: sample.category,
+            iteration,
+            dataset,
+            rowIdx: sample.rowIdx,
+          },
+        });
+      },
+    });
+
+    this.applyLearnedPolicy();
+    await this.webhooks.publish('training.completed', {
+      iterations: report.iterations.length,
+      totalSamples: report.totalSamples,
+      finalSuccessRate: report.finalSuccessRate,
+      policyVersion: report.finalPolicy.version,
+    });
+
+    return report;
   }
 
   setEnginePreferences(prefs: Partial<EnginePreferences>): void {
@@ -232,6 +282,7 @@ export class AIOS {
         successRate: this.evolution.experience.getSuccessRate(),
         pendingProposals: this.evolution.hotPatch.getPendingProposals().length,
         appliedPatches: this.evolution.hotPatch.getAppliedPatches().length,
+        learnedPolicy: this.evolution.policyStore.get(),
       },
       plugins: this.plugins.getAllPlugins().length,
       webhooks: this.webhooks.getSubscriptions().length,

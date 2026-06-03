@@ -9,5 +9,6 @@ export declare class IngestionPipeline {
     ingestWorkflow(data: Record<string, unknown>): KnowledgeNode[];
     ingestArxiv(data: Record<string, unknown>): Promise<KnowledgeNode[]>;
     ingestGitHub(data: Record<string, unknown>): Promise<KnowledgeNode[]>;
+    ingestDataset(data: Record<string, unknown>): KnowledgeNode;
 }
 //# sourceMappingURL=ingestion-pipeline.d.ts.map

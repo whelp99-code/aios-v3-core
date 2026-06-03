@@ -1,4 +1,4 @@
-export type NodeType = 'skill' | 'concept' | 'document' | 'project' | 'tool' | 'task' | 'external';
+export type NodeType = 'skill' | 'concept' | 'document' | 'project' | 'tool' | 'task' | 'external' | 'dataset';
 export type EdgeType = 'references' | 'depends_on' | 'derived_from' | 'related_to' | 'executed_with';
 export interface KnowledgeNode {
     id: string;
@@ -26,7 +26,7 @@ export interface KnowledgeQueryResult {
     confidence: number;
 }
 export interface IngestionSource {
-    type: 'skill' | 'arxiv' | 'github' | 'project' | 'workflow';
+    type: 'skill' | 'arxiv' | 'github' | 'project' | 'workflow' | 'dataset';
     data: Record<string, unknown>;
 }
 export interface ValidationIssue {

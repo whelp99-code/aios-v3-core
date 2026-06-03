@@ -40,6 +40,11 @@ export declare class AIOS {
     private orchestrator;
     private config;
     constructor(config?: AIOSConfig);
+    private applyLearnedPolicy;
+    runTraining(options?: {
+        dataset?: string;
+        iterations?: number;
+    }): Promise<import("@aios/self-evolution").ContinuousLearningReport>;
     setEnginePreferences(prefs: Partial<EnginePreferences>): void;
     getEnginePreferences(): EnginePreferences;
     getEngineStatus(): Promise<{
@@ -69,6 +74,7 @@ export declare class AIOS {
             successRate: number;
             pendingProposals: number;
             appliedPatches: number;
+            learnedPolicy: import("@aios/self-evolution").LearnedPolicy;
         };
         plugins: number;
         webhooks: number;

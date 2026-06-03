@@ -35,7 +35,7 @@ class AIOS {
         });
         const modelRouter = new ai_core_1.ModelRouter(client, undefined, this.dynamicRouter);
         this.knowledge = new knowledge_graph_1.OpenKB(path_1.default.join(dataDir, 'knowledge'));
-        this.evolution = new self_evolution_1.EvolutionKernel();
+        this.evolution = new self_evolution_1.EvolutionKernel(path_1.default.join(dataDir, 'learned'));
         this.plugins = new plugin_manager_1.PluginManager();
         this.webhooks = new webhook_publisher_1.WebhookPublisher();
         this.community = new community_registry_1.CommunityRegistry();
@@ -52,6 +52,48 @@ class AIOS {
         this.plugins.setEventEmitter((event, data) => {
             this.webhooks.publish(event, data).catch(() => { });
         });
+        this.applyLearnedPolicy();
+    }
+    applyLearnedPolicy() {
+        const policy = this.evolution.policyStore.get();
+        const preferred = policy.routingBias.preferredProvider;
+        if (preferred && preferred !== 'local') {
+            this.dynamicRouter.setPreferences({
+                preferredCloudProvider: preferred,
+                mode: this.getEnginePreferences().mode,
+            });
+        }
+    }
+    async runTraining(options = {}) {
+        const dataset = options.dataset ?? 'databricks/databricks-dolly-15k';
+        const report = await this.evolution.training.runFullLoop({
+            dataset,
+            iterations: options.iterations ?? 10,
+            dataDir: path_1.default.join(this.config.dataDir ?? path_1.default.resolve(process.cwd(), 'data'), 'learned'),
+            ingestSample: async (sample, iteration) => {
+                await this.knowledge.ingestion.ingest({
+                    type: 'dataset',
+                    data: {
+                        instruction: sample.instruction,
+                        response: sample.review,
+                        success: sample.success,
+                        reward: sample.reward,
+                        category: sample.category,
+                        iteration,
+                        dataset,
+                        rowIdx: sample.rowIdx,
+                    },
+                });
+            },
+        });
+        this.applyLearnedPolicy();
+        await this.webhooks.publish('training.completed', {
+            iterations: report.iterations.length,
+            totalSamples: report.totalSamples,
+            finalSuccessRate: report.finalSuccessRate,
+            policyVersion: report.finalPolicy.version,
+        });
+        return report;
     }
     setEnginePreferences(prefs) {
         this.dynamicRouter.setPreferences(prefs);
@@ -139,6 +181,7 @@ class AIOS {
                 successRate: this.evolution.experience.getSuccessRate(),
                 pendingProposals: this.evolution.hotPatch.getPendingProposals().length,
                 appliedPatches: this.evolution.hotPatch.getAppliedPatches().length,
+                learnedPolicy: this.evolution.policyStore.get(),
             },
             plugins: this.plugins.getAllPlugins().length,
             webhooks: this.webhooks.getSubscriptions().length,

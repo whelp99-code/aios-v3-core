@@ -18,6 +18,8 @@ export declare class HotPatchManager {
     private sandbox;
     private appliedPatches;
     createProposal(review: string, executionResult: string | null, existingChanges?: CodePatch[]): Promise<UpdateProposal>;
+    /** Direct proposal from training loop improvements */
+    createDirectProposal(description: string, patches: CodePatch[]): UpdateProposal;
     approve(id: string): UpdateProposal | null;
     reject(id: string): UpdateProposal | null;
     apply(id: string): UpdateProposal | null;

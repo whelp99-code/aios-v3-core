@@ -7,7 +7,8 @@ export type WebhookEvent =
   | 'approval.required'
   | 'knowledge.updated'
   | 'evolution.proposal'
-  | 'evolution.applied';
+  | 'evolution.applied'
+  | 'training.completed';
 
 export interface WebhookSubscription {
   id: string;

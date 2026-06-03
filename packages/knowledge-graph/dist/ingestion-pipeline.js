@@ -21,6 +21,8 @@ class IngestionPipeline {
                 return await this.ingestArxiv(source.data);
             case 'github':
                 return await this.ingestGitHub(source.data);
+            case 'dataset':
+                return [this.ingestDataset(source.data)];
             default:
                 return [];
         }
@@ -156,6 +158,29 @@ class IngestionPipeline {
                 }),
             ];
         }
+    }
+    ingestDataset(data) {
+        const iteration = data.iteration ?? 0;
+        const rowIdx = data.rowIdx ?? Date.now();
+        const instruction = String(data.instruction ?? '');
+        const response = String(data.response ?? '');
+        return this.store.addNode({
+            id: `dataset-${iteration}-${rowIdx}`,
+            type: 'dataset',
+            label: instruction.slice(0, 80) || `HF sample ${rowIdx}`,
+            content: response.slice(0, 2000),
+            metadata: {
+                iteration,
+                rowIdx,
+                success: data.success,
+                reward: data.reward,
+                category: data.category,
+                dataset: data.dataset,
+                source: 'huggingface',
+            },
+            source: String(data.dataset ?? 'huggingface'),
+            confidence: data.success ? 0.9 : 0.6,
+        });
     }
 }
 exports.IngestionPipeline = IngestionPipeline;

@@ -10,6 +10,7 @@
     "build:packages": "pnpm --filter @aios/knowledge-graph build && pnpm --filter @aios/self-evolution build && pnpm --filter @aios/ai-core build && pnpm --filter @aios/mcp-adapters build && pnpm --filter @aios/orchestrator build && pnpm --filter @aios/core build",
     "verify": "./scripts/verify-all.sh",
     "verify:api": "./scripts/verify-api.sh",
+    "train:hf": "./scripts/hf-train-10x.sh",
     "desktop": "pnpm --filter desktop dev"
   },
   "devDependencies": {

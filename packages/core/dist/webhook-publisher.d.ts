@@ -1,4 +1,4 @@
-export type WebhookEvent = 'workflow.started' | 'workflow.completed' | 'workflow.failed' | 'approval.required' | 'knowledge.updated' | 'evolution.proposal' | 'evolution.applied';
+export type WebhookEvent = 'workflow.started' | 'workflow.completed' | 'workflow.failed' | 'approval.required' | 'knowledge.updated' | 'evolution.proposal' | 'evolution.applied' | 'training.completed';
 export interface WebhookSubscription {
     id: string;
     url: string;
