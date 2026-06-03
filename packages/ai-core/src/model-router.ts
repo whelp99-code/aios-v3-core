@@ -2,6 +2,8 @@ import RapidMLXClient from './rapid-mlx-client';
 
 export type TaskType = 'chat' | 'code' | 'reasoning' | 'embedding';
 
+export type AgentRole = 'planner' | 'executor' | 'critic' | 'knowledge_updater' | 'self_corrector';
+
 export interface ModelConfig {
   chat: string;
   code: string;
@@ -26,6 +28,17 @@ export class ModelRouter {
 
   getModelForTask(taskType: TaskType): string {
     return this.modelConfig[taskType];
+  }
+
+  getModelForRole(role: AgentRole): string {
+    const roleToTask: Record<AgentRole, TaskType> = {
+      planner: 'reasoning',
+      executor: 'code',
+      critic: 'chat',
+      knowledge_updater: 'chat',
+      self_corrector: 'reasoning',
+    };
+    return this.getModelForTask(roleToTask[role]);
   }
 
   async routeAndChat(taskType: TaskType, messages: any[], options: any = {}): Promise<string> {

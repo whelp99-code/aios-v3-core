@@ -12,6 +12,16 @@ export class ModelRouter {
     getModelForTask(taskType) {
         return this.modelConfig[taskType];
     }
+    getModelForRole(role) {
+        const roleToTask = {
+            planner: 'reasoning',
+            executor: 'code',
+            critic: 'chat',
+            knowledge_updater: 'chat',
+            self_corrector: 'reasoning',
+        };
+        return this.getModelForTask(roleToTask[role]);
+    }
     async routeAndChat(taskType, messages, options = {}) {
         const model = this.getModelForTask(taskType);
         console.log(`[Rapid-MLX] Routing to model: ${model} for task: ${taskType}`);

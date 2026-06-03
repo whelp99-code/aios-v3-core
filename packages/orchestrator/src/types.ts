@@ -1,4 +1,29 @@
-export type AgentState = 'planner' | 'executor' | 'critic' | 'user_approval' | 'skill_refinement' | 'completed' | 'failed';
+export type AgentState =
+  | 'planner'
+  | 'executor'
+  | 'critic'
+  | 'user_approval'
+  | 'skill_refinement'
+  | 'knowledge_updater'
+  | 'completed'
+  | 'failed';
+
+export interface CodeChange {
+  filePath: string;
+  diff: string;
+}
+
+export interface AgentTeamMember {
+  role: string;
+  model: string;
+}
+
+export interface KnowledgeGraphUpdate {
+  type: string;
+  content: string;
+  source?: string;
+  timestamp?: string;
+}
 
 export interface AgentWorkflowState {
   currentAgent: AgentState;
@@ -7,11 +32,39 @@ export interface AgentWorkflowState {
   executionResult: string | null;
   review: string | null;
   lastOutput: string | null;
-  // Add more state variables as needed for Swarm Intelligence, Knowledge Graph, Self-Evolution
-  // For example:
-  // availableSkills: string[];
-  // knowledgeGraphUpdates: any[];
-  // codeChangesProposed: string | null;
-  // userApprovalRequired: boolean;
-  // compensationActions: string[];
+
+  // v3.0 Core Enhancements
+  availableSkills: string[];
+  knowledgeGraphUpdates: KnowledgeGraphUpdate[];
+  codeChangesProposed: CodeChange[] | null;
+  userApprovalRequired: boolean;
+  planApproved: boolean;
+  compensationActions: string[];
+  agentTeam: AgentTeamMember[];
+  projectContext: Record<string, unknown>;
+  workflowIteration: number;
+}
+
+export function createInitialWorkflowState(
+  taskInput: string,
+  overrides: Partial<AgentWorkflowState> = {}
+): AgentWorkflowState {
+  return {
+    currentAgent: 'planner',
+    taskInput,
+    plan: null,
+    executionResult: null,
+    review: null,
+    lastOutput: null,
+    availableSkills: [],
+    knowledgeGraphUpdates: [],
+    codeChangesProposed: null,
+    userApprovalRequired: false,
+    planApproved: false,
+    compensationActions: [],
+    agentTeam: [],
+    projectContext: {},
+    workflowIteration: 0,
+    ...overrides,
+  };
 }

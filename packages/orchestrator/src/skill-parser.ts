@@ -45,4 +45,39 @@ export class SkillParser {
       usageExample: usageExampleMatch ? usageExampleMatch[1].trim() : undefined,
     };
   }
+
+  validateSkillStepsAgainstTools(
+    skill: ParsedSkill,
+    availableTools: string[]
+  ): { valid: boolean; missingTools: string[] } {
+    const referencedTools = this.extractReferencedTools(skill);
+    const normalizedAvailable = new Set(availableTools.map((t) => t.toLowerCase()));
+    const missingTools = referencedTools.filter(
+      (tool) => !normalizedAvailable.has(tool.toLowerCase())
+    );
+
+    return {
+      valid: missingTools.length === 0,
+      missingTools,
+    };
+  }
+
+  private extractReferencedTools(skill: ParsedSkill): string[] {
+    const tools = new Set<string>();
+    const sources = [skill.dependencies ?? '', skill.workflowSteps, skill.usageExample ?? ''];
+
+    for (const source of sources) {
+      const backtickMatches = source.match(/`([a-zA-Z0-9_-]+)`/g) ?? [];
+      for (const match of backtickMatches) {
+        tools.add(match.replace(/`/g, ''));
+      }
+
+      const bulletMatches = source.match(/^\*\s+([a-zA-Z0-9_-]+)/gm) ?? [];
+      for (const match of bulletMatches) {
+        tools.add(match.replace(/^\*\s+/, ''));
+      }
+    }
+
+    return Array.from(tools);
+  }
 }
