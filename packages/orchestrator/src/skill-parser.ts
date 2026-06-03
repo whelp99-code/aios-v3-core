@@ -23,20 +23,25 @@ export class SkillParser {
       throw new Error('Invalid SKILL.md format: Missing YAML frontmatter delimiters.');
     }
 
-    const yamlFrontmatter = parts[1].trim();
+    const yamlFrontmatter = this.sanitizeYamlFrontmatter(parts[1].trim());
     const markdownContent = parts.slice(2).join('---\n').trim();
 
     let metadata: SkillMetadata;
     try {
-      metadata = yaml.load(yamlFrontmatter) as SkillMetadata;
+      metadata = yaml.load(yamlFrontmatter, { schema: yaml.DEFAULT_SCHEMA }) as SkillMetadata;
     } catch (e: any) {
       throw new Error(`Failed to parse SKILL.md YAML frontmatter: ${e.message}`);
     }
 
-    // Extract workflow steps, dependencies, usage example from markdown content
-    const workflowStepsMatch = markdownContent.match(/## Workflow Steps\n([\s\S]*?)(?:\n## Dependencies|\n## Usage Example|\n## Version|\n## Author|$)/);
-    const dependenciesMatch = markdownContent.match(/## Dependencies\n([\s\S]*?)(?:\n## Usage Example|\n## Version|\n## Author|$)/);
-    const usageExampleMatch = markdownContent.match(/## Usage Example\n([\s\S]*?)(?:\n## Version|\n## Author|$)/);
+    const workflowStepsMatch = markdownContent.match(
+      /## Workflow Steps\n([\s\S]*?)(?:\n## Dependencies|\n## Usage Example|\n## Version|\n## Author|$)/
+    );
+    const dependenciesMatch = markdownContent.match(
+      /## Dependencies\n([\s\S]*?)(?:\n## Usage Example|\n## Version|\n## Author|$)/
+    );
+    const usageExampleMatch = markdownContent.match(
+      /## Usage Example\n([\s\S]*?)(?:\n## Version|\n## Author|$)/
+    );
 
     return {
       metadata,
@@ -60,6 +65,39 @@ export class SkillParser {
       valid: missingTools.length === 0,
       missingTools,
     };
+  }
+
+  private sanitizeYamlFrontmatter(frontmatter: string): string {
+    return frontmatter
+      .split('\n')
+      .map((line) => {
+        const keyValueMatch = line.match(/^(\s*[\w_-]+):\s*(.+)$/);
+        if (!keyValueMatch) return line;
+
+        const [, key, value] = keyValueMatch;
+        const trimmed = value.trim();
+
+        if (
+          trimmed.startsWith('"') ||
+          trimmed.startsWith("'") ||
+          trimmed.startsWith('{') ||
+          trimmed.startsWith('[') ||
+          trimmed === 'true' ||
+          trimmed === 'false' ||
+          trimmed === 'null' ||
+          !isNaN(Number(trimmed))
+        ) {
+          return line;
+        }
+
+        if (trimmed.includes(':') || trimmed.includes('#')) {
+          const escaped = trimmed.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+          return `${key}: "${escaped}"`;
+        }
+
+        return line;
+      })
+      .join('\n');
   }
 
   private extractReferencedTools(skill: ParsedSkill): string[] {

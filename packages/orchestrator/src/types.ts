@@ -25,6 +25,33 @@ export interface KnowledgeGraphUpdate {
   timestamp?: string;
 }
 
+export interface MCPToolResultSummary {
+  toolName: string;
+  adapterId: string;
+  success: boolean;
+  result: unknown;
+}
+
+export interface WorkflowStepEvent {
+  agent: AgentState;
+  status: 'started' | 'completed';
+  output?: string;
+  timestamp: string;
+}
+
+export interface SubTaskSummary {
+  id: string;
+  description: string;
+  priority: number;
+  assignedTools: string[];
+}
+
+export interface ConsensusSummary {
+  verdict: string;
+  confidence: number;
+  summary: string;
+}
+
 export interface AgentWorkflowState {
   currentAgent: AgentState;
   taskInput: string;
@@ -43,6 +70,11 @@ export interface AgentWorkflowState {
   agentTeam: AgentTeamMember[];
   projectContext: Record<string, unknown>;
   workflowIteration: number;
+
+  // Phase 2: Swarm Intelligence
+  subTasks: SubTaskSummary[];
+  mcpToolResults: MCPToolResultSummary[];
+  consensusResult: ConsensusSummary | null;
 }
 
 export function createInitialWorkflowState(
@@ -65,6 +97,9 @@ export function createInitialWorkflowState(
     agentTeam: [],
     projectContext: {},
     workflowIteration: 0,
+    subTasks: [],
+    mcpToolResults: [],
+    consensusResult: null,
     ...overrides,
   };
 }

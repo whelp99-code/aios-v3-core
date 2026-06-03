@@ -18,6 +18,9 @@ function createInitialWorkflowState(taskInput, overrides = {}) {
         agentTeam: [],
         projectContext: {},
         workflowIteration: 0,
+        subTasks: [],
+        mcpToolResults: [],
+        consensusResult: null,
         ...overrides,
     };
 }

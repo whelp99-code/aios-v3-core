@@ -6,20 +6,27 @@ import {
   AgentWorkflowState,
   CodeChange,
   KnowledgeGraphUpdate,
+  MCPToolResultSummary,
+  WorkflowStepEvent,
   createInitialWorkflowState,
 } from './types';
 import { RapidMLXClient } from '@aios/ai-core/rapid-mlx-client';
 import { AgentRole, ModelRouter, TaskType } from '@aios/ai-core/model-router';
+import { MCPRegistry } from '@aios/mcp-adapters';
 import { ParsedSkill, SkillParser } from './skill-parser';
+import { TaskSplitter } from './task-splitter';
+import { ConsensusEngine } from './consensus-engine';
 
 export interface OrchestratorOptions {
   maxIterations?: number;
   skillsDirectory?: string;
+  mcpRegistry?: MCPRegistry;
 }
 
 export interface OrchestratorRunOptions {
   userApprovalHandler?: (state: AgentWorkflowState) => Promise<boolean>;
   maxIterations?: number;
+  onStep?: (step: WorkflowStepEvent) => void;
 }
 
 type WorkflowGraph = {
@@ -34,6 +41,10 @@ export class Orchestrator {
   private loadedSkills = new Map<string, ParsedSkill>();
   private maxIterations: number;
   private userApprovalHandler?: (state: AgentWorkflowState) => Promise<boolean>;
+  private onStep?: (step: WorkflowStepEvent) => void;
+  private mcpRegistry?: MCPRegistry;
+  private taskSplitter = new TaskSplitter();
+  private consensusEngine = new ConsensusEngine();
 
   constructor(
     rapidMLXClient: RapidMLXClient,
@@ -45,6 +56,7 @@ export class Orchestrator {
     this.modelRouter = modelRouter;
     this.skillParser = skillParser;
     this.maxIterations = options.maxIterations ?? 10;
+    this.mcpRegistry = options.mcpRegistry;
 
     if (options.skillsDirectory) {
       this.loadSkillsFromDirectory(options.skillsDirectory);
@@ -104,26 +116,42 @@ export class Orchestrator {
           default: () => ({} as Record<string, unknown>),
         },
         workflowIteration: { value: (_x: number, y: number) => y, default: () => 0 },
+        subTasks: {
+          value: (_x: AgentWorkflowState['subTasks'], y: AgentWorkflowState['subTasks']) => y,
+          default: () => [] as AgentWorkflowState['subTasks'],
+        },
+        mcpToolResults: {
+          value: (x: MCPToolResultSummary[], y: MCPToolResultSummary[]) => x.concat(y),
+          default: () => [] as MCPToolResultSummary[],
+        },
+        consensusResult: {
+          value: (_x: AgentWorkflowState['consensusResult'], y: AgentWorkflowState['consensusResult']) => y,
+          default: () => null,
+        },
       },
     } as unknown as StateGraphArgs<AgentWorkflowState>;
 
     const graphBuilder = new StateGraph<AgentWorkflowState>(stateGraphArgs);
 
     graphBuilder.addNode('planner', async (state: AgentWorkflowState) => {
+      this.emitStep('planner', 'started');
       console.log('Planner: Analyzing task and creating initial plan...');
       const skillsContext = this.buildSkillsContext(state.availableSkills);
 
       const plan = await this.callLLM(
         'reasoning',
         'You are the Planner agent in AIOS. Create a detailed, step-by-step execution plan. ' +
-          'Break the task into numbered sub-tasks. Reference relevant skills when applicable.',
+          'Break the task into numbered sub-tasks. Reference relevant skills and MCP tools when applicable.',
         `Task: ${state.taskInput}\n\nProject Context: ${JSON.stringify(state.projectContext)}\n\n` +
           `Available Skills:\n${skillsContext}\n\n` +
           (state.review ? `Previous Review Feedback:\n${state.review}\n\n` : '') +
           'Generate a structured plan with clear execution steps.'
       );
 
+      const subTasks = this.taskSplitter.splitPlan(plan, state.taskInput);
       const agentTeam = this.buildAgentTeam();
+
+      this.emitStep('planner', 'completed', plan);
 
       return {
         currentAgent: 'planner' as AgentState,
@@ -132,6 +160,7 @@ export class Orchestrator {
         userApprovalRequired: !state.planApproved,
         agentTeam,
         workflowIteration: state.workflowIteration + 1,
+        subTasks,
         availableSkills: state.availableSkills.length
           ? state.availableSkills
           : this.getLoadedSkillNames(),
@@ -139,30 +168,31 @@ export class Orchestrator {
     });
 
     graphBuilder.addNode('executor', async (state: AgentWorkflowState) => {
+      this.emitStep('executor', 'started');
       console.log('Executor: Executing plan step...');
       const skillsContext = this.buildSkillsContext(state.availableSkills);
+      const subTaskContext = this.taskSplitter.formatSubTasksForExecution(state.subTasks);
 
-      const executionResult = await this.callLLM(
-        'code',
-        'You are the Executor agent in AIOS. Execute the given plan step by step. ' +
-          'If code changes are needed, include them using this format:\n' +
-          'FILE: path/to/file.ts\n```diff\n...diff content...\n```',
-        `Plan:\n${state.plan}\n\nTask: ${state.taskInput}\n\n` +
-          `Available Skills:\n${skillsContext}\n\n` +
-          'Execute the plan and report results with any proposed code changes.'
+      const { executionResult, mcpToolResults } = await this.executeWithMCP(
+        state,
+        skillsContext,
+        subTaskContext
       );
 
       const codeChangesProposed = this.extractCodeChanges(executionResult);
+      this.emitStep('executor', 'completed', executionResult);
 
       return {
         currentAgent: 'executor' as AgentState,
         executionResult,
         lastOutput: executionResult,
         codeChangesProposed,
+        mcpToolResults,
       };
     });
 
     graphBuilder.addNode('critic', async (state: AgentWorkflowState) => {
+      this.emitStep('critic', 'started');
       console.log('Critic: Reviewing execution result and proposed changes...');
 
       const review = await this.callLLM(
@@ -173,17 +203,29 @@ export class Orchestrator {
           'Then provide detailed review.',
         `Original Task: ${state.taskInput}\n\nPlan:\n${state.plan}\n\n` +
           `Execution Result:\n${state.executionResult}\n\n` +
+          `MCP Tool Results: ${JSON.stringify(state.mcpToolResults)}\n\n` +
           `Proposed Code Changes: ${state.codeChangesProposed ? JSON.stringify(state.codeChangesProposed) : 'None'}\n\n` +
           'Evaluate quality, completeness, and correctness.'
       );
 
-      const verdict = this.parseCriticVerdict(review);
+      const consensusResult = this.consensusEngine.resolve(
+        review,
+        state.executionResult,
+        state.plan
+      );
+
+      this.emitStep('critic', 'completed', review);
 
       return {
         currentAgent: 'critic' as AgentState,
         review,
         lastOutput: review,
-        userApprovalRequired: verdict.needsApproval,
+        userApprovalRequired: this.consensusEngine.needsUserApproval(consensusResult),
+        consensusResult: {
+          verdict: consensusResult.verdict,
+          confidence: consensusResult.confidence,
+          summary: consensusResult.summary,
+        },
       };
     });
 
@@ -298,7 +340,9 @@ export class Orchestrator {
           return 'user_approval';
         }
         const verdict = this.parseCriticVerdict(state.review ?? '');
-        if (verdict.needsCorrection) {
+        const consensusNeedsCorrection =
+          state.consensusResult?.verdict === 'NEEDS_CORRECTION' || verdict.needsCorrection;
+        if (consensusNeedsCorrection) {
           return 'self_corrector';
         }
         return 'knowledge_updater';
@@ -340,6 +384,7 @@ export class Orchestrator {
     options: OrchestratorRunOptions = {}
   ): Promise<AgentWorkflowState> {
     this.userApprovalHandler = options.userApprovalHandler;
+    this.onStep = options.onStep;
     if (options.maxIterations !== undefined) {
       this.maxIterations = options.maxIterations;
       this.workflow = this.buildWorkflow();
@@ -427,6 +472,118 @@ export class Orchestrator {
     });
   }
 
+  private emitStep(agent: AgentState, status: WorkflowStepEvent['status'], output?: string): void {
+    this.onStep?.({
+      agent,
+      status,
+      output: output?.slice(0, 500),
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  private async executeWithMCP(
+    state: AgentWorkflowState,
+    skillsContext: string,
+    subTaskContext: string
+  ): Promise<{ executionResult: string; mcpToolResults: MCPToolResultSummary[] }> {
+    const userPrompt =
+      `Plan:\n${state.plan}\n\nSub-tasks:\n${subTaskContext}\n\nTask: ${state.taskInput}\n\n` +
+      `Available Skills:\n${skillsContext}\n\n` +
+      'Execute the plan using available MCP tools when appropriate.';
+
+    if (!this.mcpRegistry) {
+      const executionResult = await this.callLLM(
+        'code',
+        'You are the Executor agent in AIOS. Execute the given plan step by step. ' +
+          'If code changes are needed, include them using this format:\n' +
+          'FILE: path/to/file.ts\n```diff\n...diff content...\n```',
+        userPrompt
+      );
+      return { executionResult, mcpToolResults: [] };
+    }
+
+    const tools = this.mcpRegistry.getAllTools();
+    const mcpToolResults: MCPToolResultSummary[] = [];
+
+    try {
+      const isHealthy = await this.rapidMLXClient.healthCheck();
+      if (!isHealthy) throw new Error('Rapid-MLX unavailable');
+
+      const response = await this.modelRouter.routeAndChatWithTools(
+        'code',
+        [
+          {
+            role: 'system',
+            content:
+              'You are the Executor agent in AIOS. Execute tasks using MCP tools when needed. ' +
+              'Available tools are provided. Call tools for external app operations.',
+          },
+          { role: 'user', content: userPrompt },
+        ],
+        tools
+      );
+
+      const toolCalls = this.mcpRegistry.parseToolCallsFromLLM(response);
+
+      if (toolCalls.length > 0) {
+        for (const call of toolCalls) {
+          const result = await this.mcpRegistry.executeToolCall(
+            call.name,
+            call.arguments,
+            call.id
+          );
+          mcpToolResults.push({
+            toolName: result.toolName,
+            adapterId: result.adapterId,
+            success: result.success,
+            result: result.result,
+          });
+        }
+
+        const toolSummary = mcpToolResults
+          .map((r) => `- ${r.toolName} (${r.adapterId}): ${r.success ? 'OK' : 'FAILED'}`)
+          .join('\n');
+
+        return {
+          executionResult:
+            `MCP Tool Execution Results:\n${toolSummary}\n\n` +
+            `Details:\n${JSON.stringify(mcpToolResults, null, 2)}\n\n` +
+            (response.content ?? ''),
+          mcpToolResults,
+        };
+      }
+
+      return {
+        executionResult: response.content ?? await this.callLLM('code', 'Execute the plan.', userPrompt),
+        mcpToolResults,
+      };
+    } catch (error) {
+      console.warn('MCP execution failed, falling back to simulated tools:', error);
+
+      for (const subTask of state.subTasks) {
+        for (const toolName of subTask.assignedTools) {
+          const result = await this.mcpRegistry.executeToolCall(toolName, {
+            task: subTask.description,
+          });
+          mcpToolResults.push({
+            toolName: result.toolName,
+            adapterId: result.adapterId,
+            success: result.success,
+            result: result.result,
+          });
+        }
+      }
+
+      const fallbackText = await this.callLLM(
+        'code',
+        'You are the Executor agent in AIOS.',
+        userPrompt + `\n\nMCP Results:\n${JSON.stringify(mcpToolResults)}`
+      );
+
+      return { executionResult: fallbackText, mcpToolResults };
+    }
+  }
+
   private buildAgentTeam(): { role: string; model: string }[] {
     const roles: AgentRole[] = ['planner', 'executor', 'critic', 'self_corrector', 'knowledge_updater'];
     return roles.map((role) => ({
@@ -451,7 +608,10 @@ export class Orchestrator {
       .map((name) => {
         const skill = this.loadedSkills.get(name);
         if (!skill) return `- ${name} (not loaded)`;
-        const validation = this.skillParser.validateSkillStepsAgainstTools(skill, ['mcp', 'rapid-mlx']);
+        const availableTools = this.mcpRegistry
+          ? this.mcpRegistry.getAllTools().map((t) => t.function.name)
+          : ['mcp', 'rapid-mlx'];
+        const validation = this.skillParser.validateSkillStepsAgainstTools(skill, availableTools);
         const steps = skill.workflowSteps ? `\n  Steps: ${skill.workflowSteps.slice(0, 200)}...` : '';
         return `- ${skill.metadata.name}: ${skill.metadata.description}${steps}` +
           (validation.valid ? '' : `\n  Missing tools: ${validation.missingTools.join(', ')}`);

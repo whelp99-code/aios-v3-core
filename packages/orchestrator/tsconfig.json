@@ -10,9 +10,13 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
+    "declaration": true,
+    "declarationMap": true,
     "baseUrl": "../../", // Set baseUrl to the workspace root: /home/ubuntu/aios
     "paths": {
-      "@aios/ai-core/*": ["packages/ai-core/dist/*"], // Path relative to baseUrl, pointing to dist
+      "@aios/ai-core/*": ["packages/ai-core/dist/*"],
+      "@aios/mcp-adapters": ["packages/mcp-adapters/dist/index"],
+      "@aios/mcp-adapters/*": ["packages/mcp-adapters/dist/*"],
       "@aios/orchestrator/*": ["packages/orchestrator/src/*"]
     }
   },
