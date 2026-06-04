@@ -68,7 +68,7 @@ export class Orchestrator {
     this.rapidMLXClient = rapidMLXClient;
     this.modelRouter = modelRouter;
     this.dynamicRouter = modelRouter.getDynamicRouter();
-    this.defaultEngineMode = options.engineMode ?? 'auto';
+    this.defaultEngineMode = options.engineMode ?? 'local';
     this.parallelExecution = options.parallelExecution ?? true;
     this.skillParser = skillParser;
     this.maxIterations = options.maxIterations ?? 10;

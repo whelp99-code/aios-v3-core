@@ -19,6 +19,9 @@ import { EvolutionKernel } from '@aios/self-evolution';
 import { PluginManager } from './plugin-manager';
 import { WebhookEvent, WebhookPublisher } from './webhook-publisher';
 import { CommunityRegistry } from './community-registry';
+import { DEFAULT_ENGINE_MODE, DEFAULT_SECURITY_LEVEL } from './defaults';
+
+export { DEFAULT_ENGINE_MODE, DEFAULT_SECURITY_LEVEL } from './defaults';
 
 export interface AIOSConfig {
   rapidMLXBaseURL?: string;
@@ -74,7 +77,10 @@ export class AIOS {
         process.env.HF_TOKEN ??
         process.env.HUGGINGFACE_API_KEY,
       preferences: {
-        mode: config.engineMode ?? 'auto',
+        mode: config.engineMode ?? DEFAULT_ENGINE_MODE,
+        securityLevel:
+          config.enginePreferences?.securityLevel ??
+          (config.engineMode === 'cloud' ? 'cloud_secure' : DEFAULT_SECURITY_LEVEL),
         ...config.enginePreferences,
       },
     });
@@ -98,7 +104,7 @@ export class AIOS {
         mcpRegistry: this.mcp,
         knowledgeGraph: this.knowledge,
         evolutionKernel: this.evolution,
-        engineMode: config.engineMode ?? 'auto',
+        engineMode: config.engineMode ?? DEFAULT_ENGINE_MODE,
         parallelExecution: config.parallelExecution ?? true,
       }
     );
@@ -112,8 +118,23 @@ export class AIOS {
 
   private applyLearnedPolicy(): void {
     const policy = this.evolution.policyStore.get();
+    const baseMode = this.config.engineMode ?? DEFAULT_ENGINE_MODE;
     const bridged = this.evolution.policyBridge.apply(policy, this.getEnginePreferences());
-    this.dynamicRouter.setPreferences(bridged.enginePreferences);
+    const prefs: EnginePreferences = {
+      ...bridged.enginePreferences,
+      mode: baseMode,
+      securityLevel: baseMode === 'local' ? 'local_only' : 'cloud_secure',
+    };
+    if (baseMode === 'local') {
+      prefs.roleOverrides = {
+        planner: { provider: 'local' },
+        executor: { provider: 'local' },
+        critic: { provider: 'local' },
+        knowledge_updater: { provider: 'local' },
+        self_corrector: { provider: 'local' },
+      };
+    }
+    this.dynamicRouter.setPreferences(prefs);
   }
 
   async runOperationalLearning(iterations = 1000) {

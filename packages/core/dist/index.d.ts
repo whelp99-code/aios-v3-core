@@ -6,6 +6,7 @@ import { EvolutionKernel } from '@aios/self-evolution';
 import { PluginManager } from './plugin-manager';
 import { WebhookPublisher } from './webhook-publisher';
 import { CommunityRegistry } from './community-registry';
+export { DEFAULT_ENGINE_MODE, DEFAULT_SECURITY_LEVEL } from './defaults';
 export interface AIOSConfig {
     rapidMLXBaseURL?: string;
     openaiApiKey?: string;

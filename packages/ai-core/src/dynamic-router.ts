@@ -219,14 +219,23 @@ export class DynamicRouter {
     taskType: TaskType,
     messages: ChatMessage[]
   ): Promise<Array<{ provider: ModelProvider; modelId: string; content: string; error?: string }>> {
+    const snapshot = await this.getResourceSnapshot();
+    const effectiveMode = this.allocator.resolveMode(this.preferences.mode, snapshot);
+    const localOnly =
+      effectiveMode === 'local' || this.preferences.securityLevel === 'local_only';
+
     const targets: RoutingDecision[] = [];
     const primary = await this.route(role, taskType);
     targets.push(primary);
 
-    for (const provider of ['openai', 'anthropic', 'huggingface', 'local'] as ModelProvider[]) {
+    const providerOrder: ModelProvider[] = localOnly
+      ? ['local']
+      : ['openai', 'anthropic', 'huggingface', 'local'];
+
+    for (const provider of providerOrder) {
       if (provider === primary.provider) continue;
       const p = this.providers.get(provider);
-      if (!p?.isConfigured()) continue;
+      if (!p?.isConfigured() && provider !== 'local') continue;
       const model = this.registry.getForRole(role, provider);
       if (model) targets.push({ modelId: model.modelId, provider, reason: 'Multi-consensus reviewer' });
     }

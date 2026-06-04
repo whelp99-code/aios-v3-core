@@ -14,9 +14,10 @@
     "expand"
   ],
   "routingBias": {
-    "preferredProvider": "huggingface",
+    "preferredProvider": "local",
     "executor": "local",
-    "planner": "reasoning"
+    "planner": "local",
+    "critic": "local"
   },
   "categoryScores": {
     "general_qa": {

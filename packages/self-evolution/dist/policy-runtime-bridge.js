@@ -11,7 +11,7 @@ class PolicyRuntimeBridge {
             ? pref
             : current?.preferredCloudProvider;
         const prefs = {
-            mode: current?.mode ?? 'auto',
+            mode: pref === 'local' ? 'local' : current?.mode ?? 'local',
             preferredCloudProvider,
             roleOverrides: { ...current?.roleOverrides },
         };

@@ -12,7 +12,11 @@ export function getAIOS(): AIOS {
       huggingfaceApiKey: process.env.HF_TOKEN ?? process.env.HUGGINGFACE_API_KEY,
       dataDir: path.resolve(process.cwd(), '../../data'),
       skillsDirectory: path.resolve(process.cwd(), '../../skills'),
-      engineMode: (process.env.AIOS_ENGINE_MODE as 'auto' | 'local' | 'cloud') || 'auto',
+      engineMode: (process.env.AIOS_ENGINE_MODE as 'auto' | 'local' | 'cloud') || 'local',
+      enginePreferences: {
+        securityLevel:
+          (process.env.AIOS_ENGINE_MODE ?? 'local') === 'local' ? 'local_only' : 'cloud_secure',
+      },
       mcp: {
         vibeCodingOSUrl: process.env.VIBE_CODING_OS_URL,
         automationPortalUrl: process.env.AUTOMATION_PORTAL_URL,

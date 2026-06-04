@@ -22,6 +22,7 @@
     "train:hf:multi": "pnpm build:packages && node scripts/hf-train-multi.js",
     "train:multi": "node scripts/train-multi-pipeline.js",
     "train:multi:quick": "TRAIN_MULTI_QUICK=1 CLOL_ITERATIONS=50 node scripts/train-multi-pipeline.js",
+    "env:local": "node scripts/switch-to-local-env.js",
     "desktop": "pnpm --filter desktop dev"
   },
   "devDependencies": {

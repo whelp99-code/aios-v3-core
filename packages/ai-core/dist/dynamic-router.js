@@ -156,14 +156,20 @@ class DynamicRouter {
     }
     /** Multi-engine: route same prompt to multiple providers for consensus */
     async routeMulti(role, taskType, messages) {
+        const snapshot = await this.getResourceSnapshot();
+        const effectiveMode = this.allocator.resolveMode(this.preferences.mode, snapshot);
+        const localOnly = effectiveMode === 'local' || this.preferences.securityLevel === 'local_only';
         const targets = [];
         const primary = await this.route(role, taskType);
         targets.push(primary);
-        for (const provider of ['openai', 'anthropic', 'huggingface', 'local']) {
+        const providerOrder = localOnly
+            ? ['local']
+            : ['openai', 'anthropic', 'huggingface', 'local'];
+        for (const provider of providerOrder) {
             if (provider === primary.provider)
                 continue;
             const p = this.providers.get(provider);
-            if (!p?.isConfigured())
+            if (!p?.isConfigured() && provider !== 'local')
                 continue;
             const model = this.registry.getForRole(role, provider);
             if (model)

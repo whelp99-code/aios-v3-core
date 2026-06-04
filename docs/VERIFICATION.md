@@ -17,7 +17,7 @@
 | `OPENAI_API_KEY` | OpenAI GPT-4o / GPT-4o-mini |
 | `ANTHROPIC_API_KEY` | Anthropic Claude 3.5 |
 | `HF_TOKEN` / `HUGGINGFACE_API_KEY` | Hugging Face Inference Router (Llama, Qwen, DeepSeek) |
-| `AIOS_ENGINE_MODE` | `auto` \| `local` \| `cloud` (기본: auto) |
+| `AIOS_ENGINE_MODE` | `local` \| `auto` \| `cloud` (기본: **local**, Rapid-MLX) |
 | `RAPID_MLX_LOAD` | 로컬 GPU 부하 시뮬레이션 (0-1, Dynamic Resource Allocator) |
 
 ## 1단계: 패키지 빌드 + 단위 검증

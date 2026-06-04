@@ -14,7 +14,7 @@ const DEFAULT_POLICY = {
     qualityThreshold: 0.55,
     batchSize: 15,
     synthesisKeywords: ['missing', 'incomplete', 'error', 'bug'],
-    routingBias: { preferredProvider: 'huggingface' },
+    routingBias: { preferredProvider: 'local', executor: 'local', planner: 'local' },
     categoryScores: {},
     appliedImprovements: [],
     updatedAt: new Date().toISOString(),

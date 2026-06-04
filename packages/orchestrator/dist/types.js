@@ -21,7 +21,7 @@ function createInitialWorkflowState(taskInput, overrides = {}) {
         subTasks: [],
         mcpToolResults: [],
         consensusResult: null,
-        engineMode: 'auto',
+        engineMode: 'local',
         parallelExecution: true,
         ...overrides,
     };

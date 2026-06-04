@@ -14,7 +14,10 @@
     "expand"
   ],
   "routingBias": {
-    "preferredProvider": "huggingface"
+    "preferredProvider": "local",
+    "planner": "local",
+    "executor": "local",
+    "critic": "local"
   },
   "categoryScores": {},
   "appliedImprovements": [

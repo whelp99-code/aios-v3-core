@@ -73,7 +73,7 @@ export default function Home() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [useWorkflow, setUseWorkflow] = useState(true);
-  const [engineMode, setEngineMode] = useState<EngineMode>('auto');
+  const [engineMode, setEngineMode] = useState<EngineMode>('local');
   const [cloudProvider, setCloudProvider] = useState<CloudProvider>('huggingface');
   const [parallelExecution, setParallelExecution] = useState(true);
   const [engineStatus, setEngineStatus] = useState<EngineStatus>({
@@ -429,7 +429,7 @@ export default function Home() {
 
         <h3 className="text-sm font-semibold mb-2 text-zinc-400">엔진 모드</h3>
         <div className="flex gap-1 mb-4">
-          {(['auto', 'local', 'cloud'] as EngineMode[]).map((mode) => (
+          {(['local', 'auto', 'cloud'] as EngineMode[]).map((mode) => (
             <button
               key={mode}
               onClick={() => updateEngineMode(mode)}

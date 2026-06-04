@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CommunityRegistry = exports.WebhookPublisher = exports.PluginManager = exports.AIOS = void 0;
+exports.CommunityRegistry = exports.WebhookPublisher = exports.PluginManager = exports.AIOS = exports.DEFAULT_SECURITY_LEVEL = exports.DEFAULT_ENGINE_MODE = void 0;
 const path_1 = __importDefault(require("path"));
 const ai_core_1 = require("@aios/ai-core");
 const knowledge_graph_1 = require("@aios/knowledge-graph");
@@ -13,6 +13,10 @@ const self_evolution_1 = require("@aios/self-evolution");
 const plugin_manager_1 = require("./plugin-manager");
 const webhook_publisher_1 = require("./webhook-publisher");
 const community_registry_1 = require("./community-registry");
+const defaults_1 = require("./defaults");
+var defaults_2 = require("./defaults");
+Object.defineProperty(exports, "DEFAULT_ENGINE_MODE", { enumerable: true, get: function () { return defaults_2.DEFAULT_ENGINE_MODE; } });
+Object.defineProperty(exports, "DEFAULT_SECURITY_LEVEL", { enumerable: true, get: function () { return defaults_2.DEFAULT_SECURITY_LEVEL; } });
 class AIOS {
     constructor(config = {}) {
         this.config = config;
@@ -29,7 +33,9 @@ class AIOS {
                 process.env.HF_TOKEN ??
                 process.env.HUGGINGFACE_API_KEY,
             preferences: {
-                mode: config.engineMode ?? 'auto',
+                mode: config.engineMode ?? defaults_1.DEFAULT_ENGINE_MODE,
+                securityLevel: config.enginePreferences?.securityLevel ??
+                    (config.engineMode === 'cloud' ? 'cloud_secure' : defaults_1.DEFAULT_SECURITY_LEVEL),
                 ...config.enginePreferences,
             },
         });
@@ -46,7 +52,7 @@ class AIOS {
             mcpRegistry: this.mcp,
             knowledgeGraph: this.knowledge,
             evolutionKernel: this.evolution,
-            engineMode: config.engineMode ?? 'auto',
+            engineMode: config.engineMode ?? defaults_1.DEFAULT_ENGINE_MODE,
             parallelExecution: config.parallelExecution ?? true,
         });
         this.plugins.setEventEmitter((event, data) => {
@@ -56,8 +62,23 @@ class AIOS {
     }
     applyLearnedPolicy() {
         const policy = this.evolution.policyStore.get();
+        const baseMode = this.config.engineMode ?? defaults_1.DEFAULT_ENGINE_MODE;
         const bridged = this.evolution.policyBridge.apply(policy, this.getEnginePreferences());
-        this.dynamicRouter.setPreferences(bridged.enginePreferences);
+        const prefs = {
+            ...bridged.enginePreferences,
+            mode: baseMode,
+            securityLevel: baseMode === 'local' ? 'local_only' : 'cloud_secure',
+        };
+        if (baseMode === 'local') {
+            prefs.roleOverrides = {
+                planner: { provider: 'local' },
+                executor: { provider: 'local' },
+                critic: { provider: 'local' },
+                knowledge_updater: { provider: 'local' },
+                self_corrector: { provider: 'local' },
+            };
+        }
+        this.dynamicRouter.setPreferences(prefs);
     }
     async runOperationalLearning(iterations = 1000) {
         const dataDir = path_1.default.join(this.config.dataDir ?? path_1.default.resolve(process.cwd(), 'data'), 'learned');

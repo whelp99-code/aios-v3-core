@@ -32,7 +32,7 @@ export class PolicyRuntimeBridge {
         : current?.preferredCloudProvider;
 
     const prefs: PolicyBridgeEnginePrefs = {
-      mode: current?.mode ?? 'auto',
+      mode: pref === 'local' ? 'local' : current?.mode ?? 'local',
       preferredCloudProvider,
       roleOverrides: { ...current?.roleOverrides },
     };

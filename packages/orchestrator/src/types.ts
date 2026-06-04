@@ -112,7 +112,7 @@ export function createInitialWorkflowState(
     subTasks: [],
     mcpToolResults: [],
     consensusResult: null,
-    engineMode: 'auto',
+    engineMode: 'local',
     parallelExecution: true,
     ...overrides,
   };

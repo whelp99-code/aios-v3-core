@@ -82,7 +82,7 @@ check "GET /api/knowledge" GET "/api/knowledge" "" "nodeCount"
 echo ""
 echo "▶ Workflow (Swarm)"
 WF=$(curl -sf -X POST -H "Content-Type: application/json" \
-  -d '{"taskInput":"Verify AIOS integration test","autoApprove":true,"engineMode":"auto","parallelExecution":true}' \
+  -d '{"taskInput":"Verify AIOS integration test","autoApprove":true,"engineMode":"local","parallelExecution":true}' \
   "$BASE/api/workflow" 2>/dev/null || echo '{}')
 SESSION=$(echo "$WF" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{console.log(JSON.parse(d).sessionId||'')}catch{console.log('')}})" 2>/dev/null)
 
