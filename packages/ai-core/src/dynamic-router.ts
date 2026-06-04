@@ -181,6 +181,52 @@ export class DynamicRouter {
     };
   }
 
+  /**
+   * Route then stream content deltas from the selected provider.
+   * Falls back to non-streaming providers by yielding the full content once.
+   */
+  async *routeAndStream(
+    role: AgentRole,
+    taskType: TaskType,
+    messages: ChatMessage[],
+    options: Record<string, unknown> = {}
+  ): AsyncGenerator<string, RoutingDecision> {
+    const chain = await this.buildFallbackChain(role, taskType);
+
+    for (const decision of chain) {
+      const provider = this.providers.get(decision.provider);
+      if (!provider?.isConfigured() && decision.provider !== 'local') continue;
+      if (!provider) continue;
+
+      try {
+        if (typeof provider.chatCompletionStream === 'function') {
+          let any = false;
+          for await (const delta of provider.chatCompletionStream({
+            model: decision.modelId,
+            messages,
+            ...options,
+          })) {
+            any = true;
+            yield delta;
+          }
+          if (any) return decision;
+        }
+
+        const response = await provider.chatCompletion({
+          model: decision.modelId,
+          messages,
+          ...options,
+        });
+        yield response.choices[0]?.message?.content ?? '';
+        return decision;
+      } catch (error) {
+        console.warn(`[DynamicRouter] stream ${decision.provider}/${decision.modelId} failed:`, error);
+      }
+    }
+
+    throw new Error('All providers in fallback chain failed');
+  }
+
   async routeAndChat(
     role: AgentRole,
     taskType: TaskType,

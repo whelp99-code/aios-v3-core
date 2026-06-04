@@ -1,6 +1,8 @@
 import axios, { AxiosInstance } from 'axios';
 import { ChatCompletionRequest, ChatCompletionResponse, ProviderHealth } from '../types';
 import { ILLMProvider } from './base-provider';
+import { withRetry } from '../retry';
+import { streamOpenAICompatible } from './openai-stream';
 
 export interface HuggingFaceProviderConfig {
   apiKey?: string;
@@ -70,12 +72,20 @@ export class HuggingFaceProvider implements ILLMProvider {
       ? request.model
       : `${request.model}:fastest`;
 
-    const response = await this.client.post<ChatCompletionResponse>('/chat/completions', {
-      ...request,
-      model,
-      stream: false,
+    return withRetry(async () => {
+      const response = await this.client!.post<ChatCompletionResponse>('/chat/completions', {
+        ...request,
+        model,
+        stream: false,
+      });
+      return response.data;
     });
-    return response.data;
+  }
+
+  async *chatCompletionStream(request: ChatCompletionRequest): AsyncIterable<string> {
+    if (!this.client) throw new Error('Hugging Face provider not configured');
+    const model = request.model.includes(':') ? request.model : `${request.model}:fastest`;
+    yield* streamOpenAICompatible(this.client, { ...request, model });
   }
 
   async listModels(): Promise<{ id: string }[]> {

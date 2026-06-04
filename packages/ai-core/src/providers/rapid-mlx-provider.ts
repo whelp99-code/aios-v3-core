@@ -1,6 +1,7 @@
 import RapidMLXClient from '../rapid-mlx-client';
 import { ChatCompletionRequest, ChatCompletionResponse, ProviderHealth } from '../types';
 import { ILLMProvider } from './base-provider';
+import { streamOpenAICompatible } from './openai-stream';
 
 export class RapidMLXProvider implements ILLMProvider {
   readonly provider = 'local' as const;
@@ -36,6 +37,11 @@ export class RapidMLXProvider implements ILLMProvider {
 
   async chatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
     return this.client.chatCompletion(request);
+  }
+
+  async *chatCompletionStream(request: ChatCompletionRequest): AsyncIterable<string> {
+    const axiosClient = this.client.getAxios();
+    yield* streamOpenAICompatible(axiosClient, { ...request });
   }
 
   async listModels(): Promise<{ id: string }[]> {

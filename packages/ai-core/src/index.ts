@@ -35,3 +35,5 @@ export { MimoProvider } from './providers/mimo-provider';
 export { GoogleProvider } from './providers/google-provider';
 export { RapidMLXProvider } from './providers/rapid-mlx-provider';
 export type { ILLMProvider } from './providers/base-provider';
+export { withRetry, defaultIsRetryable, type RetryOptions } from './retry';
+export { streamOpenAICompatible } from './providers/openai-stream';

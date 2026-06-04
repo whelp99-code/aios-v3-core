@@ -66,6 +66,10 @@ export class RapidMLXClient {
     }
   }
 
+  getAxios(): AxiosInstance {
+    return this.client;
+  }
+
   async listModels(): Promise<any[]> {
     try {
       const response = await this.client.get('/models');

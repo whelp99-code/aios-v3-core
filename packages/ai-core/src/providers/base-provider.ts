@@ -11,4 +11,6 @@ export interface ILLMProvider {
   healthCheck(): Promise<ProviderHealth>;
   chatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse>;
   listModels(): Promise<{ id: string }[]>;
+  /** Optional token streaming. Providers without it fall back to chatCompletion. */
+  chatCompletionStream?(request: ChatCompletionRequest): AsyncIterable<string>;
 }

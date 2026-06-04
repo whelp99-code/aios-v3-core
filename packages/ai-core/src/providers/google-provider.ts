@@ -1,6 +1,8 @@
 import axios, { AxiosInstance } from 'axios';
 import { ChatCompletionRequest, ChatCompletionResponse, ProviderHealth } from '../types';
 import { ILLMProvider } from './base-provider';
+import { withRetry } from '../retry';
+import { streamOpenAICompatible } from './openai-stream';
 
 export interface GoogleProviderConfig {
   apiKey?: string;
@@ -84,8 +86,21 @@ export class GoogleProvider implements ILLMProvider {
       body.tools = request.tools;
       body.tool_choice = request.tool_choice ?? 'auto';
     }
-    const response = await this.client.post<ChatCompletionResponse>('/chat/completions', body);
-    return response.data;
+    return withRetry(async () => {
+      const response = await this.client!.post<ChatCompletionResponse>('/chat/completions', body);
+      return response.data;
+    });
+  }
+
+  async *chatCompletionStream(request: ChatCompletionRequest): AsyncIterable<string> {
+    if (!this.client) throw new Error('Google Gemini provider not configured');
+    const body: Record<string, unknown> = {
+      model: request.model,
+      messages: request.messages,
+      temperature: request.temperature,
+    };
+    if (request.max_tokens !== undefined) body.max_tokens = request.max_tokens;
+    yield* streamOpenAICompatible(this.client, body);
   }
 
   async listModels(): Promise<{ id: string }[]> {

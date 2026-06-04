@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import { ChatCompletionRequest, ChatCompletionResponse, ChatMessage, ProviderHealth } from '../types';
 import { ILLMProvider } from './base-provider';
+import { withRetry } from '../retry';
 
 export interface AnthropicProviderConfig {
   apiKey?: string;
@@ -45,20 +46,22 @@ export class AnthropicProvider implements ILLMProvider {
     const systemMsg = request.messages.find((m) => m.role === 'system');
     const nonSystem = request.messages.filter((m) => m.role !== 'system');
 
-    const response = await this.client.post<{
-      id: string;
-      model: string;
-      content: Array<{ type: string; text: string }>;
-      usage: { input_tokens: number; output_tokens: number };
-    }>('/messages', {
-      model: request.model,
-      max_tokens: request.max_tokens ?? 4096,
-      system: systemMsg?.content,
-      messages: nonSystem.map((m: ChatMessage) => ({
-        role: m.role === 'assistant' ? 'assistant' : 'user',
-        content: m.content,
-      })),
-    });
+    const response = await withRetry(() =>
+      this.client!.post<{
+        id: string;
+        model: string;
+        content: Array<{ type: string; text: string }>;
+        usage: { input_tokens: number; output_tokens: number };
+      }>('/messages', {
+        model: request.model,
+        max_tokens: request.max_tokens ?? 4096,
+        system: systemMsg?.content,
+        messages: nonSystem.map((m: ChatMessage) => ({
+          role: m.role === 'assistant' ? 'assistant' : 'user',
+          content: m.content,
+        })),
+      })
+    );
 
     const text = response.data.content.map((c) => c.text).join('\n');
     return {
