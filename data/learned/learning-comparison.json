@@ -1,0 +1,219 @@
+{
+  "startedAt": "2026-06-04T01:02:51.911Z",
+  "finishedAt": "2026-06-04T01:02:53.160Z",
+  "iterations": 1000,
+  "before": {
+    "goldenSetSuccessRate": 1,
+    "policyVersion": 0,
+    "qualityThreshold": 0.55,
+    "experienceBufferSuccessRate": 0,
+    "runtimeBridge": {
+      "enginePreferences": {
+        "mode": "auto",
+        "preferredCloudProvider": "huggingface",
+        "roleOverrides": {}
+      },
+      "synthesisKeywords": [
+        "missing",
+        "incomplete",
+        "error",
+        "bug"
+      ],
+      "maxCriticEngines": 4
+    },
+    "legacyHfTraining": {
+      "source": "hf-3x50-heuristic",
+      "campaigns": [
+        {
+          "name": "alpaca",
+          "iterations": 50,
+          "totalSamples": 525,
+          "finalSuccessRate": 0.8333333333333334,
+          "policyVersion": 100,
+          "note": "HF heuristic success (reference overlap), not operational CLOL"
+        },
+        {
+          "name": "openorca",
+          "iterations": 50,
+          "totalSamples": 1052,
+          "finalSuccessRate": 0.775,
+          "policyVersion": 100,
+          "note": "HF heuristic success (reference overlap), not operational CLOL"
+        },
+        {
+          "name": "rotation",
+          "iterations": 50,
+          "totalSamples": 490,
+          "finalSuccessRate": 0.6111111111111112,
+          "policyVersion": 359,
+          "note": "HF heuristic success (reference overlap), not operational CLOL"
+        }
+      ]
+    }
+  },
+  "after": {
+    "goldenSetSuccessRate": 1,
+    "finalOperationalWindowRate": 0.805,
+    "telemetryOperationalRate": 0.802,
+    "policyVersion": 1406,
+    "qualityThreshold": 0.49,
+    "categoryScores": {
+      "code": {
+        "success": 285,
+        "total": 350
+      },
+      "reasoning": {
+        "success": 202,
+        "total": 250
+      },
+      "chat": {
+        "success": 175,
+        "total": 200
+      },
+      "integration": {
+        "success": 135,
+        "total": 200
+      }
+    },
+    "experienceBufferSuccessRate": 0.797,
+    "telemetryCount": 3000,
+    "runtimeBridge": {
+      "enginePreferences": {
+        "mode": "auto",
+        "preferredCloudProvider": "huggingface",
+        "roleOverrides": {
+          "planner": {
+            "provider": "huggingface"
+          },
+          "executor": {
+            "provider": "local"
+          }
+        }
+      },
+      "synthesisKeywords": [
+        "missing",
+        "incomplete",
+        "error",
+        "bug"
+      ],
+      "maxCriticEngines": 3
+    },
+    "routingBias": {
+      "preferredProvider": "huggingface",
+      "executor": "local",
+      "planner": "reasoning"
+    }
+  },
+  "delta": {
+    "goldenSet": "+0.0pp",
+    "policyVersion": "v0 → v1406",
+    "qualityThreshold": "0.55 → 0.49"
+  },
+  "checkpoints": [
+    {
+      "iteration": 100,
+      "goldenSuccessRate": 1,
+      "policyVersion": 144
+    },
+    {
+      "iteration": 200,
+      "goldenSuccessRate": 0.2,
+      "policyVersion": 284
+    },
+    {
+      "iteration": 300,
+      "goldenSuccessRate": 0.7,
+      "policyVersion": 424
+    },
+    {
+      "iteration": 400,
+      "goldenSuccessRate": 1,
+      "policyVersion": 564
+    },
+    {
+      "iteration": 500,
+      "goldenSuccessRate": 1,
+      "policyVersion": 704
+    },
+    {
+      "iteration": 600,
+      "goldenSuccessRate": 1,
+      "policyVersion": 845
+    },
+    {
+      "iteration": 700,
+      "goldenSuccessRate": 1,
+      "policyVersion": 985
+    },
+    {
+      "iteration": 800,
+      "goldenSuccessRate": 0.8,
+      "policyVersion": 1125
+    },
+    {
+      "iteration": 900,
+      "goldenSuccessRate": 1,
+      "policyVersion": 1265
+    },
+    {
+      "iteration": 1000,
+      "goldenSuccessRate": 1,
+      "policyVersion": 1406
+    }
+  ],
+  "bestCheckpoint": {
+    "iteration": 0,
+    "goldenSuccessRate": 1,
+    "policyVersion": 0
+  },
+  "summaryTable": [
+    {
+      "metric": "Golden set operational success (final)",
+      "before": "100.0%",
+      "after": "100.0%",
+      "change": "+0.0pp"
+    },
+    {
+      "metric": "Golden set best @ checkpoint",
+      "before": "100.0%",
+      "after": "100.0%",
+      "change": "+0.0pp"
+    },
+    {
+      "metric": "Recent telemetry operational success",
+      "before": "N/A",
+      "after": "80.2%",
+      "change": "—"
+    },
+    {
+      "metric": "Policy version",
+      "before": "v0",
+      "after": "v1406",
+      "change": "+1406"
+    },
+    {
+      "metric": "Max critic engines (bridge)",
+      "before": "4",
+      "after": "3",
+      "change": "—"
+    }
+  ],
+  "legacyVsCcolNote": "Legacy HF 3×50 success rates measure dataset heuristic overlap. CLOL golden set measures simulated operational APPROVED verdict under policy-aware routing.",
+  "hfLegacyReference": [
+    {
+      "campaign": "alpaca",
+      "hfHeuristicSuccess": "83.3%",
+      "vsCcolGoldenAfter": "100.0%"
+    },
+    {
+      "campaign": "openorca",
+      "hfHeuristicSuccess": "77.5%",
+      "vsCcolGoldenAfter": "100.0%"
+    },
+    {
+      "campaign": "rotation",
+      "hfHeuristicSuccess": "61.1%",
+      "vsCcolGoldenAfter": "100.0%"
+    }
+  ]
+}

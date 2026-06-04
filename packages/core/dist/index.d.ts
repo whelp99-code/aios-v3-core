@@ -41,6 +41,7 @@ export declare class AIOS {
     private config;
     constructor(config?: AIOSConfig);
     private applyLearnedPolicy;
+    runOperationalLearning(iterations?: number): Promise<import("@aios/self-evolution").OperationalLearningReport>;
     runTraining(options?: {
         dataset?: string;
         datasets?: string[];

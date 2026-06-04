@@ -1,0 +1,45 @@
+{
+  "version": 1406,
+  "iteration": 1000,
+  "successRate": 0.775,
+  "avgReward": 0.6625,
+  "qualityThreshold": 0.49,
+  "batchSize": 20,
+  "synthesisKeywords": [
+    "missing",
+    "incomplete",
+    "error",
+    "bug"
+  ],
+  "routingBias": {
+    "preferredProvider": "huggingface",
+    "executor": "local",
+    "planner": "reasoning"
+  },
+  "categoryScores": {
+    "code": {
+      "success": 285,
+      "total": 350
+    },
+    "reasoning": {
+      "success": 202,
+      "total": 250
+    },
+    "chat": {
+      "success": 175,
+      "total": 200
+    },
+    "integration": {
+      "success": 135,
+      "total": 200
+    }
+  },
+  "appliedImprovements": [
+    "[iter-1] High success rate — increase batch size",
+    "[iter-5] High success rate — increase batch size",
+    "[iter-10] High success rate — increase batch size",
+    "[iter-50] Success rate 47.5% below threshold 55%",
+    "[iter-55] Success rate 47.5% below threshold 52%"
+  ],
+  "updatedAt": "2026-06-04T01:02:53.143Z"
+}

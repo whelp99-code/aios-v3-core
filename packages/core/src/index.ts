@@ -112,13 +112,21 @@ export class AIOS {
 
   private applyLearnedPolicy(): void {
     const policy = this.evolution.policyStore.get();
-    const preferred = policy.routingBias.preferredProvider;
-    if (preferred && preferred !== 'local') {
-      this.dynamicRouter.setPreferences({
-        preferredCloudProvider: preferred,
-        mode: this.getEnginePreferences().mode,
-      });
-    }
+    const bridged = this.evolution.policyBridge.apply(policy, this.getEnginePreferences());
+    this.dynamicRouter.setPreferences(bridged.enginePreferences);
+  }
+
+  async runOperationalLearning(iterations = 1000) {
+    const dataDir = path.join(this.config.dataDir ?? path.resolve(process.cwd(), 'data'), 'learned');
+    const report = await this.evolution.operational.runLoop(iterations);
+    this.applyLearnedPolicy();
+    await this.webhooks.publish('training.completed', {
+      mode: 'operational',
+      iterations: report.iterations,
+      goldenSetSuccessRate: report.goldenSetSuccessRate,
+      policyVersion: report.policy.version,
+    });
+    return report;
   }
 
   async runTraining(options: {
@@ -242,13 +250,33 @@ export class AIOS {
       state.lastOutput ?? taskInput
     );
 
+    const workflowSuccess = state.currentAgent === 'completed';
+    const consensusVerdict = state.consensusResult?.verdict as
+      | 'APPROVED'
+      | 'NEEDS_CORRECTION'
+      | 'NEEDS_APPROVAL'
+      | undefined;
+
+    this.evolution.telemetry.append({
+      taskInput,
+      plan: state.plan,
+      executionResult: state.executionResult,
+      review: state.review,
+      success: workflowSuccess,
+      reward: workflowSuccess ? 1 : -0.5,
+      source: 'workflow',
+      consensusVerdict: consensusVerdict ?? (workflowSuccess ? 'APPROVED' : 'FAILED'),
+      metadata: { engineMode: state.engineMode, agent: state.currentAgent },
+    });
+
     this.evolution.experience.add({
       taskInput,
       plan: state.plan,
       executionResult: state.executionResult,
       review: state.review,
-      success: state.currentAgent === 'completed',
-      reward: state.currentAgent === 'completed' ? 1 : -0.5,
+      success: workflowSuccess,
+      reward: workflowSuccess ? 1 : -0.5,
+      metadata: { source: 'workflow' },
     });
 
     let evolutionProposalId: string | undefined;

@@ -1,0 +1,20 @@
+{
+  "version": 0,
+  "iteration": 0,
+  "successRate": 0,
+  "avgReward": 0,
+  "qualityThreshold": 0.55,
+  "batchSize": 15,
+  "synthesisKeywords": [
+    "missing",
+    "incomplete",
+    "error",
+    "bug"
+  ],
+  "routingBias": {
+    "preferredProvider": "huggingface"
+  },
+  "categoryScores": {},
+  "appliedImprovements": [],
+  "updatedAt": "2026-06-04T01:02:51.881Z"
+}

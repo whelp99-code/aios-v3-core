@@ -15,12 +15,25 @@ export class CodeSynthesisEngine {
   synthesize(
     review: string,
     executionResult: string | null,
-    existingChanges: CodePatch[] = []
+    existingChanges: CodePatch[] = [],
+    extraKeywords: string[] = []
   ): SynthesisResult {
     const patches: CodePatch[] = [...existingChanges];
     const tests: string[] = [];
+    const lower = review.toLowerCase();
+    const keywords = [
+      'missing',
+      'incomplete',
+      'error',
+      'bug',
+      'short',
+      'expand',
+      ...extraKeywords,
+    ];
 
-    if (review.toLowerCase().includes('missing') || review.toLowerCase().includes('incomplete')) {
+    const matchesKeyword = (kw: string) => lower.includes(kw.toLowerCase());
+
+    if (keywords.some((k) => ['missing', 'incomplete'].includes(k) && matchesKeyword(k))) {
       patches.push({
         filePath: 'src/generated/fix.ts',
         diff: '+ // Auto-generated fix based on critic review\n+ export function autoFix() { return true; }',
@@ -29,7 +42,7 @@ export class CodeSynthesisEngine {
       tests.push('test("autoFix returns true", () => expect(autoFix()).toBe(true))');
     }
 
-    if (review.toLowerCase().includes('error') || review.toLowerCase().includes('bug')) {
+    if (keywords.some((k) => ['error', 'bug'].includes(k) && matchesKeyword(k))) {
       patches.push({
         filePath: 'src/generated/error-handler.ts',
         diff: '+ export function handleError(e: Error) { console.error(e); return null; }',

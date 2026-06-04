@@ -10,5 +10,5 @@ export interface SynthesisResult {
     reasoning: string;
 }
 export declare class CodeSynthesisEngine {
-    synthesize(review: string, executionResult: string | null, existingChanges?: CodePatch[]): SynthesisResult;
+    synthesize(review: string, executionResult: string | null, existingChanges?: CodePatch[], extraKeywords?: string[]): SynthesisResult;
 }

@@ -1,0 +1,75 @@
+{
+  "capturedAt": "2026-06-04T01:02:51.881Z",
+  "mode": "pre-clol-1000",
+  "operational": {
+    "goldenSetSuccessRate": 1,
+    "goldenTaskCount": 10,
+    "policyVersion": 0,
+    "qualityThreshold": 0.55,
+    "experienceBufferSuccessRate": 0,
+    "telemetryCount": 2000
+  },
+  "runtimeBridge": {
+    "enginePreferences": {
+      "mode": "auto",
+      "preferredCloudProvider": "huggingface",
+      "roleOverrides": {}
+    },
+    "synthesisKeywords": [
+      "missing",
+      "incomplete",
+      "error",
+      "bug"
+    ],
+    "maxCriticEngines": 4
+  },
+  "policySnapshot": {
+    "version": 0,
+    "iteration": 0,
+    "successRate": 0,
+    "avgReward": 0,
+    "qualityThreshold": 0.55,
+    "batchSize": 15,
+    "synthesisKeywords": [
+      "missing",
+      "incomplete",
+      "error",
+      "bug"
+    ],
+    "routingBias": {
+      "preferredProvider": "huggingface"
+    },
+    "categoryScores": {},
+    "appliedImprovements": [],
+    "updatedAt": "2026-06-04T01:02:51.881Z"
+  },
+  "legacyHfTraining": {
+    "source": "hf-3x50-heuristic",
+    "campaigns": [
+      {
+        "name": "alpaca",
+        "iterations": 50,
+        "totalSamples": 525,
+        "finalSuccessRate": 0.8333333333333334,
+        "policyVersion": 100,
+        "note": "HF heuristic success (reference overlap), not operational CLOL"
+      },
+      {
+        "name": "openorca",
+        "iterations": 50,
+        "totalSamples": 1052,
+        "finalSuccessRate": 0.775,
+        "policyVersion": 100,
+        "note": "HF heuristic success (reference overlap), not operational CLOL"
+      },
+      {
+        "name": "rotation",
+        "iterations": 50,
+        "totalSamples": 490,
+        "finalSuccessRate": 0.6111111111111112,
+        "policyVersion": 359,
+        "note": "HF heuristic success (reference overlap), not operational CLOL"
+      }
+    ]
+  }
+}
