@@ -1,44 +1,69 @@
 {
-  "version": 134,
-  "iteration": 10,
-  "successRate": 0.75,
-  "avgReward": 0.7721725023053525,
+  "version": 392,
+  "iteration": 30,
+  "successRate": 0.85,
+  "avgReward": 0.8588698630136987,
   "qualityThreshold": 0.55,
-  "batchSize": 20,
+  "batchSize": 18,
   "synthesisKeywords": [
     "missing",
     "incomplete",
     "error",
-    "bug"
+    "bug",
+    "short",
+    "expand"
   ],
   "routingBias": {
     "preferredProvider": "local",
-    "planner": "local",
     "executor": "local",
-    "critic": "local"
+    "planner": "local"
   },
   "categoryScores": {
     "orca": {
-      "success": 7,
-      "total": 7
+      "success": 26,
+      "total": 26
     },
-    "self-oss-instruct": {
+    "openhermes-100k": {
+      "success": 9,
+      "total": 9
+    },
+    "dolly_hhrlhf": {
+      "success": 50,
+      "total": 60
+    },
+    "roleplay": {
+      "success": 3,
+      "total": 4
+    },
+    "explore-instruct-rewriting": {
       "success": 2,
       "total": 2
     },
-    "dolly_hhrlhf": {
-      "success": 11,
-      "total": 14
-    },
-    "roleplay": {
-      "success": 1,
-      "total": 1
-    },
-    "smol-summarize": {
-      "success": 1,
-      "total": 1
-    },
     "scrolls/summ_screen_fd": {
+      "success": 3,
+      "total": 3
+    },
+    "trivia": {
+      "success": 0,
+      "total": 6
+    },
+    "numina-cot-100k": {
+      "success": 5,
+      "total": 5
+    },
+    "competition_math": {
+      "success": 4,
+      "total": 4
+    },
+    "multiple_choice": {
+      "success": 3,
+      "total": 3
+    },
+    "general": {
+      "success": 0,
+      "total": 1
+    },
+    "smol-magpie-ultra": {
       "success": 1,
       "total": 1
     }
@@ -57,7 +82,48 @@
     "[iter-8] High success rate — increase batch size",
     "[iter-9] Reduce batch size for better per-sample quality",
     "[iter-10] Reduce batch size for better per-sample quality",
-    "[iter-10] High success rate — increase batch size"
+    "[iter-10] High success rate — increase batch size",
+    "[iter-12] Add synthesis keywords for incomplete responses",
+    "[iter-13] Reduce batch size for better per-sample quality",
+    "[iter-14] Reduce batch size for better per-sample quality",
+    "[iter-14] High success rate — increase batch size",
+    "[iter-15] Reduce batch size for better per-sample quality",
+    "[iter-16] Reduce batch size for better per-sample quality",
+    "[iter-17] Add synthesis keywords for incomplete responses",
+    "[iter-17] Boost quality checks for weak category: trivia",
+    "[iter-17] Reduce batch size for better per-sample quality",
+    "[iter-18] Add synthesis keywords for incomplete responses",
+    "[iter-18] Boost quality checks for weak category: trivia",
+    "[iter-18] High success rate — increase batch size",
+    "[iter-19] Boost quality checks for weak category: trivia",
+    "[iter-19] High success rate — increase batch size",
+    "[iter-20] Boost quality checks for weak category: trivia",
+    "[iter-20] High success rate — increase batch size",
+    "[iter-21] Add synthesis keywords for incomplete responses",
+    "[iter-21] Boost quality checks for weak category: trivia",
+    "[iter-21] Reduce batch size for better per-sample quality",
+    "[iter-22] Add synthesis keywords for incomplete responses",
+    "[iter-22] Boost quality checks for weak category: trivia",
+    "[iter-22] High success rate — increase batch size",
+    "[iter-23] Boost quality checks for weak category: trivia",
+    "[iter-24] Boost quality checks for weak category: trivia",
+    "[iter-24] Reduce batch size for better per-sample quality",
+    "[iter-25] Boost quality checks for weak category: trivia",
+    "[iter-25] Reduce batch size for better per-sample quality",
+    "[iter-25] High success rate — increase batch size",
+    "[iter-26] Boost quality checks for weak category: trivia",
+    "[iter-26] Reduce batch size for better per-sample quality",
+    "[iter-27] Add synthesis keywords for incomplete responses",
+    "[iter-27] Boost quality checks for weak category: trivia",
+    "[iter-27] Reduce batch size for better per-sample quality",
+    "[iter-27] High success rate — increase batch size",
+    "[iter-28] Add synthesis keywords for incomplete responses",
+    "[iter-28] Boost quality checks for weak category: trivia",
+    "[iter-28] Reduce batch size for better per-sample quality",
+    "[iter-29] Boost quality checks for weak category: trivia",
+    "[iter-29] High success rate — increase batch size",
+    "[iter-30] Boost quality checks for weak category: trivia",
+    "[iter-30] Reduce batch size for better per-sample quality"
   ],
-  "updatedAt": "2026-06-04T01:14:49.954Z"
+  "updatedAt": "2026-06-04T04:49:20.235Z"
 }

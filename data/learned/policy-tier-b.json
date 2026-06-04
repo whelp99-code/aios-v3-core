@@ -1,8 +1,8 @@
 {
-  "version": 61,
-  "iteration": 12,
-  "successRate": 0.95,
-  "avgReward": 0.9512499999999999,
+  "version": 249,
+  "iteration": 50,
+  "successRate": 0.85,
+  "avgReward": 0.8525,
   "qualityThreshold": 0.55,
   "batchSize": 20,
   "synthesisKeywords": [
@@ -15,24 +15,25 @@
   ],
   "routingBias": {
     "preferredProvider": "local",
-    "planner": "local",
     "executor": "local",
-    "critic": "local"
+    "planner": "local"
   },
   "categoryScores": {
     "infini-instruct-top-500k": {
-      "success": 13,
-      "total": 13
+      "success": 79,
+      "total": 79
     },
     "WebInstructSub_axolotl": {
-      "success": 1,
-      "total": 1
+      "success": 16,
+      "total": 19
     }
   },
   "appliedImprovements": [
+    "[iter-1] Reduce batch size for better per-sample quality",
     "[iter-1] High success rate — increase batch size",
     "[iter-2] Reduce batch size for better per-sample quality",
     "[iter-3] Reduce batch size for better per-sample quality",
+    "[iter-4] Reduce batch size for better per-sample quality",
     "[iter-4] High success rate — increase batch size",
     "[iter-5] Reduce batch size for better per-sample quality",
     "[iter-5] High success rate — increase batch size",
@@ -43,8 +44,46 @@
     "[iter-8] Reduce batch size for better per-sample quality",
     "[iter-9] Add synthesis keywords for incomplete responses",
     "[iter-9] Reduce batch size for better per-sample quality",
-    "[iter-10] High success rate — increase batch size",
-    "[iter-11] High success rate — increase batch size"
+    "[iter-9] High success rate — increase batch size",
+    "[iter-14] Reduce batch size for better per-sample quality",
+    "[iter-15] Reduce batch size for better per-sample quality",
+    "[iter-15] High success rate — increase batch size",
+    "[iter-19] Reduce batch size for better per-sample quality",
+    "[iter-20] Add synthesis keywords for incomplete responses",
+    "[iter-20] Reduce batch size for better per-sample quality",
+    "[iter-20] High success rate — increase batch size",
+    "[iter-21] Add synthesis keywords for incomplete responses",
+    "[iter-21] Reduce batch size for better per-sample quality",
+    "[iter-22] Reduce batch size for better per-sample quality",
+    "[iter-22] High success rate — increase batch size",
+    "[iter-23] Reduce batch size for better per-sample quality",
+    "[iter-24] High success rate — increase batch size",
+    "[iter-26] Add synthesis keywords for incomplete responses",
+    "[iter-26] Reduce batch size for better per-sample quality",
+    "[iter-27] Add synthesis keywords for incomplete responses",
+    "[iter-27] Reduce batch size for better per-sample quality",
+    "[iter-27] High success rate — increase batch size",
+    "[iter-33] Reduce batch size for better per-sample quality",
+    "[iter-34] Reduce batch size for better per-sample quality",
+    "[iter-34] High success rate — increase batch size",
+    "[iter-35] Reduce batch size for better per-sample quality",
+    "[iter-36] High success rate — increase batch size",
+    "[iter-37] Reduce batch size for better per-sample quality",
+    "[iter-38] Reduce batch size for better per-sample quality",
+    "[iter-39] Add synthesis keywords for incomplete responses",
+    "[iter-39] Reduce batch size for better per-sample quality",
+    "[iter-40] High success rate — increase batch size",
+    "[iter-41] High success rate — increase batch size",
+    "[iter-42] High success rate — increase batch size",
+    "[iter-43] Reduce batch size for better per-sample quality",
+    "[iter-44] Reduce batch size for better per-sample quality",
+    "[iter-45] Reduce batch size for better per-sample quality",
+    "[iter-46] Reduce batch size for better per-sample quality",
+    "[iter-46] High success rate — increase batch size",
+    "[iter-47] Reduce batch size for better per-sample quality",
+    "[iter-47] High success rate — increase batch size",
+    "[iter-48] High success rate — increase batch size",
+    "[iter-50] Add synthesis keywords for incomplete responses"
   ],
-  "updatedAt": "2026-06-04T01:14:32.013Z"
+  "updatedAt": "2026-06-04T04:47:44.941Z"
 }

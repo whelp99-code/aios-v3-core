@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-06-04T01:14:02.473Z",
+  "capturedAt": "2026-06-04T04:45:11.598Z",
   "mode": "pre-clol-1000",
   "operational": {
     "goldenSetSuccessRate": 1,
@@ -7,13 +7,19 @@
     "policyVersion": 0,
     "qualityThreshold": 0.55,
     "experienceBufferSuccessRate": 0,
-    "telemetryCount": 3050
+    "telemetryCount": 3100
   },
   "runtimeBridge": {
     "enginePreferences": {
-      "mode": "auto",
-      "preferredCloudProvider": "huggingface",
-      "roleOverrides": {}
+      "mode": "local",
+      "roleOverrides": {
+        "planner": {
+          "provider": "local"
+        },
+        "executor": {
+          "provider": "local"
+        }
+      }
     },
     "synthesisKeywords": [
       "missing",
@@ -37,11 +43,13 @@
       "bug"
     ],
     "routingBias": {
-      "preferredProvider": "huggingface"
+      "preferredProvider": "local",
+      "executor": "local",
+      "planner": "local"
     },
     "categoryScores": {},
     "appliedImprovements": [],
-    "updatedAt": "2026-06-04T01:14:02.473Z"
+    "updatedAt": "2026-06-04T04:45:11.598Z"
   },
   "legacyHfTraining": {
     "source": "hf-3x50-heuristic",
