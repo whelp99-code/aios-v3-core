@@ -32,7 +32,7 @@ export interface AIOSConfig {
   dataDir?: string;
   skillsDirectory?: string;
   engineMode?: EngineMode;
-  enginePreferences?: EnginePreferences;
+  enginePreferences?: Partial<EnginePreferences>;
   parallelExecution?: boolean;
   mcp?: {
     vibeCodingOSUrl?: string;
