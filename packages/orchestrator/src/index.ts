@@ -7,6 +7,7 @@ export {
 export { SkillParser, type ParsedSkill, type SkillMetadata } from './skill-parser';
 export { TaskSplitter, type SubTask } from './task-splitter';
 export { ConsensusEngine, type ConsensusResult, type ConsensusVerdict } from './consensus-engine';
+export { parseCriticVerdict, type CriticVerdict } from './verdict';
 export {
   type AgentState,
   type AgentWorkflowState,

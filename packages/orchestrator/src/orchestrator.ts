@@ -20,6 +20,7 @@ import type { EvolutionKernel } from '@aios/self-evolution';
 import { ParsedSkill, SkillParser } from './skill-parser';
 import { TaskSplitter } from './task-splitter';
 import { ConsensusEngine } from './consensus-engine';
+import { parseCriticVerdict } from './verdict';
 
 export interface OrchestratorOptions {
   maxIterations?: number;
@@ -844,13 +845,7 @@ export class Orchestrator {
   }
 
   private parseCriticVerdict(review: string): { needsCorrection: boolean; needsApproval: boolean } {
-    const upper = review.toUpperCase();
-    return {
-      needsCorrection:
-        upper.includes('VERDICT: NEEDS_CORRECTION') || upper.includes('NEEDS CORRECTION'),
-      needsApproval:
-        upper.includes('VERDICT: NEEDS_APPROVAL') || upper.includes('NEEDS APPROVAL'),
-    };
+    return parseCriticVerdict(review);
   }
 
   private extractCodeChanges(executionResult: string): CodeChange[] | null {
