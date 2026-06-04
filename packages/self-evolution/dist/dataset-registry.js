@@ -44,6 +44,8 @@ function inferTier(totalRows) {
 }
 function inferDomain(category) {
     const c = category.toLowerCase();
+    if (c.includes('code'))
+        return 'code';
     if (c.includes('math'))
         return 'math';
     if (c.includes('rlhf') || c.includes('preference'))

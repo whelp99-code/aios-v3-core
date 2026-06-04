@@ -56,6 +56,7 @@ export function inferTier(totalRows: number | null): DatasetTier {
 
 export function inferDomain(category: string): DatasetDomain {
   const c = category.toLowerCase();
+  if (c.includes('code')) return 'code';
   if (c.includes('math')) return 'math';
   if (c.includes('rlhf') || c.includes('preference')) return 'preference';
   if (c.includes('dialogue') || c.includes('chat') || c.includes('oasst')) return 'dialogue';
