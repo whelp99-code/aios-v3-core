@@ -5,7 +5,7 @@ export interface LearnedRoutingBias {
   planner?: string;
   executor?: string;
   critic?: string;
-  preferredProvider?: 'openai' | 'anthropic' | 'huggingface' | 'mimo' | 'local';
+  preferredProvider?: 'openai' | 'anthropic' | 'huggingface' | 'mimo' | 'google' | 'local';
 }
 
 export interface LearnedPolicy {

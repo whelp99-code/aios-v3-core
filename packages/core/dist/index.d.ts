@@ -13,6 +13,8 @@ export interface AIOSConfig {
     huggingfaceApiKey?: string;
     mimoApiKey?: string;
     mimoBaseURL?: string;
+    googleApiKey?: string;
+    googleBaseURL?: string;
     dataDir?: string;
     skillsDirectory?: string;
     engineMode?: EngineMode;

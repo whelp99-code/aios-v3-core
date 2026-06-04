@@ -12,13 +12,19 @@ export function getAIOS(): AIOS {
       huggingfaceApiKey: process.env.HF_TOKEN ?? process.env.HUGGINGFACE_API_KEY,
       mimoApiKey: process.env.MIMO_API_KEY,
       mimoBaseURL: process.env.MIMO_BASE_URL,
+      googleApiKey: process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY,
+      googleBaseURL: process.env.GEMINI_BASE_URL,
       dataDir: path.resolve(process.cwd(), '../../data'),
       skillsDirectory: path.resolve(process.cwd(), '../../skills'),
       engineMode: (process.env.AIOS_ENGINE_MODE as 'auto' | 'local' | 'cloud') || 'auto',
       enginePreferences: {
         preferredCloudProvider:
-          (process.env.AIOS_CLOUD_PROVIDER as 'mimo' | 'openai' | 'anthropic' | 'huggingface') ??
-          'mimo',
+          (process.env.AIOS_CLOUD_PROVIDER as
+            | 'mimo'
+            | 'google'
+            | 'openai'
+            | 'anthropic'
+            | 'huggingface') ?? 'mimo',
       },
       mcp: {
         vibeCodingOSUrl: process.env.VIBE_CODING_OS_URL,

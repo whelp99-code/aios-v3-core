@@ -1,6 +1,6 @@
 export type TaskType = 'chat' | 'code' | 'reasoning' | 'embedding';
 export type AgentRole = 'planner' | 'executor' | 'critic' | 'knowledge_updater' | 'self_corrector';
-export type ModelProvider = 'local' | 'openai' | 'anthropic' | 'huggingface' | 'mimo';
+export type ModelProvider = 'local' | 'openai' | 'anthropic' | 'huggingface' | 'mimo' | 'google';
 export type EngineMode = 'auto' | 'local' | 'cloud';
 export type ModelCapability = 'chat' | 'code_generation' | 'reasoning' | 'embedding' | 'tool_use' | 'multilingual';
 export type SecurityLevel = 'local_only' | 'cloud_secure';
@@ -56,7 +56,7 @@ export interface EnginePreferences {
     mode: EngineMode;
     securityLevel?: SecurityLevel;
     roleOverrides?: Partial<Record<AgentRole, RoleEngineOverride>>;
-    preferredCloudProvider?: 'mimo' | 'openai' | 'anthropic' | 'huggingface';
+    preferredCloudProvider?: 'mimo' | 'google' | 'openai' | 'anthropic' | 'huggingface';
 }
 export interface RoutingDecision {
     modelId: string;

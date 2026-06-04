@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RapidMLXProvider = exports.MimoProvider = exports.HuggingFaceProvider = exports.AnthropicProvider = exports.OpenAIProvider = exports.ResourceAllocator = exports.DynamicRouter = exports.ModelRegistry = exports.ModelRouter = exports.RapidMLXClient = void 0;
+exports.RapidMLXProvider = exports.GoogleProvider = exports.MimoProvider = exports.HuggingFaceProvider = exports.AnthropicProvider = exports.OpenAIProvider = exports.ResourceAllocator = exports.DynamicRouter = exports.ModelRegistry = exports.ModelRouter = exports.RapidMLXClient = void 0;
 var rapid_mlx_client_1 = require("./rapid-mlx-client");
 Object.defineProperty(exports, "RapidMLXClient", { enumerable: true, get: function () { return rapid_mlx_client_1.RapidMLXClient; } });
 var model_router_1 = require("./model-router");
@@ -19,6 +19,8 @@ var huggingface_provider_1 = require("./providers/huggingface-provider");
 Object.defineProperty(exports, "HuggingFaceProvider", { enumerable: true, get: function () { return huggingface_provider_1.HuggingFaceProvider; } });
 var mimo_provider_1 = require("./providers/mimo-provider");
 Object.defineProperty(exports, "MimoProvider", { enumerable: true, get: function () { return mimo_provider_1.MimoProvider; } });
+var google_provider_1 = require("./providers/google-provider");
+Object.defineProperty(exports, "GoogleProvider", { enumerable: true, get: function () { return google_provider_1.GoogleProvider; } });
 var rapid_mlx_provider_1 = require("./providers/rapid-mlx-provider");
 Object.defineProperty(exports, "RapidMLXProvider", { enumerable: true, get: function () { return rapid_mlx_provider_1.RapidMLXProvider; } });
 //# sourceMappingURL=index.js.map

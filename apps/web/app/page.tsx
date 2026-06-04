@@ -20,7 +20,7 @@ interface EngineStatus {
 }
 
 type EngineMode = 'auto' | 'local' | 'cloud';
-type CloudProvider = 'mimo' | 'openai' | 'anthropic' | 'huggingface';
+type CloudProvider = 'mimo' | 'google' | 'openai' | 'anthropic' | 'huggingface';
 
 interface MCPAdapterStatus {
   id: string;
@@ -444,7 +444,8 @@ export default function Home() {
 
         <h3 className="text-sm font-semibold mb-2 text-zinc-400">클라우드 Provider</h3>
         <div className="flex gap-1 mb-4">
-          {(['mimo', 'huggingface', 'openai', 'anthropic'] as CloudProvider[]).map((provider) => (
+          {(['mimo', 'google', 'huggingface', 'openai', 'anthropic'] as CloudProvider[]).map(
+            (provider) => (
             <button
               key={provider}
               onClick={() => updateCloudProvider(provider)}
@@ -454,13 +455,16 @@ export default function Home() {
             >
               {provider === 'mimo'
                 ? 'MiMo'
-                : provider === 'huggingface'
-                  ? 'HF'
-                  : provider === 'openai'
-                    ? 'GPT'
-                    : 'Claude'}
+                : provider === 'google'
+                  ? 'Google'
+                  : provider === 'huggingface'
+                    ? 'HF'
+                    : provider === 'openai'
+                      ? 'GPT'
+                      : 'Claude'}
             </button>
-          ))}
+          )
+          )}
         </div>
 
         <label className="flex items-center gap-2 text-xs text-zinc-400 mb-4 cursor-pointer">
@@ -482,9 +486,11 @@ export default function Home() {
               <span className="text-xs font-medium">
                 {p.provider === 'mimo'
                   ? 'MiMo'
-                  : p.provider === 'huggingface'
-                    ? '🤗 HuggingFace'
-                    : p.provider}
+                  : p.provider === 'google'
+                    ? 'Google Gemini'
+                    : p.provider === 'huggingface'
+                      ? '🤗 HuggingFace'
+                      : p.provider}
               </span>
               <span className={`text-xs ${p.healthy ? 'text-green-400' : 'text-zinc-500'}`}>
                 {p.healthy ? '●' : '○'}

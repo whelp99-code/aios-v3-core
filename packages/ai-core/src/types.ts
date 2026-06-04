@@ -7,7 +7,13 @@ export type AgentRole =
   | 'knowledge_updater'
   | 'self_corrector';
 
-export type ModelProvider = 'local' | 'openai' | 'anthropic' | 'huggingface' | 'mimo';
+export type ModelProvider =
+  | 'local'
+  | 'openai'
+  | 'anthropic'
+  | 'huggingface'
+  | 'mimo'
+  | 'google';
 
 export type EngineMode = 'auto' | 'local' | 'cloud';
 
@@ -78,7 +84,7 @@ export interface EnginePreferences {
   mode: EngineMode;
   securityLevel?: SecurityLevel;
   roleOverrides?: Partial<Record<AgentRole, RoleEngineOverride>>;
-  preferredCloudProvider?: 'mimo' | 'openai' | 'anthropic' | 'huggingface';
+  preferredCloudProvider?: 'mimo' | 'google' | 'openai' | 'anthropic' | 'huggingface';
 }
 
 export interface RoutingDecision {

@@ -10,6 +10,8 @@ export interface DynamicRouterConfig {
     huggingfaceApiKey?: string;
     mimoApiKey?: string;
     mimoBaseURL?: string;
+    googleApiKey?: string;
+    googleBaseURL?: string;
     preferences?: EnginePreferences;
 }
 export declare class DynamicRouter {

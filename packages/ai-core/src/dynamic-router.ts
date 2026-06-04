@@ -19,6 +19,7 @@ import { OpenAIProvider } from './providers/openai-provider';
 import { AnthropicProvider } from './providers/anthropic-provider';
 import { HuggingFaceProvider } from './providers/huggingface-provider';
 import { MimoProvider } from './providers/mimo-provider';
+import { GoogleProvider } from './providers/google-provider';
 import RapidMLXClient from './rapid-mlx-client';
 
 export interface DynamicRouterConfig {
@@ -28,6 +29,8 @@ export interface DynamicRouterConfig {
   huggingfaceApiKey?: string;
   mimoApiKey?: string;
   mimoBaseURL?: string;
+  googleApiKey?: string;
+  googleBaseURL?: string;
   preferences?: EnginePreferences;
 }
 
@@ -56,6 +59,13 @@ export class DynamicRouter {
         new MimoProvider({
           apiKey: config.mimoApiKey,
           baseURL: config.mimoBaseURL,
+        }),
+      ],
+      [
+        'google',
+        new GoogleProvider({
+          apiKey: config.googleApiKey,
+          baseURL: config.googleBaseURL,
         }),
       ],
     ]);
@@ -233,7 +243,14 @@ export class DynamicRouter {
     const primary = await this.route(role, taskType);
     targets.push(primary);
 
-    for (const provider of ['mimo', 'openai', 'anthropic', 'huggingface', 'local'] as ModelProvider[]) {
+    for (const provider of [
+      'mimo',
+      'google',
+      'openai',
+      'anthropic',
+      'huggingface',
+      'local',
+    ] as ModelProvider[]) {
       if (provider === primary.provider) continue;
       const p = this.providers.get(provider);
       if (!p?.isConfigured()) continue;
@@ -302,7 +319,7 @@ export class DynamicRouter {
       if (local) chain.push({ modelId: local.modelId, provider: 'local', reason: 'Fallback to local' });
     }
 
-    for (const provider of ['mimo', 'openai', 'anthropic', 'huggingface'] as ModelProvider[]) {
+    for (const provider of ['mimo', 'google', 'openai', 'anthropic', 'huggingface'] as ModelProvider[]) {
       if (provider === primary.provider) continue;
       const p = this.providers.get(provider);
       if (!p?.isConfigured()) continue;

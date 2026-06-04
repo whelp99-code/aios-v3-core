@@ -11,6 +11,7 @@ const openai_provider_1 = require("./providers/openai-provider");
 const anthropic_provider_1 = require("./providers/anthropic-provider");
 const huggingface_provider_1 = require("./providers/huggingface-provider");
 const mimo_provider_1 = require("./providers/mimo-provider");
+const google_provider_1 = require("./providers/google-provider");
 const rapid_mlx_client_1 = __importDefault(require("./rapid-mlx-client"));
 class DynamicRouter {
     constructor(config = {}) {
@@ -29,6 +30,13 @@ class DynamicRouter {
                 new mimo_provider_1.MimoProvider({
                     apiKey: config.mimoApiKey,
                     baseURL: config.mimoBaseURL,
+                }),
+            ],
+            [
+                'google',
+                new google_provider_1.GoogleProvider({
+                    apiKey: config.googleApiKey,
+                    baseURL: config.googleBaseURL,
                 }),
             ],
         ]);
@@ -167,7 +175,14 @@ class DynamicRouter {
         const targets = [];
         const primary = await this.route(role, taskType);
         targets.push(primary);
-        for (const provider of ['mimo', 'openai', 'anthropic', 'huggingface', 'local']) {
+        for (const provider of [
+            'mimo',
+            'google',
+            'openai',
+            'anthropic',
+            'huggingface',
+            'local',
+        ]) {
             if (provider === primary.provider)
                 continue;
             const p = this.providers.get(provider);
@@ -230,7 +245,7 @@ class DynamicRouter {
             if (local)
                 chain.push({ modelId: local.modelId, provider: 'local', reason: 'Fallback to local' });
         }
-        for (const provider of ['mimo', 'openai', 'anthropic', 'huggingface']) {
+        for (const provider of ['mimo', 'google', 'openai', 'anthropic', 'huggingface']) {
             if (provider === primary.provider)
                 continue;
             const p = this.providers.get(provider);

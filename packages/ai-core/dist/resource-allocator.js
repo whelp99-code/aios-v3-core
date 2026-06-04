@@ -60,8 +60,8 @@ class ResourceAllocator {
         if (!configured.length)
             return undefined;
         const order = preferred
-            ? [preferred, 'mimo', 'openai', 'anthropic', 'huggingface']
-            : ['mimo', 'openai', 'anthropic', 'huggingface'];
+            ? [preferred, 'mimo', 'google', 'openai', 'anthropic', 'huggingface']
+            : ['mimo', 'google', 'openai', 'anthropic', 'huggingface'];
         for (const id of order) {
             const match = configured.find((p) => p.provider === id);
             if (match)

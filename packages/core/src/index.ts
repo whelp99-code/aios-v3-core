@@ -27,6 +27,8 @@ export interface AIOSConfig {
   huggingfaceApiKey?: string;
   mimoApiKey?: string;
   mimoBaseURL?: string;
+  googleApiKey?: string;
+  googleBaseURL?: string;
   dataDir?: string;
   skillsDirectory?: string;
   engineMode?: EngineMode;
@@ -77,12 +79,16 @@ export class AIOS {
         process.env.HUGGINGFACE_API_KEY,
       mimoApiKey: config.mimoApiKey ?? process.env.MIMO_API_KEY,
       mimoBaseURL: config.mimoBaseURL ?? process.env.MIMO_BASE_URL,
+      googleApiKey:
+        config.googleApiKey ?? process.env.GEMINI_API_KEY ?? process.env.GOOGLE_API_KEY,
+      googleBaseURL: config.googleBaseURL ?? process.env.GEMINI_BASE_URL,
       preferences: {
         mode: config.engineMode ?? 'auto',
         preferredCloudProvider:
           config.enginePreferences?.preferredCloudProvider ??
           (process.env.AIOS_CLOUD_PROVIDER as
             | 'mimo'
+            | 'google'
             | 'openai'
             | 'anthropic'
             | 'huggingface'
