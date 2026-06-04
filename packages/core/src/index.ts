@@ -123,14 +123,21 @@ export class AIOS {
 
   async runTraining(options: {
     dataset?: string;
+    datasets?: string[];
     iterations?: number;
   } = {}) {
-    const dataset = options.dataset ?? 'databricks/databricks-dolly-15k';
+    const dataDir = path.join(this.config.dataDir ?? path.resolve(process.cwd(), 'data'), 'learned');
+
     const report = await this.evolution.training.runFullLoop({
-      dataset,
+      dataset: options.dataset,
+      datasets: options.datasets,
       iterations: options.iterations ?? 10,
-      dataDir: path.join(this.config.dataDir ?? path.resolve(process.cwd(), 'data'), 'learned'),
+      dataDir,
       ingestSample: async (sample, iteration) => {
+        const ds =
+          options.datasets?.[(iteration - 1) % (options.datasets?.length ?? 1)] ??
+          options.dataset ??
+          'unknown';
         await this.knowledge.ingestion.ingest({
           type: 'dataset',
           data: {
@@ -140,7 +147,7 @@ export class AIOS {
             reward: sample.reward,
             category: sample.category,
             iteration,
-            dataset,
+            dataset: ds,
             rowIdx: sample.rowIdx,
           },
         });

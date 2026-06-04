@@ -82,12 +82,12 @@ export class ImprovementAnalyzer {
       });
     }
 
-    if (successRate >= 0.75 && currentPolicy.batchSize < 30) {
+    if (successRate >= 0.75 && currentPolicy.batchSize < 20) {
       improvements.push({
         id: `imp-batch-scale-${iteration}`,
         type: 'batch',
         description: 'High success rate — increase batch size',
-        action: { batchSize: Math.min(30, currentPolicy.batchSize + 2) },
+        action: { batchSize: Math.min(20, currentPolicy.batchSize + 2) },
         priority: 4,
       });
     }

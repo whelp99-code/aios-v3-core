@@ -20,10 +20,10 @@ const DEFAULT_POLICY = {
     updatedAt: new Date().toISOString(),
 };
 class LearnedPolicyStore {
-    constructor(dataDir) {
+    constructor(dataDir, policyFile = 'policy.json') {
         const dir = dataDir ?? path_1.default.resolve(process.cwd(), 'data/learned');
         fs_1.default.mkdirSync(dir, { recursive: true });
-        this.filePath = path_1.default.join(dir, 'policy.json');
+        this.filePath = path_1.default.join(dir, policyFile);
         this.policy = this.load();
     }
     get() {

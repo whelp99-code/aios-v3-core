@@ -11,6 +11,8 @@
     "verify": "./scripts/verify-all.sh",
     "verify:api": "./scripts/verify-api.sh",
     "train:hf": "./scripts/hf-train-10x.sh",
+    "datasets:probe": "node scripts/hf-dataset-probe.js",
+    "train:hf:3x50": "node scripts/hf-train-3x50.js",
     "desktop": "pnpm --filter desktop dev"
   },
   "devDependencies": {

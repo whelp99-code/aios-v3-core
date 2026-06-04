@@ -23,7 +23,7 @@ export interface LearnedPolicy {
 export declare class LearnedPolicyStore {
     private filePath;
     private policy;
-    constructor(dataDir?: string);
+    constructor(dataDir?: string, policyFile?: string);
     get(): LearnedPolicy;
     update(partial: Partial<LearnedPolicy>): LearnedPolicy;
     reset(): LearnedPolicy;

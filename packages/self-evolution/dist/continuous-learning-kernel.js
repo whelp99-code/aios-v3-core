@@ -6,10 +6,10 @@ const improvement_analyzer_1 = require("./improvement-analyzer");
 const improvement_applier_1 = require("./improvement-applier");
 const learned_policy_store_1 = require("./learned-policy-store");
 class ContinuousLearningKernel {
-    constructor(hotPatch, experience, dataDir) {
+    constructor(hotPatch, experience, dataDir, policyFile = 'policy.json') {
         this.hotPatch = hotPatch;
         this.loader = new hf_dataset_loader_1.HFDatasetLoader();
-        this.policyStore = new learned_policy_store_1.LearnedPolicyStore(dataDir);
+        this.policyStore = new learned_policy_store_1.LearnedPolicyStore(dataDir, policyFile);
         this.analyzer = new improvement_analyzer_1.ImprovementAnalyzer();
         this.applier = new improvement_applier_1.ImprovementApplier(this.policyStore, hotPatch);
         this.experience = experience;
@@ -125,14 +125,18 @@ class ContinuousLearningKernel {
         };
     }
     async runFullLoop(config = {}) {
-        const dataset = config.dataset ?? 'databricks/databricks-dolly-15k';
+        const datasets = config.datasets?.length
+            ? config.datasets
+            : [config.dataset ?? 'databricks/databricks-dolly-15k'];
         const iterations = config.iterations ?? 10;
-        const hfConfig = { dataset, config: 'default', split: 'train' };
         const results = [];
         let totalSamples = 0;
-        console.log(`\n🤗 HF Continuous Learning — ${iterations} iterations on ${dataset}\n`);
+        const modeLabel = datasets.length > 1 ? `rotation [${datasets.join(' → ')}]` : datasets[0];
+        console.log(`\n🤗 HF Continuous Learning — ${iterations} iterations on ${modeLabel}\n`);
         for (let i = 1; i <= iterations; i++) {
-            console.log(`━━━ Iteration ${i}/${iterations} ━━━`);
+            const datasetId = datasets[(i - 1) % datasets.length];
+            const hfConfig = { dataset: datasetId, config: 'default', split: 'train' };
+            console.log(`━━━ Iteration ${i}/${iterations} [${datasetId}] ━━━`);
             const result = await this.runIteration(i, hfConfig, config.ingestSample);
             results.push(result);
             totalSamples += result.samplesProcessed + result.retrainSamples;
@@ -143,6 +147,10 @@ class ContinuousLearningKernel {
             }
             console.log(`  Policy v${result.policy.version} — threshold=${result.policy.qualityThreshold.toFixed(2)} batch=${result.policy.batchSize}`);
             config.onIteration?.(result);
+            if (i < iterations) {
+                const delayMs = parseInt(process.env.HF_ITER_DELAY_MS || '1500', 10);
+                await new Promise((r) => setTimeout(r, delayMs));
+            }
         }
         const finalPolicy = this.policyStore.get();
         const finalSuccessRate = results.length

@@ -27,8 +27,11 @@ export interface TrainingIterationResult {
 }
 export interface ContinuousLearningConfig {
     dataset?: string;
+    /** Rotate through datasets each iteration (overrides single dataset) */
+    datasets?: string[];
     iterations?: number;
     dataDir?: string;
+    policyFile?: string;
     onIteration?: (result: TrainingIterationResult) => void;
     ingestSample?: (sample: TrainingSampleResult, iteration: number) => Promise<void>;
 }
@@ -45,7 +48,7 @@ export declare class ContinuousLearningKernel {
     readonly analyzer: ImprovementAnalyzer;
     readonly applier: ImprovementApplier;
     readonly experience: ExperienceReplayBuffer;
-    constructor(hotPatch: HotPatchManager, experience: ExperienceReplayBuffer, dataDir?: string);
+    constructor(hotPatch: HotPatchManager, experience: ExperienceReplayBuffer, dataDir?: string, policyFile?: string);
     evaluateSample(row: HFDatasetRow, policy: LearnedPolicy): TrainingSampleResult;
     runIteration(iteration: number, cfg: HFDatasetConfig, ingestSample?: (sample: TrainingSampleResult, iteration: number) => Promise<void>): Promise<TrainingIterationResult>;
     runFullLoop(config?: ContinuousLearningConfig): Promise<ContinuousLearningReport>;

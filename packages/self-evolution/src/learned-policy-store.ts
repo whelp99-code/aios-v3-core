@@ -40,10 +40,10 @@ export class LearnedPolicyStore {
   private filePath: string;
   private policy: LearnedPolicy;
 
-  constructor(dataDir?: string) {
+  constructor(dataDir?: string, policyFile = 'policy.json') {
     const dir = dataDir ?? path.resolve(process.cwd(), 'data/learned');
     fs.mkdirSync(dir, { recursive: true });
-    this.filePath = path.join(dir, 'policy.json');
+    this.filePath = path.join(dir, policyFile);
     this.policy = this.load();
   }
 

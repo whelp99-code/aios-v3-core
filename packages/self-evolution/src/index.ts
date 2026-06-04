@@ -24,11 +24,11 @@ export class EvolutionKernel {
   policyStore: LearnedPolicyStore;
   training: ContinuousLearningKernel;
 
-  constructor(dataDir?: string) {
+  constructor(dataDir?: string, policyFile = 'policy.json') {
     this.experience = new ExperienceReplayBuffer();
     this.hotPatch = new HotPatchManager();
     this.proposals = new UpdateProposalGenerator(this.hotPatch);
-    this.policyStore = new LearnedPolicyStore(dataDir);
-    this.training = new ContinuousLearningKernel(this.hotPatch, this.experience, dataDir);
+    this.policyStore = new LearnedPolicyStore(dataDir, policyFile);
+    this.training = new ContinuousLearningKernel(this.hotPatch, this.experience, dataDir, policyFile);
   }
 }

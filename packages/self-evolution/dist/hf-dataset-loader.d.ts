@@ -30,6 +30,8 @@ export declare class HFDatasetLoader {
     getDatasetInfo(dataset: string): Promise<{
         configs: string[];
         splits: string[];
+        splitSizes: Record<string, number>;
     }>;
+    private fetchWithRetry;
     private normalizeRow;
 }

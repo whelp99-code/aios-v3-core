@@ -16,5 +16,5 @@ export declare class EvolutionKernel {
     proposals: UpdateProposalGenerator;
     policyStore: LearnedPolicyStore;
     training: ContinuousLearningKernel;
-    constructor(dataDir?: string);
+    constructor(dataDir?: string, policyFile?: string);
 }

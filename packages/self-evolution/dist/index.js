@@ -23,12 +23,12 @@ const hot_patch_2 = require("./hot-patch");
 const continuous_learning_kernel_2 = require("./continuous-learning-kernel");
 const learned_policy_store_2 = require("./learned-policy-store");
 class EvolutionKernel {
-    constructor(dataDir) {
+    constructor(dataDir, policyFile = 'policy.json') {
         this.experience = new experience_buffer_2.ExperienceReplayBuffer();
         this.hotPatch = new hot_patch_2.HotPatchManager();
         this.proposals = new hot_patch_2.UpdateProposalGenerator(this.hotPatch);
-        this.policyStore = new learned_policy_store_2.LearnedPolicyStore(dataDir);
-        this.training = new continuous_learning_kernel_2.ContinuousLearningKernel(this.hotPatch, this.experience, dataDir);
+        this.policyStore = new learned_policy_store_2.LearnedPolicyStore(dataDir, policyFile);
+        this.training = new continuous_learning_kernel_2.ContinuousLearningKernel(this.hotPatch, this.experience, dataDir, policyFile);
     }
 }
 exports.EvolutionKernel = EvolutionKernel;

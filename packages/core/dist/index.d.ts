@@ -43,6 +43,7 @@ export declare class AIOS {
     private applyLearnedPolicy;
     runTraining(options?: {
         dataset?: string;
+        datasets?: string[];
         iterations?: number;
     }): Promise<import("@aios/self-evolution").ContinuousLearningReport>;
     setEnginePreferences(prefs: Partial<EnginePreferences>): void;
