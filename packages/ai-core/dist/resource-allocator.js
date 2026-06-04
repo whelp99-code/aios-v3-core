@@ -55,19 +55,23 @@ class ResourceAllocator {
         }
         return snapshot.recommendedMode;
     }
-    pickCloudProvider(providers, preferred) {
+    pickCloudProvider(providers, preferred, options) {
         const configured = providers.filter((p) => p.isConfigured() && p.provider !== 'local');
         if (!configured.length)
             return undefined;
+        const exclude = new Set(options?.exclude ?? []);
+        const baseOrder = ['mimo', 'openai', 'anthropic', 'huggingface'];
         const order = preferred
-            ? [preferred, 'mimo', 'google', 'openai', 'anthropic', 'huggingface']
-            : ['mimo', 'google', 'openai', 'anthropic', 'huggingface'];
+            ? [preferred, ...baseOrder.filter((id) => id !== preferred)]
+            : baseOrder;
         for (const id of order) {
+            if (exclude.has(id))
+                continue;
             const match = configured.find((p) => p.provider === id);
             if (match)
                 return match;
         }
-        return configured[0];
+        return configured.find((p) => !exclude.has(p.provider));
     }
 }
 exports.ResourceAllocator = ResourceAllocator;

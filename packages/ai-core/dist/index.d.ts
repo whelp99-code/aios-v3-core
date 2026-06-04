@@ -5,6 +5,7 @@ export type { TaskType, AgentRole } from './types';
 export { ModelRegistry } from './model-registry';
 export { DynamicRouter, type DynamicRouterConfig } from './dynamic-router';
 export { ResourceAllocator } from './resource-allocator';
+export { FREE_TIER_CLOUD_PROVIDER, FREE_TIER_MODEL_ID, isSimpleCloudTask, googleSimpleTasksEnabled, } from './routing-policy';
 export type { EngineMode, EnginePreferences, ModelProvider, ModelEntry, RoutingDecision, ResourceSnapshot, ProviderHealth, RoleEngineOverride, } from './types';
 export { OpenAIProvider } from './providers/openai-provider';
 export { AnthropicProvider } from './providers/anthropic-provider';

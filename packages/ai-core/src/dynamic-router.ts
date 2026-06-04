@@ -21,6 +21,12 @@ import { HuggingFaceProvider } from './providers/huggingface-provider';
 import { MimoProvider } from './providers/mimo-provider';
 import { GoogleProvider } from './providers/google-provider';
 import RapidMLXClient from './rapid-mlx-client';
+import {
+  FREE_TIER_CLOUD_PROVIDER,
+  FREE_TIER_MODEL_ID,
+  googleSimpleTasksEnabled,
+  isSimpleCloudTask,
+} from './routing-policy';
 
 export interface DynamicRouterConfig {
   rapidMLXClient?: RapidMLXClient;
@@ -115,6 +121,9 @@ export class DynamicRouter {
     const security = this.preferences.securityLevel ?? 'cloud_secure';
     const task = taskType ?? this.roleToTask(role);
 
+    const googleSimple = this.tryGoogleSimpleRoute(role, task);
+    if (googleSimple) return googleSimple;
+
     if (effectiveMode === 'local' || security === 'local_only') {
       const model = this.registry.getForRole(role, 'local');
       if (model && (await this.providers.get('local')!.healthCheck()).healthy) {
@@ -125,7 +134,8 @@ export class DynamicRouter {
     if (effectiveMode === 'cloud' || !snapshot.localHealthy) {
       const cloudProvider = this.allocator.pickCloudProvider(
         this.getAllProviders(),
-        this.preferences.preferredCloudProvider
+        this.preferredCloudExcludingFreeTier(role, task),
+        { exclude: ['google'] }
       );
       if (cloudProvider) {
         const model = this.registry.getForRole(role, cloudProvider.provider);
@@ -149,7 +159,8 @@ export class DynamicRouter {
 
     const cloudProvider = this.allocator.pickCloudProvider(
       this.getAllProviders(),
-      this.preferences.preferredCloudProvider
+      this.preferredCloudExcludingFreeTier(role, task),
+      { exclude: ['google'] }
     );
     if (cloudProvider?.isConfigured()) {
       const model = this.registry.getForRole(role, cloudProvider.provider);
@@ -243,14 +254,17 @@ export class DynamicRouter {
     const primary = await this.route(role, taskType);
     targets.push(primary);
 
-    for (const provider of [
+    const multiProviders: ModelProvider[] = [
       'mimo',
-      'google',
       'openai',
       'anthropic',
       'huggingface',
       'local',
-    ] as ModelProvider[]) {
+    ];
+    if (isSimpleCloudTask(role, taskType)) {
+      multiProviders.splice(1, 0, 'google');
+    }
+    for (const provider of multiProviders) {
       if (provider === primary.provider) continue;
       const p = this.providers.get(provider);
       if (!p?.isConfigured()) continue;
@@ -319,15 +333,51 @@ export class DynamicRouter {
       if (local) chain.push({ modelId: local.modelId, provider: 'local', reason: 'Fallback to local' });
     }
 
-    for (const provider of ['mimo', 'google', 'openai', 'anthropic', 'huggingface'] as ModelProvider[]) {
+    const fallbackProviders: ModelProvider[] = ['mimo', 'openai', 'anthropic', 'huggingface'];
+    if (isSimpleCloudTask(role, taskType)) {
+      fallbackProviders.unshift('google');
+    }
+    for (const provider of fallbackProviders) {
       if (provider === primary.provider) continue;
       const p = this.providers.get(provider);
       if (!p?.isConfigured()) continue;
-      const model = this.registry.getForRole(role, provider);
+      const model =
+        provider === FREE_TIER_CLOUD_PROVIDER
+          ? this.registry.get(FREE_TIER_MODEL_ID, 'google') ??
+            this.registry.getForRole(role, 'google')
+          : this.registry.getForRole(role, provider);
       if (model) chain.push({ modelId: model.modelId, provider, reason: 'Fallback cloud provider' });
     }
 
     return chain;
+  }
+
+  /** Gemini free tier: critic / knowledge / chat-only workloads */
+  private tryGoogleSimpleRoute(role: AgentRole, task: TaskType): RoutingDecision | null {
+    if (!googleSimpleTasksEnabled() || !isSimpleCloudTask(role, task)) return null;
+    const google = this.providers.get(FREE_TIER_CLOUD_PROVIDER);
+    if (!google?.isConfigured()) return null;
+    const model =
+      this.registry.get(FREE_TIER_MODEL_ID, FREE_TIER_CLOUD_PROVIDER) ??
+      this.registry.getForRole(role, FREE_TIER_CLOUD_PROVIDER);
+    if (!model) return null;
+    return {
+      modelId: model.modelId,
+      provider: FREE_TIER_CLOUD_PROVIDER,
+      reason: `Free-tier Gemini for simple task (${role}/${task})`,
+    };
+  }
+
+  /** UI may select google, but complex roles use paid/default cloud providers */
+  private preferredCloudExcludingFreeTier(
+    role: AgentRole,
+    task: TaskType
+  ): ModelProvider | undefined {
+    const pref = this.preferences.preferredCloudProvider;
+    if (pref === 'google' && !isSimpleCloudTask(role, task)) {
+      return 'mimo';
+    }
+    return pref === 'google' ? undefined : pref;
   }
 }
 

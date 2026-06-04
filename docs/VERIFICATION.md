@@ -21,6 +21,9 @@
 | `GEMINI_API_KEY` / `GOOGLE_API_KEY` | [Google AI Studio](https://aistudio.google.com/app/apikey) API 키 (Google AI Pro 구독과 별도) |
 | `GEMINI_BASE_URL` | OpenAI 호환 엔드포인트 (기본: `https://generativelanguage.googleapis.com/v1beta/openai/`) |
 | `GEMINI_SKIP_HEALTH_PING` | `1`이면 Gemini 헬스 ping 생략 |
+| `AIOS_GOOGLE_SIMPLE_TASKS` | `0`이면 단순 작업 Gemini 라우팅 비활성 (기본: 활성) |
+
+**Gemini 무료 티어 라우팅:** `critic`, `knowledge_updater`, `chat` 작업만 `gemini-2.0-flash`로 보냄. `planner` / `executor` / `self_corrector` 및 code·reasoning은 MiMo 등 유료·로컬 클라우드 사용.
 | `OPENAI_API_KEY` | OpenAI GPT-4o / GPT-4o-mini |
 | `ANTHROPIC_API_KEY` | Anthropic Claude 3.5 |
 | `HF_TOKEN` / `HUGGINGFACE_API_KEY` | Hugging Face Inference Router (Llama, Qwen, DeepSeek) |

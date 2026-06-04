@@ -1,0 +1,1 @@
+{"version":3,"file":"routing-policy.d.ts","sourceRoot":"","sources":["../src/routing-policy.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,SAAS,EAAE,aAAa,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAE7D,2EAA2E;AAC3E,eAAO,MAAM,wBAAwB,EAAE,aAAwB,CAAC;AAChE,eAAO,MAAM,kBAAkB,qBAAqB,CAAC;AAQrD,wBAAgB,iBAAiB,CAAC,IAAI,EAAE,SAAS,EAAE,QAAQ,EAAE,QAAQ,GAAG,OAAO,CAI9E;AAED,wBAAgB,wBAAwB,IAAI,OAAO,CAIlD"}

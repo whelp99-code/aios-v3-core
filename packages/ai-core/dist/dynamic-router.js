@@ -13,6 +13,7 @@ const huggingface_provider_1 = require("./providers/huggingface-provider");
 const mimo_provider_1 = require("./providers/mimo-provider");
 const google_provider_1 = require("./providers/google-provider");
 const rapid_mlx_client_1 = __importDefault(require("./rapid-mlx-client"));
+const routing_policy_1 = require("./routing-policy");
 class DynamicRouter {
     constructor(config = {}) {
         this.lastSnapshot = null;
@@ -76,6 +77,9 @@ class DynamicRouter {
         }
         const security = this.preferences.securityLevel ?? 'cloud_secure';
         const task = taskType ?? this.roleToTask(role);
+        const googleSimple = this.tryGoogleSimpleRoute(role, task);
+        if (googleSimple)
+            return googleSimple;
         if (effectiveMode === 'local' || security === 'local_only') {
             const model = this.registry.getForRole(role, 'local');
             if (model && (await this.providers.get('local').healthCheck()).healthy) {
@@ -83,7 +87,7 @@ class DynamicRouter {
             }
         }
         if (effectiveMode === 'cloud' || !snapshot.localHealthy) {
-            const cloudProvider = this.allocator.pickCloudProvider(this.getAllProviders(), this.preferences.preferredCloudProvider);
+            const cloudProvider = this.allocator.pickCloudProvider(this.getAllProviders(), this.preferredCloudExcludingFreeTier(role, task), { exclude: ['google'] });
             if (cloudProvider) {
                 const model = this.registry.getForRole(role, cloudProvider.provider);
                 if (model) {
@@ -102,7 +106,7 @@ class DynamicRouter {
                 return { modelId: model.modelId, provider: 'local', reason: 'Auto: local optimal' };
             }
         }
-        const cloudProvider = this.allocator.pickCloudProvider(this.getAllProviders(), this.preferences.preferredCloudProvider);
+        const cloudProvider = this.allocator.pickCloudProvider(this.getAllProviders(), this.preferredCloudExcludingFreeTier(role, task), { exclude: ['google'] });
         if (cloudProvider?.isConfigured()) {
             const model = this.registry.getForRole(role, cloudProvider.provider);
             if (model) {
@@ -175,14 +179,17 @@ class DynamicRouter {
         const targets = [];
         const primary = await this.route(role, taskType);
         targets.push(primary);
-        for (const provider of [
+        const multiProviders = [
             'mimo',
-            'google',
             'openai',
             'anthropic',
             'huggingface',
             'local',
-        ]) {
+        ];
+        if ((0, routing_policy_1.isSimpleCloudTask)(role, taskType)) {
+            multiProviders.splice(1, 0, 'google');
+        }
+        for (const provider of multiProviders) {
             if (provider === primary.provider)
                 continue;
             const p = this.providers.get(provider);
@@ -245,17 +252,49 @@ class DynamicRouter {
             if (local)
                 chain.push({ modelId: local.modelId, provider: 'local', reason: 'Fallback to local' });
         }
-        for (const provider of ['mimo', 'google', 'openai', 'anthropic', 'huggingface']) {
+        const fallbackProviders = ['mimo', 'openai', 'anthropic', 'huggingface'];
+        if ((0, routing_policy_1.isSimpleCloudTask)(role, taskType)) {
+            fallbackProviders.unshift('google');
+        }
+        for (const provider of fallbackProviders) {
             if (provider === primary.provider)
                 continue;
             const p = this.providers.get(provider);
             if (!p?.isConfigured())
                 continue;
-            const model = this.registry.getForRole(role, provider);
+            const model = provider === routing_policy_1.FREE_TIER_CLOUD_PROVIDER
+                ? this.registry.get(routing_policy_1.FREE_TIER_MODEL_ID, 'google') ??
+                    this.registry.getForRole(role, 'google')
+                : this.registry.getForRole(role, provider);
             if (model)
                 chain.push({ modelId: model.modelId, provider, reason: 'Fallback cloud provider' });
         }
         return chain;
+    }
+    /** Gemini free tier: critic / knowledge / chat-only workloads */
+    tryGoogleSimpleRoute(role, task) {
+        if (!(0, routing_policy_1.googleSimpleTasksEnabled)() || !(0, routing_policy_1.isSimpleCloudTask)(role, task))
+            return null;
+        const google = this.providers.get(routing_policy_1.FREE_TIER_CLOUD_PROVIDER);
+        if (!google?.isConfigured())
+            return null;
+        const model = this.registry.get(routing_policy_1.FREE_TIER_MODEL_ID, routing_policy_1.FREE_TIER_CLOUD_PROVIDER) ??
+            this.registry.getForRole(role, routing_policy_1.FREE_TIER_CLOUD_PROVIDER);
+        if (!model)
+            return null;
+        return {
+            modelId: model.modelId,
+            provider: routing_policy_1.FREE_TIER_CLOUD_PROVIDER,
+            reason: `Free-tier Gemini for simple task (${role}/${task})`,
+        };
+    }
+    /** UI may select google, but complex roles use paid/default cloud providers */
+    preferredCloudExcludingFreeTier(role, task) {
+        const pref = this.preferences.preferredCloudProvider;
+        if (pref === 'google' && !(0, routing_policy_1.isSimpleCloudTask)(role, task)) {
+            return 'mimo';
+        }
+        return pref === 'google' ? undefined : pref;
     }
 }
 exports.DynamicRouter = DynamicRouter;

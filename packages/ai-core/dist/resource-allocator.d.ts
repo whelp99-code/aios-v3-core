@@ -14,6 +14,8 @@ export declare class ResourceAllocator {
     getLocalLoad(): number;
     assess(localProvider: ILLMProvider, cloudProviders: ILLMProvider[]): Promise<ResourceSnapshot>;
     resolveMode(requestedMode: EngineMode, snapshot: ResourceSnapshot): EngineMode;
-    pickCloudProvider(providers: ILLMProvider[], preferred?: ModelProvider): ILLMProvider | undefined;
+    pickCloudProvider(providers: ILLMProvider[], preferred?: ModelProvider, options?: {
+        exclude?: ModelProvider[];
+    }): ILLMProvider | undefined;
 }
 //# sourceMappingURL=resource-allocator.d.ts.map

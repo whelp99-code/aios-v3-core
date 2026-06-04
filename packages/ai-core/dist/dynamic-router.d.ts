@@ -48,6 +48,10 @@ export declare class DynamicRouter {
     getLastResourceSnapshot(): ResourceSnapshot | null;
     private roleToTask;
     private buildFallbackChain;
+    /** Gemini free tier: critic / knowledge / chat-only workloads */
+    private tryGoogleSimpleRoute;
+    /** UI may select google, but complex roles use paid/default cloud providers */
+    private preferredCloudExcludingFreeTier;
 }
 export type { EngineMode, EnginePreferences, ModelProvider, RoutingDecision, ResourceSnapshot };
 //# sourceMappingURL=dynamic-router.d.ts.map
