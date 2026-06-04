@@ -28,8 +28,13 @@ class AIOS {
             huggingfaceApiKey: config.huggingfaceApiKey ??
                 process.env.HF_TOKEN ??
                 process.env.HUGGINGFACE_API_KEY,
+            mimoApiKey: config.mimoApiKey ?? process.env.MIMO_API_KEY,
+            mimoBaseURL: config.mimoBaseURL ?? process.env.MIMO_BASE_URL,
             preferences: {
                 mode: config.engineMode ?? 'auto',
+                preferredCloudProvider: config.enginePreferences?.preferredCloudProvider ??
+                    process.env.AIOS_CLOUD_PROVIDER ??
+                    'mimo',
                 ...config.enginePreferences,
             },
         });

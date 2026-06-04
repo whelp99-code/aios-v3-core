@@ -59,8 +59,11 @@ class ResourceAllocator {
         const configured = providers.filter((p) => p.isConfigured() && p.provider !== 'local');
         if (!configured.length)
             return undefined;
-        if (preferred) {
-            const match = configured.find((p) => p.provider === preferred);
+        const order = preferred
+            ? [preferred, 'mimo', 'openai', 'anthropic', 'huggingface']
+            : ['mimo', 'openai', 'anthropic', 'huggingface'];
+        for (const id of order) {
+            const match = configured.find((p) => p.provider === id);
             if (match)
                 return match;
         }

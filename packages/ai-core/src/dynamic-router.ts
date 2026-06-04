@@ -18,6 +18,7 @@ import { RapidMLXProvider } from './providers/rapid-mlx-provider';
 import { OpenAIProvider } from './providers/openai-provider';
 import { AnthropicProvider } from './providers/anthropic-provider';
 import { HuggingFaceProvider } from './providers/huggingface-provider';
+import { MimoProvider } from './providers/mimo-provider';
 import RapidMLXClient from './rapid-mlx-client';
 
 export interface DynamicRouterConfig {
@@ -25,6 +26,8 @@ export interface DynamicRouterConfig {
   openaiApiKey?: string;
   anthropicApiKey?: string;
   huggingfaceApiKey?: string;
+  mimoApiKey?: string;
+  mimoBaseURL?: string;
   preferences?: EnginePreferences;
 }
 
@@ -48,6 +51,13 @@ export class DynamicRouter {
       ['openai', new OpenAIProvider({ apiKey: config.openaiApiKey })],
       ['anthropic', new AnthropicProvider({ apiKey: config.anthropicApiKey })],
       ['huggingface', new HuggingFaceProvider({ apiKey: config.huggingfaceApiKey })],
+      [
+        'mimo',
+        new MimoProvider({
+          apiKey: config.mimoApiKey,
+          baseURL: config.mimoBaseURL,
+        }),
+      ],
     ]);
     this.preferences = config.preferences ?? { mode: 'auto' };
   }
@@ -223,7 +233,7 @@ export class DynamicRouter {
     const primary = await this.route(role, taskType);
     targets.push(primary);
 
-    for (const provider of ['openai', 'anthropic', 'huggingface', 'local'] as ModelProvider[]) {
+    for (const provider of ['mimo', 'openai', 'anthropic', 'huggingface', 'local'] as ModelProvider[]) {
       if (provider === primary.provider) continue;
       const p = this.providers.get(provider);
       if (!p?.isConfigured()) continue;
@@ -292,7 +302,7 @@ export class DynamicRouter {
       if (local) chain.push({ modelId: local.modelId, provider: 'local', reason: 'Fallback to local' });
     }
 
-    for (const provider of ['openai', 'anthropic', 'huggingface'] as ModelProvider[]) {
+    for (const provider of ['mimo', 'openai', 'anthropic', 'huggingface'] as ModelProvider[]) {
       if (provider === primary.provider) continue;
       const p = this.providers.get(provider);
       if (!p?.isConfigured()) continue;

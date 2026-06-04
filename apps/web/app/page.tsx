@@ -20,7 +20,7 @@ interface EngineStatus {
 }
 
 type EngineMode = 'auto' | 'local' | 'cloud';
-type CloudProvider = 'openai' | 'anthropic' | 'huggingface';
+type CloudProvider = 'mimo' | 'openai' | 'anthropic' | 'huggingface';
 
 interface MCPAdapterStatus {
   id: string;
@@ -74,7 +74,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [useWorkflow, setUseWorkflow] = useState(true);
   const [engineMode, setEngineMode] = useState<EngineMode>('auto');
-  const [cloudProvider, setCloudProvider] = useState<CloudProvider>('huggingface');
+  const [cloudProvider, setCloudProvider] = useState<CloudProvider>('mimo');
   const [parallelExecution, setParallelExecution] = useState(true);
   const [engineStatus, setEngineStatus] = useState<EngineStatus>({
     status: 'checking',
@@ -444,7 +444,7 @@ export default function Home() {
 
         <h3 className="text-sm font-semibold mb-2 text-zinc-400">클라우드 Provider</h3>
         <div className="flex gap-1 mb-4">
-          {(['huggingface', 'openai', 'anthropic'] as CloudProvider[]).map((provider) => (
+          {(['mimo', 'huggingface', 'openai', 'anthropic'] as CloudProvider[]).map((provider) => (
             <button
               key={provider}
               onClick={() => updateCloudProvider(provider)}
@@ -452,7 +452,13 @@ export default function Home() {
                 cloudProvider === provider ? 'bg-orange-600 text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
               }`}
             >
-              {provider === 'huggingface' ? 'HF' : provider === 'openai' ? 'GPT' : 'Claude'}
+              {provider === 'mimo'
+                ? 'MiMo'
+                : provider === 'huggingface'
+                  ? 'HF'
+                  : provider === 'openai'
+                    ? 'GPT'
+                    : 'Claude'}
             </button>
           ))}
         </div>
@@ -474,7 +480,11 @@ export default function Home() {
           ]).map((p) => (
             <div key={p.provider} className="bg-zinc-800 p-2 rounded-lg flex items-center justify-between">
               <span className="text-xs font-medium">
-                {p.provider === 'huggingface' ? '🤗 HuggingFace' : p.provider}
+                {p.provider === 'mimo'
+                  ? 'MiMo'
+                  : p.provider === 'huggingface'
+                    ? '🤗 HuggingFace'
+                    : p.provider}
               </span>
               <span className={`text-xs ${p.healthy ? 'text-green-400' : 'text-zinc-500'}`}>
                 {p.healthy ? '●' : '○'}

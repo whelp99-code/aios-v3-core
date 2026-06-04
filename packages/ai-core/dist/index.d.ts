@@ -9,6 +9,7 @@ export type { EngineMode, EnginePreferences, ModelProvider, ModelEntry, RoutingD
 export { OpenAIProvider } from './providers/openai-provider';
 export { AnthropicProvider } from './providers/anthropic-provider';
 export { HuggingFaceProvider } from './providers/huggingface-provider';
+export { MimoProvider } from './providers/mimo-provider';
 export { RapidMLXProvider } from './providers/rapid-mlx-provider';
 export type { ILLMProvider } from './providers/base-provider';
 //# sourceMappingURL=index.d.ts.map

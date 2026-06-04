@@ -10,6 +10,7 @@ const rapid_mlx_provider_1 = require("./providers/rapid-mlx-provider");
 const openai_provider_1 = require("./providers/openai-provider");
 const anthropic_provider_1 = require("./providers/anthropic-provider");
 const huggingface_provider_1 = require("./providers/huggingface-provider");
+const mimo_provider_1 = require("./providers/mimo-provider");
 const rapid_mlx_client_1 = __importDefault(require("./rapid-mlx-client"));
 class DynamicRouter {
     constructor(config = {}) {
@@ -23,6 +24,13 @@ class DynamicRouter {
             ['openai', new openai_provider_1.OpenAIProvider({ apiKey: config.openaiApiKey })],
             ['anthropic', new anthropic_provider_1.AnthropicProvider({ apiKey: config.anthropicApiKey })],
             ['huggingface', new huggingface_provider_1.HuggingFaceProvider({ apiKey: config.huggingfaceApiKey })],
+            [
+                'mimo',
+                new mimo_provider_1.MimoProvider({
+                    apiKey: config.mimoApiKey,
+                    baseURL: config.mimoBaseURL,
+                }),
+            ],
         ]);
         this.preferences = config.preferences ?? { mode: 'auto' };
     }
@@ -159,7 +167,7 @@ class DynamicRouter {
         const targets = [];
         const primary = await this.route(role, taskType);
         targets.push(primary);
-        for (const provider of ['openai', 'anthropic', 'huggingface', 'local']) {
+        for (const provider of ['mimo', 'openai', 'anthropic', 'huggingface', 'local']) {
             if (provider === primary.provider)
                 continue;
             const p = this.providers.get(provider);
@@ -222,7 +230,7 @@ class DynamicRouter {
             if (local)
                 chain.push({ modelId: local.modelId, provider: 'local', reason: 'Fallback to local' });
         }
-        for (const provider of ['openai', 'anthropic', 'huggingface']) {
+        for (const provider of ['mimo', 'openai', 'anthropic', 'huggingface']) {
             if (provider === primary.provider)
                 continue;
             const p = this.providers.get(provider);

@@ -8,6 +8,8 @@ export interface DynamicRouterConfig {
     openaiApiKey?: string;
     anthropicApiKey?: string;
     huggingfaceApiKey?: string;
+    mimoApiKey?: string;
+    mimoBaseURL?: string;
     preferences?: EnginePreferences;
 }
 export declare class DynamicRouter {

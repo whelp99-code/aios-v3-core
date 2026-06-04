@@ -10,9 +10,16 @@ export function getAIOS(): AIOS {
       openaiApiKey: process.env.OPENAI_API_KEY,
       anthropicApiKey: process.env.ANTHROPIC_API_KEY,
       huggingfaceApiKey: process.env.HF_TOKEN ?? process.env.HUGGINGFACE_API_KEY,
+      mimoApiKey: process.env.MIMO_API_KEY,
+      mimoBaseURL: process.env.MIMO_BASE_URL,
       dataDir: path.resolve(process.cwd(), '../../data'),
       skillsDirectory: path.resolve(process.cwd(), '../../skills'),
       engineMode: (process.env.AIOS_ENGINE_MODE as 'auto' | 'local' | 'cloud') || 'auto',
+      enginePreferences: {
+        preferredCloudProvider:
+          (process.env.AIOS_CLOUD_PROVIDER as 'mimo' | 'openai' | 'anthropic' | 'huggingface') ??
+          'mimo',
+      },
       mcp: {
         vibeCodingOSUrl: process.env.VIBE_CODING_OS_URL,
         automationPortalUrl: process.env.AUTOMATION_PORTAL_URL,

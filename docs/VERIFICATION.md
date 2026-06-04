@@ -7,13 +7,17 @@
 - Node.js >= 22
 - pnpm
 - (선택) Rapid-MLX 로컬 서버 — 없어도 Fallback/시뮬레이션 모드로 검증 가능
-- (선택) 클라우드 API 키 — `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` 설정 시 Hybrid Router가 클라우드 엔진 사용
+- (선택) 클라우드 API 키 — 기본 클라우드는 **Xiaomi MiMo** (`MIMO_API_KEY`). OpenAI/Anthropic/HF도 선택 가능
 
 ### Hybrid AI Core 환경변수
 
 | 변수 | 설명 |
 |------|------|
 | `RAPID_MLX_BASE_URL` | 로컬 Rapid-MLX URL (기본: `http://localhost:8000/v1`) |
+| `AIOS_CLOUD_PROVIDER` | `mimo` \| `openai` \| `anthropic` \| `huggingface` (기본: **mimo**) |
+| `MIMO_API_KEY` | Xiaomi MiMo API 키 ([콘솔](https://platform.xiaomimimo.com/)) |
+| `MIMO_BASE_URL` | `https://api.xiaomimimo.com/v1` 또는 Token Plan 클러스터 URL |
+| `MIMO_SKIP_HEALTH_PING` | `1`이면 헬스체크 시 유료 ping 생략 (키만 확인) |
 | `OPENAI_API_KEY` | OpenAI GPT-4o / GPT-4o-mini |
 | `ANTHROPIC_API_KEY` | Anthropic Claude 3.5 |
 | `HF_TOKEN` / `HUGGINGFACE_API_KEY` | Hugging Face Inference Router (Llama, Qwen, DeepSeek) |

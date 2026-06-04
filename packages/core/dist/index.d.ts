@@ -11,6 +11,8 @@ export interface AIOSConfig {
     openaiApiKey?: string;
     anthropicApiKey?: string;
     huggingfaceApiKey?: string;
+    mimoApiKey?: string;
+    mimoBaseURL?: string;
     dataDir?: string;
     skillsDirectory?: string;
     engineMode?: EngineMode;
