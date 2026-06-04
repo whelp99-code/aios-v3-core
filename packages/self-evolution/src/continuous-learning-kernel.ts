@@ -1,5 +1,13 @@
 import { ExperienceReplayBuffer } from './experience-buffer';
-import { HFDatasetLoader, HFDatasetConfig, HFDatasetRow } from './hf-dataset-loader';
+import {
+  HFDatasetLoader,
+  HFDatasetConfig,
+  HFDatasetRow,
+  HFDatasetEntry,
+  toHFDatasetConfig,
+  resolveDatasetList,
+} from './hf-dataset-loader';
+import { DatasetCursorStore } from './dataset-cursor-store';
 import { ImprovementAnalyzer, AnalysisResult } from './improvement-analyzer';
 import { ImprovementApplier } from './improvement-applier';
 import { LearnedPolicyStore, LearnedPolicy } from './learned-policy-store';
@@ -31,12 +39,14 @@ export interface TrainingIterationResult {
 export interface ContinuousLearningConfig {
   dataset?: string;
   /** Rotate through datasets each iteration (overrides single dataset) */
-  datasets?: string[];
+  datasets?: Array<string | HFDatasetEntry>;
   iterations?: number;
   dataDir?: string;
   policyFile?: string;
+  /** Use persistent per-dataset offsets (default true when dataDir set) */
+  useCursorStore?: boolean;
   onIteration?: (result: TrainingIterationResult) => void;
-  ingestSample?: (sample: TrainingSampleResult, iteration: number) => Promise<void>;
+  ingestSample?: (sample: TrainingSampleResult, iteration: number, datasetId?: string) => Promise<void>;
 }
 
 export interface ContinuousLearningReport {
@@ -52,6 +62,7 @@ export class ContinuousLearningKernel {
   readonly analyzer: ImprovementAnalyzer;
   readonly applier: ImprovementApplier;
   readonly experience: ExperienceReplayBuffer;
+  readonly cursorStore: DatasetCursorStore | null;
 
   constructor(
     private hotPatch: HotPatchManager,
@@ -64,6 +75,7 @@ export class ContinuousLearningKernel {
     this.analyzer = new ImprovementAnalyzer();
     this.applier = new ImprovementApplier(this.policyStore, hotPatch);
     this.experience = experience;
+    this.cursorStore = dataDir ? new DatasetCursorStore(dataDir) : null;
   }
 
   evaluateSample(row: HFDatasetRow, policy: LearnedPolicy): TrainingSampleResult {
@@ -114,10 +126,19 @@ export class ContinuousLearningKernel {
   async runIteration(
     iteration: number,
     cfg: HFDatasetConfig,
-    ingestSample?: (sample: TrainingSampleResult, iteration: number) => Promise<void>
+    ingestSample?: (sample: TrainingSampleResult, iteration: number, datasetId?: string) => Promise<void>,
+    useCursor = true
   ): Promise<TrainingIterationResult> {
     const policy = this.policyStore.get();
-    const offset = (iteration - 1) * policy.batchSize;
+    const offset =
+      useCursor && this.cursorStore
+        ? this.cursorStore.advance(
+            cfg.dataset,
+            policy.batchSize,
+            cfg.config,
+            cfg.split
+          )
+        : (iteration - 1) * policy.batchSize;
 
     const batch = await this.loader.fetchRows(cfg, offset, policy.batchSize);
     const sampleResults: TrainingSampleResult[] = [];
@@ -151,7 +172,7 @@ export class ContinuousLearningKernel {
         this.policyStore.update({ categoryScores: scores });
       }
 
-      await ingestSample?.(result, iteration);
+      await ingestSample?.(result, iteration, cfg.dataset);
     }
 
     const analysis = this.analyzer.analyze(
@@ -206,22 +227,26 @@ export class ContinuousLearningKernel {
   }
 
   async runFullLoop(config: ContinuousLearningConfig = {}): Promise<ContinuousLearningReport> {
-    const datasets = config.datasets?.length
-      ? config.datasets
-      : [config.dataset ?? 'databricks/databricks-dolly-15k'];
+    const entries = resolveDatasetList(config.datasets, config.dataset);
     const iterations = config.iterations ?? 10;
+    const useCursor = config.useCursorStore !== false && !!this.cursorStore;
 
     const results: TrainingIterationResult[] = [];
     let totalSamples = 0;
 
-    const modeLabel = datasets.length > 1 ? `rotation [${datasets.join(' → ')}]` : datasets[0];
+    const modeLabel =
+      entries.length > 1
+        ? `rotation [${entries.map((e) => e.id).join(' → ')}]`
+        : entries[0].id;
     console.log(`\n🤗 HF Continuous Learning — ${iterations} iterations on ${modeLabel}\n`);
 
     for (let i = 1; i <= iterations; i++) {
-      const datasetId = datasets[(i - 1) % datasets.length];
-      const hfConfig: HFDatasetConfig = { dataset: datasetId, config: 'default', split: 'train' };
-      console.log(`━━━ Iteration ${i}/${iterations} [${datasetId}] ━━━`);
-      const result = await this.runIteration(i, hfConfig, config.ingestSample);
+      const entry = entries[(i - 1) % entries.length];
+      const hfConfig = toHFDatasetConfig(entry);
+      console.log(
+        `━━━ Iteration ${i}/${iterations} [${hfConfig.dataset}] config=${hfConfig.config} split=${hfConfig.split} ━━━`
+      );
+      const result = await this.runIteration(i, hfConfig, config.ingestSample, useCursor);
       results.push(result);
       totalSamples += result.samplesProcessed + result.retrainSamples;
 

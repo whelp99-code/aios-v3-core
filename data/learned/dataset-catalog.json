@@ -1,10 +1,11 @@
 {
-  "probedAt": "2026-06-04T00:31:51.728Z",
+  "probedAt": "2026-06-04T01:12:45.613Z",
   "results": [
     {
       "id": "databricks/databricks-dolly-15k",
       "category": "Human instruction",
       "expectedSize": "~15K",
+      "tier": "A",
       "status": "compatible",
       "configs": [
         "default"
@@ -29,12 +30,13 @@
         "category": "closed_qa"
       },
       "error": null,
-      "latencyMs": 531
+      "latencyMs": 530
     },
     {
       "id": "tatsu-lab/alpaca",
       "category": "Instruction tuning",
       "expectedSize": "~52K",
+      "tier": "B",
       "status": "compatible",
       "configs": [
         "default"
@@ -58,12 +60,13 @@
         "response": "1.Eat a balanced diet and make sure to include plenty of fruits and vegetables. \n2. Exercise regularly to keep your body"
       },
       "error": null,
-      "latencyMs": 323
+      "latencyMs": 302
     },
     {
       "id": "Open-Orca/OpenOrca",
       "category": "Synthetic reasoning",
       "expectedSize": "~4M",
+      "tier": "C",
       "status": "compatible",
       "configs": [
         "default"
@@ -87,12 +90,13 @@
         "response": "[\n  [\"AFC Ajax (amateurs)\", \"has ground\", \"Sportpark De Toekomst\"],\n  [\"Ajax Youth Academy\", \"plays at\", \"Sportpark De T"
       },
       "error": null,
-      "latencyMs": 3193
+      "latencyMs": 1578
     },
     {
       "id": "HuggingFaceH4/no_robots",
       "category": "Human SFT",
       "expectedSize": "~10K",
+      "tier": "A",
       "status": "compatible",
       "configs": [
         "default"
@@ -119,13 +123,14 @@
         "category": "Summarize"
       },
       "error": null,
-      "latencyMs": 495
+      "latencyMs": 391
     },
     {
       "id": "OpenAssistant/oasst1",
       "category": "Human dialogue",
       "expectedSize": "~88K",
-      "status": "compatible",
+      "tier": "B",
+      "status": "empty",
       "configs": [
         "default"
       ],
@@ -138,38 +143,17 @@
         "train": 84437,
         "validation": 4401
       },
-      "sampleFields": [
-        "message_id",
-        "parent_id",
-        "user_id",
-        "created_date",
-        "text",
-        "role",
-        "lang",
-        "review_count",
-        "review_result",
-        "deleted",
-        "rank",
-        "synthetic",
-        "model_name",
-        "detoxify",
-        "message_tree_id",
-        "tree_state",
-        "emojis",
-        "labels"
-      ],
-      "compatible": true,
-      "samplePreview": {
-        "instruction": "Can you write a short introduction about the relevance of the term \"monopsony\" in economics? Please use examples related",
-        "response": ""
-      },
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
       "error": null,
-      "latencyMs": 194
+      "latencyMs": 289
     },
     {
       "id": "yahma/alpaca-cleaned",
       "category": "Instruction (cleaned)",
       "expectedSize": "~52K",
+      "tier": "B",
       "status": "compatible",
       "configs": [
         "default"
@@ -192,12 +176,13 @@
         "response": "1. Eat a balanced and nutritious diet: Make sure your meals are inclusive of a variety of fruits and vegetables, lean pr"
       },
       "error": null,
-      "latencyMs": 405
+      "latencyMs": 397
     },
     {
       "id": "teknium/OpenHermes-2.5",
       "category": "Synthetic chat",
       "expectedSize": "~1M",
+      "tier": "C",
       "status": "compatible",
       "configs": [
         "default"
@@ -234,12 +219,13 @@
         "category": "orca"
       },
       "error": null,
-      "latencyMs": 445
+      "latencyMs": 493
     },
     {
       "id": "WizardLM/WizardLM_evol_instruct_V2_196k",
       "category": "Evolved instructions",
       "expectedSize": "~196K",
+      "tier": "B",
       "status": "error",
       "configs": [
         "default"
@@ -253,12 +239,13 @@
       "compatible": false,
       "samplePreview": null,
       "error": "HF dataset fetch failed (404): WizardLM/WizardLM_evol_instruct_V2_196k",
-      "latencyMs": 94
+      "latencyMs": 73
     },
     {
       "id": "mosaicml/instruct-v3",
       "category": "Instruction mix",
       "expectedSize": "large",
+      "tier": "C",
       "status": "compatible",
       "configs": [
         "default"
@@ -284,12 +271,13 @@
         "category": "cot_gsm8k"
       },
       "error": null,
-      "latencyMs": 683
+      "latencyMs": 714
     },
     {
       "id": "argilla/databricks-math-dolly",
       "category": "Math + dolly",
       "expectedSize": "small",
+      "tier": "A",
       "status": "error",
       "configs": [
         "default"
@@ -303,13 +291,14 @@
       "compatible": false,
       "samplePreview": null,
       "error": "HF dataset fetch failed (401): argilla/databricks-math-dolly",
-      "latencyMs": 61
+      "latencyMs": 63
     },
     {
       "id": "stanfordnlp/coqa",
       "category": "Conversational QA",
       "expectedSize": "~127K",
-      "status": "schema_mismatch",
+      "tier": "B",
+      "status": "empty",
       "configs": [
         "default"
       ],
@@ -322,25 +311,17 @@
         "train": 7199,
         "validation": 500
       },
-      "sampleFields": [
-        "source",
-        "story",
-        "questions",
-        "answers"
-      ],
+      "sampleFields": [],
       "compatible": false,
-      "samplePreview": {
-        "instruction": "",
-        "response": "",
-        "category": "wikipedia"
-      },
+      "samplePreview": null,
       "error": null,
-      "latencyMs": 622
+      "latencyMs": 534
     },
     {
       "id": "squad",
       "category": "Reading QA",
       "expectedSize": "~100K",
+      "tier": "B",
       "status": "error",
       "configs": [
         "default"
@@ -354,13 +335,14 @@
       "compatible": false,
       "samplePreview": null,
       "error": "HF dataset fetch failed (404): squad",
-      "latencyMs": 60
+      "latencyMs": 133
     },
     {
       "id": "google/boolq",
       "category": "Boolean QA",
       "expectedSize": "~9K",
-      "status": "compatible",
+      "tier": "A",
+      "status": "empty",
       "configs": [
         "default"
       ],
@@ -373,24 +355,18 @@
         "train": 9427,
         "validation": 3270
       },
-      "sampleFields": [
-        "question",
-        "answer",
-        "passage"
-      ],
-      "compatible": true,
-      "samplePreview": {
-        "instruction": "do iran and afghanistan speak the same language",
-        "response": "true"
-      },
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
       "error": null,
-      "latencyMs": 1066
+      "latencyMs": 1116
     },
     {
       "id": "allenai/sciq",
       "category": "Science QA",
       "expectedSize": "~13K",
-      "status": "compatible",
+      "tier": "A",
+      "status": "empty",
       "configs": [
         "default"
       ],
@@ -405,27 +381,18 @@
         "validation": 1000,
         "test": 1000
       },
-      "sampleFields": [
-        "question",
-        "distractor3",
-        "distractor1",
-        "distractor2",
-        "correct_answer",
-        "support"
-      ],
-      "compatible": true,
-      "samplePreview": {
-        "instruction": "What type of organism is commonly used in preparation of foods such as cheese and yogurt?",
-        "response": ""
-      },
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
       "error": null,
-      "latencyMs": 460
+      "latencyMs": 559
     },
     {
       "id": "cais/mmlu",
       "category": "Multi-task benchmark",
       "expectedSize": "~15K",
-      "status": "compatible",
+      "tier": "B",
+      "status": "empty",
       "configs": [
         "abstract_algebra",
         "all",
@@ -498,24 +465,17 @@
         "validation": 11,
         "dev": 5
       },
-      "sampleFields": [
-        "question",
-        "subject",
-        "choices",
-        "answer"
-      ],
-      "compatible": true,
-      "samplePreview": {
-        "instruction": "Find the degree for the given field extension Q(sqrt(2), sqrt(3), sqrt(18)) over Q.",
-        "response": "1"
-      },
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
       "error": null,
-      "latencyMs": 224
+      "latencyMs": 218
     },
     {
       "id": "Anthropic/hh-rlhf",
       "category": "RLHF preferences",
       "expectedSize": "~170K",
+      "tier": "B",
       "status": "compatible",
       "configs": [
         "default"
@@ -535,16 +495,17 @@
       ],
       "compatible": true,
       "samplePreview": {
-        "instruction": "",
+        "instruction": "Compare responses",
         "response": "\n\nHuman: What are some cuss words in english?\n\nAssistant: Here’s an incomplete list.\n\nAss, dick, bugger, crap, fuck, shi"
       },
       "error": null,
-      "latencyMs": 813
+      "latencyMs": 765
     },
     {
       "id": "HuggingFaceTB/smoltalk",
       "category": "Small instruct",
       "expectedSize": "~1M",
+      "tier": "C",
       "status": "compatible",
       "configs": [
         "all",
@@ -582,12 +543,13 @@
         "category": "numina-cot-100k"
       },
       "error": null,
-      "latencyMs": 494
+      "latencyMs": 579
     },
     {
       "id": "mlabonne/FineTome-100k",
       "category": "Fine-tuning mix",
       "expectedSize": "~100K",
+      "tier": "B",
       "status": "compatible",
       "configs": [
         "default"
@@ -611,12 +573,13 @@
         "category": "infini-instruct-top-500k"
       },
       "error": null,
-      "latencyMs": 499
+      "latencyMs": 488
     },
     {
       "id": "BAAI/Infinity-Instruct",
       "category": "Instruction",
       "expectedSize": "large",
+      "tier": "C",
       "status": "error",
       "configs": [
         "default"
@@ -630,12 +593,13 @@
       "compatible": false,
       "samplePreview": null,
       "error": "HF dataset fetch failed (401): BAAI/Infinity-Instruct",
-      "latencyMs": 69
+      "latencyMs": 97
     },
     {
       "id": "nvidia/OpenMathInstruct-1",
       "category": "Math instruct",
       "expectedSize": "~2M",
+      "tier": "C",
       "status": "compatible",
       "configs": [
         "default"
@@ -662,10 +626,1018 @@
       "compatible": true,
       "samplePreview": {
         "instruction": "Martha has 18 crayons. She lost half of them, so she bought a new set of 20 crayons. How many crayons in total does Mart",
-        "response": ""
+        "response": "Let's solve this problem using Python code.\n<llm-code>\namount_of_lost_crayons = 18 / 2\namount_of_new_crayons = 20\ntotal_"
       },
       "error": null,
-      "latencyMs": 534
+      "latencyMs": 542
+    },
+    {
+      "id": "HuggingFaceH4/ultrachat_200k",
+      "category": "Synthetic chat",
+      "expectedSize": "~200K",
+      "tier": "B",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train_sft",
+        "test_sft",
+        "train_gen",
+        "test_gen"
+      ],
+      "totalRows": 207865,
+      "splitSizes": {
+        "train_sft": 207865,
+        "test_sft": 23110,
+        "train_gen": 256032,
+        "test_gen": 28304
+      },
+      "sampleFields": [
+        "prompt",
+        "prompt_id",
+        "messages"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "These instructions apply to section-based themes (Responsive 6.0+, Retina 4.0+, Parallax 3.0+ Turbo 2.0+, Mobilia 5.0+).",
+        "response": "This feature only applies to Collection pages and Featured Collections sections of the section-based themes listed in th"
+      },
+      "error": null,
+      "latencyMs": 550
+    },
+    {
+      "id": "Open-Orca/SlimOrca",
+      "category": "Synthetic reasoning",
+      "expectedSize": "~518K",
+      "tier": "C",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 517982,
+      "splitSizes": {
+        "train": 517982
+      },
+      "sampleFields": [
+        "conversations"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Write an article based on this \"A man has been charged with murder and attempted murder after a woman and the man she wa",
+        "response": "Title: Tragedy Strikes in Sydney: Victims Stabbed during Dinner Date, Suspect Charged with Murder and Attempted Murder\n\n"
+      },
+      "error": null,
+      "latencyMs": 491
+    },
+    {
+      "id": "meta-math/MetaMathQA",
+      "category": "Math reasoning",
+      "expectedSize": "~395K",
+      "tier": "B",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 395000,
+      "splitSizes": {
+        "train": 395000
+      },
+      "sampleFields": [
+        "type",
+        "query",
+        "original_question",
+        "response"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Gracie and Joe are choosing numbers on the complex plane. Joe chooses the point $1+2i$. Gracie chooses $-1+i$. How far a",
+        "response": "The distance between two points $(x_1,y_1)$ and $(x_2,y_2)$ in the complex plane is given by the formula $\\sqrt{(x_2-x_1"
+      },
+      "error": null,
+      "latencyMs": 496
+    },
+    {
+      "id": "gsm8k",
+      "category": "Math word problems",
+      "expectedSize": "~8K",
+      "tier": "A",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (404): gsm8k",
+      "latencyMs": 71
+    },
+    {
+      "id": "lighteval/MATH",
+      "category": "Math benchmark",
+      "expectedSize": "~12K",
+      "tier": "A",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (401): lighteval/MATH",
+      "latencyMs": 57
+    },
+    {
+      "id": "sahil2801/CodeAlpaca-20k",
+      "category": "Code instruction",
+      "expectedSize": "~20K",
+      "tier": "A",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 20022,
+      "splitSizes": {
+        "train": 20022
+      },
+      "sampleFields": [
+        "output",
+        "instruction",
+        "input"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Create an array of length 5 which contains all even numbers between 1 and 10.",
+        "response": "arr = [2, 4, 6, 8, 10]"
+      },
+      "error": null,
+      "latencyMs": 415
+    },
+    {
+      "id": "iamtarun/CodeAlpaca-20k",
+      "category": "Code instruction",
+      "expectedSize": "~20K",
+      "tier": "A",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (401): iamtarun/CodeAlpaca-20k",
+      "latencyMs": 62
+    },
+    {
+      "id": "glaiveai/glaive-code-assistant",
+      "category": "Code assistant",
+      "expectedSize": "~136K",
+      "tier": "B",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 136109,
+      "splitSizes": {
+        "train": 136109
+      },
+      "sampleFields": [
+        "question",
+        "answer"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "How can I output bold text in Bash? I have a Bash script that prints some text to the screen using the `echo \"Some Text\"",
+        "response": "Yes, you can format the output text in Bash to make it bold. Bash allows you to use special escape sequences for text de"
+      },
+      "error": null,
+      "latencyMs": 900
+    },
+    {
+      "id": "bigcode/starcoderdata",
+      "category": "Code",
+      "expectedSize": "large",
+      "tier": "C",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (401): bigcode/starcoderdata",
+      "latencyMs": 68
+    },
+    {
+      "id": "BelleGroup/train_1M_CN",
+      "category": "Instruction CN",
+      "expectedSize": "~1M",
+      "tier": "C",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 917424,
+      "splitSizes": {
+        "train": 917424
+      },
+      "sampleFields": [
+        "instruction",
+        "input",
+        "output"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "判断给定的文章是否符合语法规则。如果不符合，请提供修改建议。\n下面是一篇文章的开头: \"为了探讨这个主题，本文将提供一系列数据和实例，以证明这一观点。\"\n",
+        "response": "这个开头符合语法规则。"
+      },
+      "error": null,
+      "latencyMs": 613
+    },
+    {
+      "id": "JosephusCheung/GuanacoDataset",
+      "category": "Instruction",
+      "expectedSize": "~534K",
+      "tier": "C",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (401): JosephusCheung/GuanacoDataset",
+      "latencyMs": 59
+    },
+    {
+      "id": "timdettmers/openassistant-guanaco",
+      "category": "Dialogue",
+      "expectedSize": "~9K",
+      "tier": "A",
+      "status": "empty",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train",
+        "test"
+      ],
+      "totalRows": 9846,
+      "splitSizes": {
+        "train": 9846,
+        "test": 518
+      },
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": null,
+      "latencyMs": 530
+    },
+    {
+      "id": "OpenAssistant/oasst2",
+      "category": "Human dialogue",
+      "expectedSize": "~14K",
+      "tier": "A",
+      "status": "empty",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train",
+        "validation"
+      ],
+      "totalRows": 128575,
+      "splitSizes": {
+        "train": 128575,
+        "validation": 6599
+      },
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": null,
+      "latencyMs": 287
+    },
+    {
+      "id": "databricks/databricks-mlflow-tracking",
+      "category": "Other",
+      "expectedSize": "small",
+      "tier": "A",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (401): databricks/databricks-mlflow-tracking",
+      "latencyMs": 64
+    },
+    {
+      "id": "HuggingFaceFW/fineweb-edu",
+      "category": "Web text",
+      "expectedSize": "huge",
+      "tier": "C",
+      "status": "empty",
+      "configs": [
+        "default",
+        "CC-MAIN-2013-20",
+        "CC-MAIN-2013-48",
+        "CC-MAIN-2014-10",
+        "CC-MAIN-2014-15",
+        "CC-MAIN-2014-23",
+        "CC-MAIN-2014-35",
+        "CC-MAIN-2014-41",
+        "CC-MAIN-2014-42",
+        "CC-MAIN-2014-49",
+        "CC-MAIN-2014-52",
+        "CC-MAIN-2015-06",
+        "CC-MAIN-2015-11",
+        "CC-MAIN-2015-14",
+        "CC-MAIN-2015-18",
+        "CC-MAIN-2015-22",
+        "CC-MAIN-2015-27",
+        "CC-MAIN-2015-32",
+        "CC-MAIN-2015-35",
+        "CC-MAIN-2015-40",
+        "CC-MAIN-2015-48",
+        "CC-MAIN-2016-07",
+        "CC-MAIN-2016-18",
+        "CC-MAIN-2016-22",
+        "CC-MAIN-2016-26",
+        "CC-MAIN-2016-30",
+        "CC-MAIN-2016-36",
+        "CC-MAIN-2016-40",
+        "CC-MAIN-2016-44",
+        "CC-MAIN-2016-50",
+        "CC-MAIN-2017-04",
+        "CC-MAIN-2017-09",
+        "CC-MAIN-2017-13",
+        "CC-MAIN-2017-17",
+        "CC-MAIN-2017-22",
+        "CC-MAIN-2017-26",
+        "CC-MAIN-2017-30",
+        "CC-MAIN-2017-34",
+        "CC-MAIN-2017-39",
+        "CC-MAIN-2017-43",
+        "CC-MAIN-2017-47",
+        "CC-MAIN-2017-51",
+        "CC-MAIN-2018-05",
+        "CC-MAIN-2018-09",
+        "CC-MAIN-2018-13",
+        "CC-MAIN-2018-17",
+        "CC-MAIN-2018-22",
+        "CC-MAIN-2018-26",
+        "CC-MAIN-2018-30",
+        "CC-MAIN-2018-34",
+        "CC-MAIN-2018-39",
+        "CC-MAIN-2018-43",
+        "CC-MAIN-2018-47",
+        "CC-MAIN-2018-51",
+        "CC-MAIN-2019-04",
+        "CC-MAIN-2019-09",
+        "CC-MAIN-2019-13",
+        "CC-MAIN-2019-18",
+        "CC-MAIN-2019-22",
+        "CC-MAIN-2019-26",
+        "CC-MAIN-2019-30",
+        "CC-MAIN-2019-35",
+        "CC-MAIN-2019-39",
+        "CC-MAIN-2019-43",
+        "CC-MAIN-2019-47",
+        "CC-MAIN-2019-51",
+        "CC-MAIN-2020-05",
+        "CC-MAIN-2020-10",
+        "CC-MAIN-2020-16",
+        "CC-MAIN-2020-24",
+        "CC-MAIN-2020-29",
+        "CC-MAIN-2020-34",
+        "CC-MAIN-2020-40",
+        "CC-MAIN-2020-45",
+        "CC-MAIN-2020-50",
+        "CC-MAIN-2021-04",
+        "CC-MAIN-2021-10",
+        "CC-MAIN-2021-17",
+        "CC-MAIN-2021-21",
+        "CC-MAIN-2021-25",
+        "CC-MAIN-2021-31",
+        "CC-MAIN-2021-39",
+        "CC-MAIN-2021-43",
+        "CC-MAIN-2021-49",
+        "CC-MAIN-2022-05",
+        "CC-MAIN-2022-21",
+        "CC-MAIN-2022-27",
+        "CC-MAIN-2022-33",
+        "CC-MAIN-2022-40",
+        "CC-MAIN-2022-49",
+        "CC-MAIN-2023-06",
+        "CC-MAIN-2023-14",
+        "CC-MAIN-2023-23",
+        "CC-MAIN-2023-40",
+        "CC-MAIN-2023-50",
+        "CC-MAIN-2024-10",
+        "CC-MAIN-2024-18",
+        "CC-MAIN-2024-22",
+        "CC-MAIN-2024-26",
+        "CC-MAIN-2024-30",
+        "CC-MAIN-2024-33",
+        "CC-MAIN-2024-38",
+        "CC-MAIN-2024-42",
+        "CC-MAIN-2024-46",
+        "CC-MAIN-2024-51",
+        "CC-MAIN-2025-05",
+        "CC-MAIN-2025-08",
+        "CC-MAIN-2025-13",
+        "CC-MAIN-2025-18",
+        "CC-MAIN-2025-21",
+        "CC-MAIN-2025-26",
+        "sample-100BT",
+        "sample-10BT",
+        "sample-350BT"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 1525223056,
+      "splitSizes": {
+        "train": 1525223056
+      },
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": null,
+      "latencyMs": 549
+    },
+    {
+      "id": "allenai/tulu-3-sft-mixture",
+      "category": "Instruction mix",
+      "expectedSize": "~326K",
+      "tier": "B",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 939343,
+      "splitSizes": {
+        "train": 939343
+      },
+      "sampleFields": [
+        "id",
+        "messages",
+        "source"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Create a snippet of Terraform HCL code that create an AWS autoscaling group, and an ALB in front to expose an applicatio",
+        "response": "Sure, here's an example Terraform HCL code that creates an AWS Autoscaling Group and an Application Load Balancer to exp",
+        "category": "ai2-adapt-dev/oasst1_converted"
+      },
+      "error": null,
+      "latencyMs": 320
+    },
+    {
+      "id": "HuggingFaceTB/cosmopedia",
+      "category": "Synthetic",
+      "expectedSize": "~2M",
+      "tier": "C",
+      "status": "error",
+      "configs": [
+        "auto_math_text",
+        "khanacademy",
+        "openstax",
+        "stanford",
+        "stories",
+        "web_samples_v1",
+        "web_samples_v2",
+        "wikihow"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {
+        "train": 1949895
+      },
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (404): HuggingFaceTB/cosmopedia",
+      "latencyMs": 59
+    },
+    {
+      "id": "argilla/ultrafeedback-binarized-preferences",
+      "category": "Preference",
+      "expectedSize": "~60K",
+      "tier": "B",
+      "status": "empty",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 63619,
+      "splitSizes": {
+        "train": 63619
+      },
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": null,
+      "latencyMs": 501
+    },
+    {
+      "id": "Intel/orca_dpo_pairs",
+      "category": "Preference DPO",
+      "expectedSize": "~12M",
+      "tier": "C",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 12859,
+      "splitSizes": {
+        "train": 12859
+      },
+      "sampleFields": [
+        "system",
+        "question",
+        "chosen",
+        "rejected"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "You will be given a definition of a task first, then some input of the task.\nThis task is about using the specified sent",
+        "response": "[\n  [\"AFC Ajax (amateurs)\", \"has ground\", \"Sportpark De Toekomst\"],\n  [\"Ajax Youth Academy\", \"plays at\", \"Sportpark De T"
+      },
+      "error": null,
+      "latencyMs": 554
+    },
+    {
+      "id": "HuggingFaceH4/zephyr-7b-beta",
+      "category": "Chat",
+      "expectedSize": "small",
+      "tier": "A",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (401): HuggingFaceH4/zephyr-7b-beta",
+      "latencyMs": 67
+    },
+    {
+      "id": "TIGER-Lab/MATH-plus",
+      "category": "Math",
+      "expectedSize": "~27K",
+      "tier": "A",
+      "status": "compatible",
+      "configs": [
+        "train"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 893929,
+      "splitSizes": {
+        "train": 893929
+      },
+      "sampleFields": [
+        "instruction",
+        "output"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Convert the point $(\\rho,\\theta,\\phi) = \\left( 2, \\frac{2 \\pi}{3}, \\frac{\\pi}{4} \\right)$ in spherical coordinates to re",
+        "response": "We have that $\\rho = 2,$ $\\theta = \\frac{2 \\pi}{3},$ and $\\phi = \\frac{\\pi}{4},$ so\n\\begin{align*}\nx &= \\rho \\sin \\phi \\"
+      },
+      "error": null,
+      "latencyMs": 728
+    },
+    {
+      "id": "AI-MO/NuminaMath-CoT",
+      "category": "Math CoT",
+      "expectedSize": "~860K",
+      "tier": "C",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train",
+        "test"
+      ],
+      "totalRows": 859494,
+      "splitSizes": {
+        "train": 859494,
+        "test": 100
+      },
+      "sampleFields": [
+        "source",
+        "problem",
+        "solution",
+        "messages"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Consider the terms of an arithmetic sequence: $-\\frac{1}{3}, y+2, 4y, \\ldots$. Solve for $y$.",
+        "response": "For an arithmetic sequence, the difference between consecutive terms must be equal. Therefore, we can set up the followi",
+        "category": "synthetic_math"
+      },
+      "error": null,
+      "latencyMs": 473
+    },
+    {
+      "id": "microsoft/orca-math-word-problems-200k",
+      "category": "Math",
+      "expectedSize": "~200K",
+      "tier": "B",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 200035,
+      "splitSizes": {
+        "train": 200035
+      },
+      "sampleFields": [
+        "question",
+        "answer"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Jungkook is the 5th place. Find the number of people who crossed the finish line faster than Jungkook.",
+        "response": "If Jungkook is in 5th place, then 4 people crossed the finish line faster than him."
+      },
+      "error": null,
+      "latencyMs": 354
+    },
+    {
+      "id": "EleutherAI/pile",
+      "category": "Pretrain",
+      "expectedSize": "huge",
+      "tier": "C",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (404): EleutherAI/pile",
+      "latencyMs": 60
+    },
+    {
+      "id": "wikitext",
+      "category": "Language modeling",
+      "expectedSize": "~36K",
+      "tier": "A",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (404): wikitext",
+      "latencyMs": 122
+    },
+    {
+      "id": "imdb",
+      "category": "Sentiment",
+      "expectedSize": "~25K",
+      "tier": "A",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (404): imdb",
+      "latencyMs": 64
+    },
+    {
+      "id": "glue",
+      "category": "Classification",
+      "expectedSize": "~67K",
+      "tier": "B",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (404): glue",
+      "latencyMs": 63
+    },
+    {
+      "id": "rotten_tomatoes",
+      "category": "Sentiment",
+      "expectedSize": "~10K",
+      "tier": "A",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (404): rotten_tomatoes",
+      "latencyMs": 63
+    },
+    {
+      "id": "fancyzhx/ag_news",
+      "category": "News",
+      "expectedSize": "~120K",
+      "tier": "B",
+      "status": "empty",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train",
+        "test"
+      ],
+      "totalRows": 120000,
+      "splitSizes": {
+        "train": 120000,
+        "test": 7600
+      },
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": null,
+      "latencyMs": 14863
+    },
+    {
+      "id": "SetFit/rte",
+      "category": "NLI",
+      "expectedSize": "~2K",
+      "tier": "A",
+      "status": "empty",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train",
+        "validation",
+        "test"
+      ],
+      "totalRows": 2490,
+      "splitSizes": {
+        "train": 2490,
+        "validation": 277,
+        "test": 3000
+      },
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": null,
+      "latencyMs": 168
+    },
+    {
+      "id": "xlangai/AgentNet",
+      "category": "Agent",
+      "expectedSize": "medium",
+      "tier": "B",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HTTP 500",
+      "latencyMs": 60263
+    },
+    {
+      "id": "laion/OIG",
+      "category": "Instruction",
+      "expectedSize": "large",
+      "tier": "C",
+      "status": "empty",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 3878622,
+      "splitSizes": {
+        "train": 3878622
+      },
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": null,
+      "latencyMs": 570
+    },
+    {
+      "id": "HuggingFaceTB/sft-gpt-oss-20b",
+      "category": "SFT",
+      "expectedSize": "medium",
+      "tier": "B",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (401): HuggingFaceTB/sft-gpt-oss-20b",
+      "latencyMs": 72
+    },
+    {
+      "id": "nvidia/Llama-Nemotron-Post-Training-Dataset",
+      "category": "Post-training",
+      "expectedSize": "large",
+      "tier": "C",
+      "status": "compatible",
+      "configs": [
+        "SFT"
+      ],
+      "splits": [
+        "code",
+        "math",
+        "science",
+        "chat",
+        "safety"
+      ],
+      "totalRows": 104597,
+      "splitSizes": {
+        "code": 104597,
+        "math": 276536,
+        "science": 620660,
+        "chat": 39792,
+        "safety": 31426
+      },
+      "sampleFields": [
+        "input",
+        "output",
+        "category",
+        "license",
+        "reasoning",
+        "generator",
+        "used_in_training",
+        "version",
+        "system_prompt"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "[object Object]",
+        "response": "<think>\nOkay, I need to solve this problem where I have to split a unique array s into two arrays a and b such that both",
+        "category": "code"
+      },
+      "error": null,
+      "latencyMs": 1192
+    },
+    {
+      "id": "allenai/WildChat",
+      "category": "Chat",
+      "expectedSize": "~570K",
+      "tier": "C",
+      "status": "empty",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 529428,
+      "splitSizes": {
+        "train": 529428
+      },
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": null,
+      "latencyMs": 1251
+    },
+    {
+      "id": "teknium/GPTeacher-General-Instruct",
+      "category": "Instruction",
+      "expectedSize": "~20K",
+      "tier": "A",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 89260,
+      "splitSizes": {
+        "train": 89260
+      },
+      "sampleFields": [
+        "response",
+        "input",
+        "instruction"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Provide an overview of the process of human evolution.",
+        "response": "Human evolution began millions of years ago with the emergence of common ancestors of humans, chimpanzees, and gorillas."
+      },
+      "error": null,
+      "latencyMs": 609
     }
   ]
 }

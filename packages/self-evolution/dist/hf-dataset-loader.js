@@ -1,6 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.HFDatasetLoader = void 0;
+exports.toHFDatasetConfig = toHFDatasetConfig;
+exports.resolveDatasetList = resolveDatasetList;
+function toHFDatasetConfig(entry) {
+    if (typeof entry === 'string') {
+        return { dataset: entry, config: 'default', split: 'train' };
+    }
+    return {
+        dataset: entry.id,
+        config: entry.config ?? 'default',
+        split: entry.split ?? 'train',
+        domain: entry.domain,
+    };
+}
+function resolveDatasetList(datasets, fallback) {
+    if (datasets?.length) {
+        return datasets.map((d) => (typeof d === 'string' ? { id: d } : d));
+    }
+    return [{ id: fallback ?? 'databricks/databricks-dolly-15k' }];
+}
 /**
  * Hugging Face Datasets Server — no heavy datasets library required.
  * @see https://huggingface.co/docs/dataset-viewer
@@ -28,7 +47,9 @@ class HFDatasetLoader {
             throw new Error(`HF dataset fetch failed (${response.status}): ${cfg.dataset}`);
         }
         const data = (await response.json());
-        const rows = (data.rows ?? []).map((r) => this.normalizeRow(r.row, r.row_idx));
+        const rows = (data.rows ?? [])
+            .map((r) => this.normalizeRow(r.row, r.row_idx))
+            .filter((row) => row.instruction.length >= 5 && row.response.length >= 3);
         return {
             rows,
             total: data.num_rows_total,
@@ -94,6 +115,54 @@ class HFDatasetLoader {
             const conv = row.conversations;
             instruction = conv.filter((c) => c.from === 'human').map((c) => c.value ?? '').join('\n');
             response = conv.filter((c) => c.from === 'gpt' || c.from === 'assistant').map((c) => c.value ?? '').join('\n');
+        }
+        else if (row.story && row.question) {
+            instruction = `${String(row.question)}${row.answers ? `\nAnswers: ${JSON.stringify(row.answers).slice(0, 300)}` : ''}`;
+            context = String(row.story).slice(0, 2000);
+            const ans = row.answer ?? (Array.isArray(row.answers) ? row.answers[0] : row.answers);
+            response = String(ans ?? '');
+        }
+        else if (row.context && row.question && !row.instruction) {
+            instruction = String(row.question);
+            context = String(row.context).slice(0, 2000);
+            response = String(row.answers ?? row.answer ?? row.response ?? '');
+            if (Array.isArray(row.answers)) {
+                response = String(row.answers[0] ?? '');
+            }
+        }
+        else if (row.generated_solution || row.expected_answer) {
+            instruction = String(row.question ?? row.problem ?? row.prompt ?? '');
+            response = String(row.generated_solution ?? row.expected_answer ?? row.predicted_answer ?? '');
+        }
+        else if (row.correct_answer && row.question) {
+            instruction = String(row.question);
+            context = String(row.support ?? row.distractor1 ?? '').slice(0, 2000);
+            response = String(row.correct_answer);
+        }
+        else if (row.passage && row.question !== undefined) {
+            instruction = `${String(row.question)}\nPassage: ${String(row.passage).slice(0, 1500)}`;
+            response =
+                typeof row.answer === 'boolean'
+                    ? row.answer
+                        ? 'Yes, the answer is true.'
+                        : 'No, the answer is false.'
+                    : String(row.answer ?? '');
+        }
+        else if (row.text && row.role) {
+            const t = String(row.text);
+            if (row.role === 'assistant') {
+                instruction = 'OpenAssistant dialogue response';
+                response = t;
+            }
+            else {
+                instruction = t;
+                response = t.length >= 20 ? t : `${t} (continued in thread)`;
+            }
+        }
+        else if (row.message && typeof row.message === 'object') {
+            const msg = row.message;
+            instruction = String(row.prompt ?? row.topic ?? 'Message');
+            response = String(msg.content ?? '');
         }
         else {
             instruction = String(row.instruction ?? row.prompt ?? row.question ?? row.query ?? row.text ?? row.input ?? '');

@@ -20,7 +20,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { dataset, iterations = 10, action } = body;
+    const { dataset, datasets, iterations = 10, action } = body;
 
     const aios = getAIOS();
 
@@ -29,7 +29,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ reset: true, policy: aios.evolution.policyStore.get() });
     }
 
-    const report = await aios.runTraining({ dataset, iterations });
+    const report = await aios.runTraining({
+      dataset,
+      datasets,
+      iterations,
+      resetCursors: body.resetCursors === true,
+    });
 
     return NextResponse.json({
       completed: true,

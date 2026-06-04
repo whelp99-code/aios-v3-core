@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-06-04T01:02:51.881Z",
+  "capturedAt": "2026-06-04T01:14:02.473Z",
   "mode": "pre-clol-1000",
   "operational": {
     "goldenSetSuccessRate": 1,
@@ -7,7 +7,7 @@
     "policyVersion": 0,
     "qualityThreshold": 0.55,
     "experienceBufferSuccessRate": 0,
-    "telemetryCount": 2000
+    "telemetryCount": 3050
   },
   "runtimeBridge": {
     "enginePreferences": {
@@ -41,7 +41,7 @@
     },
     "categoryScores": {},
     "appliedImprovements": [],
-    "updatedAt": "2026-06-04T01:02:51.881Z"
+    "updatedAt": "2026-06-04T01:14:02.473Z"
   },
   "legacyHfTraining": {
     "source": "hf-3x50-heuristic",

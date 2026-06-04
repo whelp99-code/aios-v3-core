@@ -1,0 +1,90 @@
+{
+  "version": 196,
+  "iteration": 50,
+  "successRate": 0.975,
+  "avgReward": 0.9625,
+  "qualityThreshold": 0.42999999999999994,
+  "batchSize": 20,
+  "synthesisKeywords": [
+    "missing",
+    "incomplete",
+    "error",
+    "bug",
+    "short",
+    "expand"
+  ],
+  "routingBias": {
+    "preferredProvider": "huggingface",
+    "executor": "local",
+    "planner": "reasoning"
+  },
+  "categoryScores": {
+    "general_qa": {
+      "success": 3,
+      "total": 3
+    },
+    "Generation": {
+      "success": 0,
+      "total": 1
+    },
+    "infini-instruct-top-500k": {
+      "success": 1,
+      "total": 1
+    },
+    "openhermes-100k": {
+      "success": 1,
+      "total": 1
+    },
+    "open_qa": {
+      "success": 0,
+      "total": 1
+    },
+    "code": {
+      "success": 14,
+      "total": 18
+    },
+    "reasoning": {
+      "success": 10,
+      "total": 12
+    },
+    "chat": {
+      "success": 8,
+      "total": 10
+    },
+    "integration": {
+      "success": 8,
+      "total": 10
+    }
+  },
+  "appliedImprovements": [
+    "[iter-1] High success rate — increase batch size",
+    "[iter-2] Add synthesis keywords for incomplete responses",
+    "[iter-2] High success rate — increase batch size",
+    "[iter-3] Success rate 47.4% below threshold 55%",
+    "[iter-3] Add synthesis keywords for incomplete responses",
+    "[iter-4] Success rate 42.1% below threshold 52%",
+    "[iter-4] Add synthesis keywords for incomplete responses",
+    "[iter-4] Reduce batch size for better per-sample quality",
+    "[iter-5] Reduce batch size for better per-sample quality",
+    "[iter-5] High success rate — increase batch size",
+    "[iter-6] Reduce batch size for better per-sample quality",
+    "[iter-6] High success rate — increase batch size",
+    "[iter-7] Add synthesis keywords for incomplete responses",
+    "[iter-7] Reduce batch size for better per-sample quality",
+    "[iter-8] High success rate — increase batch size",
+    "[iter-9] Reduce batch size for better per-sample quality",
+    "[iter-10] High success rate — increase batch size",
+    "[iter-14] Add synthesis keywords for incomplete responses",
+    "[iter-14] Reduce batch size for better per-sample quality",
+    "[iter-15] Add synthesis keywords for incomplete responses",
+    "[iter-15] Reduce batch size for better per-sample quality",
+    "[iter-15] High success rate — increase batch size",
+    "[iter-10] Success rate 45.0% below threshold 49%",
+    "[iter-10] Boost quality checks for weak category: code",
+    "[iter-15] Success rate 45.0% below threshold 46%",
+    "[iter-15] Boost quality checks for weak category: code",
+    "[iter-15] Boost quality checks for weak category: reasoning",
+    "[iter-20] Boost quality checks for weak category: code"
+  ],
+  "updatedAt": "2026-06-04T01:15:25.973Z"
+}

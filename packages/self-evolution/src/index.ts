@@ -15,7 +15,27 @@ export {
   type OperationalLearningReport,
   GOLDEN_TASKS,
 } from './operational-learning-kernel';
-export { HFDatasetLoader, type HFDatasetRow, type HFDatasetConfig } from './hf-dataset-loader';
+export {
+  HFDatasetLoader,
+  type HFDatasetRow,
+  type HFDatasetConfig,
+  type HFDatasetEntry,
+  toHFDatasetConfig,
+  resolveDatasetList,
+} from './hf-dataset-loader';
+export { DatasetCursorStore, type DatasetCursor } from './dataset-cursor-store';
+export {
+  type DatasetRegistryEntry,
+  type DatasetTier,
+  TIER_A_DATASETS,
+  TIER_B_DATASETS,
+  TIER_C_DATASETS,
+  ROTATION_DATASETS,
+  probeResultToRegistryEntry,
+  inferTier,
+  inferDomain,
+  inferRateLimitRisk,
+} from './dataset-registry';
 export { LearnedPolicyStore, type LearnedPolicy } from './learned-policy-store';
 export { ImprovementAnalyzer, type Improvement } from './improvement-analyzer';
 export { ExperienceReplayBuffer, type ExperienceEntry } from './experience-buffer';

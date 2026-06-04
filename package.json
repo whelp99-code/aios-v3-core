@@ -15,6 +15,13 @@
     "train:hf:3x50": "node scripts/hf-train-3x50.js",
     "learn:baseline": "node scripts/learning-baseline-capture.js",
     "train:clol:1000": "pnpm build:packages && node scripts/learning-baseline-capture.js && node scripts/train-operational-1000.js",
+    "train:clol:500": "pnpm build:packages && SKIP_PROBE=1 SKIP_HF=1 CLOL_ITERATIONS=500 node scripts/train-multi-pipeline.js",
+    "train:hf:tier-a": "pnpm build:packages && SKIP_CAMPAIGNS=tier-b,tier-c,rotation node scripts/hf-train-multi.js",
+    "train:hf:tier-b": "pnpm build:packages && SKIP_CAMPAIGNS=tier-a,tier-c,rotation node scripts/hf-train-multi.js",
+    "train:hf:tier-c": "pnpm build:packages && HF_ITER_DELAY_MS=2500 SKIP_CAMPAIGNS=tier-a,tier-b,rotation node scripts/hf-train-multi.js",
+    "train:hf:multi": "pnpm build:packages && node scripts/hf-train-multi.js",
+    "train:multi": "node scripts/train-multi-pipeline.js",
+    "train:multi:quick": "TRAIN_MULTI_QUICK=1 CLOL_ITERATIONS=50 node scripts/train-multi-pipeline.js",
     "desktop": "pnpm --filter desktop dev"
   },
   "devDependencies": {

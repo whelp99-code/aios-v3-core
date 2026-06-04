@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EvolutionKernel = exports.UpdateProposalGenerator = exports.HotPatchManager = exports.SandboxExecutor = exports.CodeSynthesisEngine = exports.ExperienceReplayBuffer = exports.ImprovementAnalyzer = exports.LearnedPolicyStore = exports.HFDatasetLoader = exports.GOLDEN_TASKS = exports.OperationalLearningKernel = exports.PolicyRuntimeBridge = exports.operationalSuccessRate = exports.evaluateOperationalSuccess = exports.TelemetryStore = exports.ContinuousLearningKernel = void 0;
+exports.EvolutionKernel = exports.UpdateProposalGenerator = exports.HotPatchManager = exports.SandboxExecutor = exports.CodeSynthesisEngine = exports.ExperienceReplayBuffer = exports.ImprovementAnalyzer = exports.LearnedPolicyStore = exports.inferRateLimitRisk = exports.inferDomain = exports.inferTier = exports.probeResultToRegistryEntry = exports.ROTATION_DATASETS = exports.TIER_C_DATASETS = exports.TIER_B_DATASETS = exports.TIER_A_DATASETS = exports.DatasetCursorStore = exports.resolveDatasetList = exports.toHFDatasetConfig = exports.HFDatasetLoader = exports.GOLDEN_TASKS = exports.OperationalLearningKernel = exports.PolicyRuntimeBridge = exports.operationalSuccessRate = exports.evaluateOperationalSuccess = exports.TelemetryStore = exports.ContinuousLearningKernel = void 0;
 var continuous_learning_kernel_1 = require("./continuous-learning-kernel");
 Object.defineProperty(exports, "ContinuousLearningKernel", { enumerable: true, get: function () { return continuous_learning_kernel_1.ContinuousLearningKernel; } });
 var telemetry_store_1 = require("./telemetry-store");
@@ -18,6 +18,19 @@ Object.defineProperty(exports, "OperationalLearningKernel", { enumerable: true, 
 Object.defineProperty(exports, "GOLDEN_TASKS", { enumerable: true, get: function () { return operational_learning_kernel_1.GOLDEN_TASKS; } });
 var hf_dataset_loader_1 = require("./hf-dataset-loader");
 Object.defineProperty(exports, "HFDatasetLoader", { enumerable: true, get: function () { return hf_dataset_loader_1.HFDatasetLoader; } });
+Object.defineProperty(exports, "toHFDatasetConfig", { enumerable: true, get: function () { return hf_dataset_loader_1.toHFDatasetConfig; } });
+Object.defineProperty(exports, "resolveDatasetList", { enumerable: true, get: function () { return hf_dataset_loader_1.resolveDatasetList; } });
+var dataset_cursor_store_1 = require("./dataset-cursor-store");
+Object.defineProperty(exports, "DatasetCursorStore", { enumerable: true, get: function () { return dataset_cursor_store_1.DatasetCursorStore; } });
+var dataset_registry_1 = require("./dataset-registry");
+Object.defineProperty(exports, "TIER_A_DATASETS", { enumerable: true, get: function () { return dataset_registry_1.TIER_A_DATASETS; } });
+Object.defineProperty(exports, "TIER_B_DATASETS", { enumerable: true, get: function () { return dataset_registry_1.TIER_B_DATASETS; } });
+Object.defineProperty(exports, "TIER_C_DATASETS", { enumerable: true, get: function () { return dataset_registry_1.TIER_C_DATASETS; } });
+Object.defineProperty(exports, "ROTATION_DATASETS", { enumerable: true, get: function () { return dataset_registry_1.ROTATION_DATASETS; } });
+Object.defineProperty(exports, "probeResultToRegistryEntry", { enumerable: true, get: function () { return dataset_registry_1.probeResultToRegistryEntry; } });
+Object.defineProperty(exports, "inferTier", { enumerable: true, get: function () { return dataset_registry_1.inferTier; } });
+Object.defineProperty(exports, "inferDomain", { enumerable: true, get: function () { return dataset_registry_1.inferDomain; } });
+Object.defineProperty(exports, "inferRateLimitRisk", { enumerable: true, get: function () { return dataset_registry_1.inferRateLimitRisk; } });
 var learned_policy_store_1 = require("./learned-policy-store");
 Object.defineProperty(exports, "LearnedPolicyStore", { enumerable: true, get: function () { return learned_policy_store_1.LearnedPolicyStore; } });
 var improvement_analyzer_1 = require("./improvement-analyzer");

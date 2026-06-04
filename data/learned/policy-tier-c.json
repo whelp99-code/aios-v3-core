@@ -1,0 +1,60 @@
+{
+  "version": 134,
+  "iteration": 10,
+  "successRate": 0.75,
+  "avgReward": 0.7721725023053525,
+  "qualityThreshold": 0.55,
+  "batchSize": 20,
+  "synthesisKeywords": [
+    "missing",
+    "incomplete",
+    "error",
+    "bug"
+  ],
+  "routingBias": {
+    "preferredProvider": "huggingface"
+  },
+  "categoryScores": {
+    "orca": {
+      "success": 7,
+      "total": 7
+    },
+    "self-oss-instruct": {
+      "success": 2,
+      "total": 2
+    },
+    "dolly_hhrlhf": {
+      "success": 11,
+      "total": 14
+    },
+    "roleplay": {
+      "success": 1,
+      "total": 1
+    },
+    "smol-summarize": {
+      "success": 1,
+      "total": 1
+    },
+    "scrolls/summ_screen_fd": {
+      "success": 1,
+      "total": 1
+    }
+  },
+  "appliedImprovements": [
+    "[iter-1] High success rate — increase batch size",
+    "[iter-2] Reduce batch size for better per-sample quality",
+    "[iter-2] High success rate — increase batch size",
+    "[iter-3] Reduce batch size for better per-sample quality",
+    "[iter-3] High success rate — increase batch size",
+    "[iter-5] Reduce batch size for better per-sample quality",
+    "[iter-6] Reduce batch size for better per-sample quality",
+    "[iter-6] High success rate — increase batch size",
+    "[iter-7] Reduce batch size for better per-sample quality",
+    "[iter-8] Reduce batch size for better per-sample quality",
+    "[iter-8] High success rate — increase batch size",
+    "[iter-9] Reduce batch size for better per-sample quality",
+    "[iter-10] Reduce batch size for better per-sample quality",
+    "[iter-10] High success rate — increase batch size"
+  ],
+  "updatedAt": "2026-06-04T01:14:49.954Z"
+}

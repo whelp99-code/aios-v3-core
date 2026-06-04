@@ -11,7 +11,17 @@ export interface HFDatasetConfig {
     config?: string;
     split?: string;
     token?: string;
+    domain?: string;
 }
+/** Dataset spec for rotation (id + optional config/split) */
+export interface HFDatasetEntry {
+    id: string;
+    config?: string;
+    split?: string;
+    domain?: string;
+}
+export declare function toHFDatasetConfig(entry: string | HFDatasetEntry): HFDatasetConfig;
+export declare function resolveDatasetList(datasets?: Array<string | HFDatasetEntry>, fallback?: string): HFDatasetEntry[];
 export interface FetchRowsResult {
     rows: HFDatasetRow[];
     total?: number;

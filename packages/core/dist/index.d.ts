@@ -44,8 +44,15 @@ export declare class AIOS {
     runOperationalLearning(iterations?: number): Promise<import("@aios/self-evolution").OperationalLearningReport>;
     runTraining(options?: {
         dataset?: string;
-        datasets?: string[];
+        datasets?: Array<string | {
+            id: string;
+            config?: string;
+            split?: string;
+            domain?: string;
+        }>;
         iterations?: number;
+        policyFile?: string;
+        resetCursors?: boolean;
     }): Promise<import("@aios/self-evolution").ContinuousLearningReport>;
     setEnginePreferences(prefs: Partial<EnginePreferences>): void;
     getEnginePreferences(): EnginePreferences;

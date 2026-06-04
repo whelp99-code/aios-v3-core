@@ -1,0 +1,47 @@
+{
+  "version": 61,
+  "iteration": 12,
+  "successRate": 0.95,
+  "avgReward": 0.9512499999999999,
+  "qualityThreshold": 0.55,
+  "batchSize": 20,
+  "synthesisKeywords": [
+    "missing",
+    "incomplete",
+    "error",
+    "bug",
+    "short",
+    "expand"
+  ],
+  "routingBias": {
+    "preferredProvider": "huggingface"
+  },
+  "categoryScores": {
+    "infini-instruct-top-500k": {
+      "success": 13,
+      "total": 13
+    },
+    "WebInstructSub_axolotl": {
+      "success": 1,
+      "total": 1
+    }
+  },
+  "appliedImprovements": [
+    "[iter-1] High success rate — increase batch size",
+    "[iter-2] Reduce batch size for better per-sample quality",
+    "[iter-3] Reduce batch size for better per-sample quality",
+    "[iter-4] High success rate — increase batch size",
+    "[iter-5] Reduce batch size for better per-sample quality",
+    "[iter-5] High success rate — increase batch size",
+    "[iter-6] Reduce batch size for better per-sample quality",
+    "[iter-6] High success rate — increase batch size",
+    "[iter-7] Reduce batch size for better per-sample quality",
+    "[iter-7] High success rate — increase batch size",
+    "[iter-8] Reduce batch size for better per-sample quality",
+    "[iter-9] Add synthesis keywords for incomplete responses",
+    "[iter-9] Reduce batch size for better per-sample quality",
+    "[iter-10] High success rate — increase batch size",
+    "[iter-11] High success rate — increase batch size"
+  ],
+  "updatedAt": "2026-06-04T01:14:32.013Z"
+}

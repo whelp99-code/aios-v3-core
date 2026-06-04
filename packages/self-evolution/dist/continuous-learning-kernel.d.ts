@@ -1,5 +1,6 @@
 import { ExperienceReplayBuffer } from './experience-buffer';
-import { HFDatasetLoader, HFDatasetConfig, HFDatasetRow } from './hf-dataset-loader';
+import { HFDatasetLoader, HFDatasetConfig, HFDatasetRow, HFDatasetEntry } from './hf-dataset-loader';
+import { DatasetCursorStore } from './dataset-cursor-store';
 import { ImprovementAnalyzer, AnalysisResult } from './improvement-analyzer';
 import { ImprovementApplier } from './improvement-applier';
 import { LearnedPolicyStore, LearnedPolicy } from './learned-policy-store';
@@ -28,12 +29,14 @@ export interface TrainingIterationResult {
 export interface ContinuousLearningConfig {
     dataset?: string;
     /** Rotate through datasets each iteration (overrides single dataset) */
-    datasets?: string[];
+    datasets?: Array<string | HFDatasetEntry>;
     iterations?: number;
     dataDir?: string;
     policyFile?: string;
+    /** Use persistent per-dataset offsets (default true when dataDir set) */
+    useCursorStore?: boolean;
     onIteration?: (result: TrainingIterationResult) => void;
-    ingestSample?: (sample: TrainingSampleResult, iteration: number) => Promise<void>;
+    ingestSample?: (sample: TrainingSampleResult, iteration: number, datasetId?: string) => Promise<void>;
 }
 export interface ContinuousLearningReport {
     iterations: TrainingIterationResult[];
@@ -48,8 +51,9 @@ export declare class ContinuousLearningKernel {
     readonly analyzer: ImprovementAnalyzer;
     readonly applier: ImprovementApplier;
     readonly experience: ExperienceReplayBuffer;
+    readonly cursorStore: DatasetCursorStore | null;
     constructor(hotPatch: HotPatchManager, experience: ExperienceReplayBuffer, dataDir?: string, policyFile?: string);
     evaluateSample(row: HFDatasetRow, policy: LearnedPolicy): TrainingSampleResult;
-    runIteration(iteration: number, cfg: HFDatasetConfig, ingestSample?: (sample: TrainingSampleResult, iteration: number) => Promise<void>): Promise<TrainingIterationResult>;
+    runIteration(iteration: number, cfg: HFDatasetConfig, ingestSample?: (sample: TrainingSampleResult, iteration: number, datasetId?: string) => Promise<void>, useCursor?: boolean): Promise<TrainingIterationResult>;
     runFullLoop(config?: ContinuousLearningConfig): Promise<ContinuousLearningReport>;
 }

@@ -1,10 +1,10 @@
 {
-  "version": 1406,
-  "iteration": 1000,
-  "successRate": 0.775,
-  "avgReward": 0.6625,
-  "qualityThreshold": 0.49,
-  "batchSize": 20,
+  "version": 0,
+  "iteration": 0,
+  "successRate": 0,
+  "avgReward": 0,
+  "qualityThreshold": 0.55,
+  "batchSize": 15,
   "synthesisKeywords": [
     "missing",
     "incomplete",
@@ -12,34 +12,9 @@
     "bug"
   ],
   "routingBias": {
-    "preferredProvider": "huggingface",
-    "executor": "local",
-    "planner": "reasoning"
+    "preferredProvider": "huggingface"
   },
-  "categoryScores": {
-    "code": {
-      "success": 285,
-      "total": 350
-    },
-    "reasoning": {
-      "success": 202,
-      "total": 250
-    },
-    "chat": {
-      "success": 175,
-      "total": 200
-    },
-    "integration": {
-      "success": 135,
-      "total": 200
-    }
-  },
-  "appliedImprovements": [
-    "[iter-1] High success rate — increase batch size",
-    "[iter-5] High success rate — increase batch size",
-    "[iter-10] High success rate — increase batch size",
-    "[iter-50] Success rate 47.5% below threshold 55%",
-    "[iter-55] Success rate 47.5% below threshold 52%"
-  ],
-  "updatedAt": "2026-06-04T01:02:53.143Z"
+  "categoryScores": {},
+  "appliedImprovements": [],
+  "updatedAt": "2026-06-04T01:14:02.473Z"
 }

@@ -215,5 +215,1517 @@
       "hfHeuristicSuccess": "61.1%",
       "vsCcolGoldenAfter": "100.0%"
     }
-  ]
+  ],
+  "updatedAt": "2026-06-04T01:15:25.991Z",
+  "pipeline": "multi-dataset",
+  "baseline": {
+    "capturedAt": "2026-06-04T01:14:02.473Z",
+    "mode": "pre-clol-1000",
+    "operational": {
+      "goldenSetSuccessRate": 1,
+      "goldenTaskCount": 10,
+      "policyVersion": 0,
+      "qualityThreshold": 0.55,
+      "experienceBufferSuccessRate": 0,
+      "telemetryCount": 3050
+    },
+    "runtimeBridge": {
+      "enginePreferences": {
+        "mode": "auto",
+        "preferredCloudProvider": "huggingface",
+        "roleOverrides": {}
+      },
+      "synthesisKeywords": [
+        "missing",
+        "incomplete",
+        "error",
+        "bug"
+      ],
+      "maxCriticEngines": 4
+    },
+    "policySnapshot": {
+      "version": 0,
+      "iteration": 0,
+      "successRate": 0,
+      "avgReward": 0,
+      "qualityThreshold": 0.55,
+      "batchSize": 15,
+      "synthesisKeywords": [
+        "missing",
+        "incomplete",
+        "error",
+        "bug"
+      ],
+      "routingBias": {
+        "preferredProvider": "huggingface"
+      },
+      "categoryScores": {},
+      "appliedImprovements": [],
+      "updatedAt": "2026-06-04T01:14:02.473Z"
+    },
+    "legacyHfTraining": {
+      "source": "hf-3x50-heuristic",
+      "campaigns": [
+        {
+          "name": "alpaca",
+          "iterations": 50,
+          "totalSamples": 525,
+          "finalSuccessRate": 0.8333333333333334,
+          "policyVersion": 100,
+          "note": "HF heuristic success (reference overlap), not operational CLOL"
+        },
+        {
+          "name": "openorca",
+          "iterations": 50,
+          "totalSamples": 1052,
+          "finalSuccessRate": 0.775,
+          "policyVersion": 100,
+          "note": "HF heuristic success (reference overlap), not operational CLOL"
+        },
+        {
+          "name": "rotation",
+          "iterations": 50,
+          "totalSamples": 490,
+          "finalSuccessRate": 0.6111111111111112,
+          "policyVersion": 359,
+          "note": "HF heuristic success (reference overlap), not operational CLOL"
+        }
+      ]
+    }
+  },
+  "hfMultiTraining": {
+    "startedAt": "2026-06-04T01:14:02.623Z",
+    "finishedAt": "2026-06-04T01:15:25.874Z",
+    "quickMode": true,
+    "campaigns": [
+      {
+        "campaign": "tier-a",
+        "policyFile": "policy-tier-a.json",
+        "datasetCount": 4,
+        "iterations": 8,
+        "totalSamples": 164,
+        "finalSuccessRate": 0.5277777777777778,
+        "policyVersion": 87,
+        "qualityThreshold": 0.52,
+        "categoryScores": {
+          "open_qa": {
+            "success": 5,
+            "total": 10
+          },
+          "Generation": {
+            "success": 7,
+            "total": 7
+          },
+          "closed_qa": {
+            "success": 1,
+            "total": 1
+          }
+        },
+        "perDataset": [
+          {
+            "dataset": "databricks/databricks-dolly-15k",
+            "iterations": 2,
+            "samples": 34,
+            "avgHeuristicSuccess": 0.7947368421052632
+          },
+          {
+            "dataset": "google/boolq",
+            "iterations": 2,
+            "samples": 37,
+            "avgHeuristicSuccess": 0.7867647058823529
+          },
+          {
+            "dataset": "allenai/sciq",
+            "iterations": 2,
+            "samples": 37,
+            "avgHeuristicSuccess": 0.527046783625731
+          },
+          {
+            "dataset": "HuggingFaceH4/no_robots",
+            "iterations": 2,
+            "samples": 37,
+            "avgHeuristicSuccess": 0.5402046783625731
+          }
+        ],
+        "summary": [
+          {
+            "iter": 1,
+            "dataset": "databricks/databricks-dolly-15k",
+            "success": 80,
+            "samples": 15,
+            "offset": 15
+          },
+          {
+            "iter": 2,
+            "dataset": "google/boolq",
+            "success": 82.4,
+            "samples": 17,
+            "offset": 0
+          },
+          {
+            "iter": 3,
+            "dataset": "allenai/sciq",
+            "success": 52.6,
+            "samples": 19,
+            "offset": 17
+          },
+          {
+            "iter": 4,
+            "dataset": "HuggingFaceH4/no_robots",
+            "success": 55.3,
+            "samples": 19,
+            "offset": 17
+          },
+          {
+            "iter": 5,
+            "dataset": "databricks/databricks-dolly-15k",
+            "success": 78.9,
+            "samples": 19,
+            "offset": 30
+          },
+          {
+            "iter": 6,
+            "dataset": "google/boolq",
+            "success": 75,
+            "samples": 20,
+            "offset": 17
+          },
+          {
+            "iter": 7,
+            "dataset": "allenai/sciq",
+            "success": 52.8,
+            "samples": 18,
+            "offset": 36
+          },
+          {
+            "iter": 8,
+            "dataset": "HuggingFaceH4/no_robots",
+            "success": 52.8,
+            "samples": 18,
+            "offset": 36
+          }
+        ]
+      },
+      {
+        "campaign": "tier-b",
+        "policyFile": "policy-tier-b.json",
+        "datasetCount": 6,
+        "iterations": 12,
+        "totalSamples": 190,
+        "finalSuccessRate": 0.95,
+        "policyVersion": 61,
+        "qualityThreshold": 0.55,
+        "categoryScores": {
+          "infini-instruct-top-500k": {
+            "success": 13,
+            "total": 13
+          },
+          "WebInstructSub_axolotl": {
+            "success": 1,
+            "total": 1
+          }
+        },
+        "perDataset": [
+          {
+            "dataset": "yahma/alpaca-cleaned",
+            "iterations": 2,
+            "samples": 34,
+            "avgHeuristicSuccess": 0.880701754385965
+          },
+          {
+            "dataset": "tatsu-lab/alpaca",
+            "iterations": 2,
+            "samples": 37,
+            "avgHeuristicSuccess": 0.7551470588235294
+          },
+          {
+            "dataset": "teknium/GPTeacher-General-Instruct",
+            "iterations": 2,
+            "samples": 33,
+            "avgHeuristicSuccess": 0.6972222222222222
+          },
+          {
+            "dataset": "Anthropic/hh-rlhf",
+            "iterations": 2,
+            "samples": 29,
+            "avgHeuristicSuccess": 0.8605769230769231
+          },
+          {
+            "dataset": "cais/mmlu",
+            "iterations": 2,
+            "samples": 0,
+            "avgHeuristicSuccess": 0.8444444444444444
+          },
+          {
+            "dataset": "mlabonne/FineTome-100k",
+            "iterations": 2,
+            "samples": 37,
+            "avgHeuristicSuccess": 0.9161764705882353
+          }
+        ],
+        "summary": [
+          {
+            "iter": 1,
+            "dataset": "yahma/alpaca-cleaned",
+            "success": 86.7,
+            "samples": 15,
+            "offset": 15
+          },
+          {
+            "iter": 2,
+            "dataset": "tatsu-lab/alpaca",
+            "success": 73.5,
+            "samples": 17,
+            "offset": 17
+          },
+          {
+            "iter": 3,
+            "dataset": "teknium/GPTeacher-General-Instruct",
+            "success": 70,
+            "samples": 15,
+            "offset": 0
+          },
+          {
+            "iter": 4,
+            "dataset": "Anthropic/hh-rlhf",
+            "success": 84.6,
+            "samples": 13,
+            "offset": 17
+          },
+          {
+            "iter": 5,
+            "dataset": "cais/mmlu",
+            "success": 80,
+            "samples": 0,
+            "offset": 0
+          },
+          {
+            "iter": 6,
+            "dataset": "mlabonne/FineTome-100k",
+            "success": 88.2,
+            "samples": 17,
+            "offset": 17
+          },
+          {
+            "iter": 7,
+            "dataset": "yahma/alpaca-cleaned",
+            "success": 89.5,
+            "samples": 19,
+            "offset": 30
+          },
+          {
+            "iter": 8,
+            "dataset": "tatsu-lab/alpaca",
+            "success": 77.5,
+            "samples": 20,
+            "offset": 34
+          },
+          {
+            "iter": 9,
+            "dataset": "teknium/GPTeacher-General-Instruct",
+            "success": 69.4,
+            "samples": 18,
+            "offset": 15
+          },
+          {
+            "iter": 10,
+            "dataset": "Anthropic/hh-rlhf",
+            "success": 87.5,
+            "samples": 16,
+            "offset": 30
+          },
+          {
+            "iter": 11,
+            "dataset": "cais/mmlu",
+            "success": 88.9,
+            "samples": 0,
+            "offset": 15
+          },
+          {
+            "iter": 12,
+            "dataset": "mlabonne/FineTome-100k",
+            "success": 95,
+            "samples": 20,
+            "offset": 34
+          }
+        ]
+      },
+      {
+        "campaign": "tier-c",
+        "policyFile": "policy-tier-c.json",
+        "datasetCount": 5,
+        "iterations": 10,
+        "totalSamples": 203,
+        "finalSuccessRate": 0.75,
+        "policyVersion": 134,
+        "qualityThreshold": 0.55,
+        "categoryScores": {
+          "orca": {
+            "success": 7,
+            "total": 7
+          },
+          "self-oss-instruct": {
+            "success": 2,
+            "total": 2
+          },
+          "dolly_hhrlhf": {
+            "success": 11,
+            "total": 14
+          },
+          "roleplay": {
+            "success": 1,
+            "total": 1
+          },
+          "smol-summarize": {
+            "success": 1,
+            "total": 1
+          },
+          "scrolls/summ_screen_fd": {
+            "success": 1,
+            "total": 1
+          }
+        },
+        "perDataset": [
+          {
+            "dataset": "Open-Orca/OpenOrca",
+            "iterations": 2,
+            "samples": 33,
+            "avgHeuristicSuccess": 0.9444444444444444
+          },
+          {
+            "dataset": "teknium/OpenHermes-2.5",
+            "iterations": 2,
+            "samples": 37,
+            "avgHeuristicSuccess": 0.85
+          },
+          {
+            "dataset": "HuggingFaceTB/smoltalk",
+            "iterations": 2,
+            "samples": 37,
+            "avgHeuristicSuccess": 0.8252923976608187
+          },
+          {
+            "dataset": "mosaicml/instruct-v3",
+            "iterations": 2,
+            "samples": 40,
+            "avgHeuristicSuccess": 0.9125
+          },
+          {
+            "dataset": "nvidia/OpenMathInstruct-1",
+            "iterations": 2,
+            "samples": 38,
+            "avgHeuristicSuccess": 0.8375
+          }
+        ],
+        "summary": [
+          {
+            "iter": 1,
+            "dataset": "Open-Orca/OpenOrca",
+            "success": 100,
+            "samples": 15,
+            "offset": 0
+          },
+          {
+            "iter": 2,
+            "dataset": "teknium/OpenHermes-2.5",
+            "success": 87.5,
+            "samples": 17,
+            "offset": 0
+          },
+          {
+            "iter": 3,
+            "dataset": "HuggingFaceTB/smoltalk",
+            "success": 78.9,
+            "samples": 19,
+            "offset": 0
+          },
+          {
+            "iter": 4,
+            "dataset": "mosaicml/instruct-v3",
+            "success": 95,
+            "samples": 20,
+            "offset": 0
+          },
+          {
+            "iter": 5,
+            "dataset": "nvidia/OpenMathInstruct-1",
+            "success": 92.5,
+            "samples": 20,
+            "offset": 0
+          },
+          {
+            "iter": 6,
+            "dataset": "Open-Orca/OpenOrca",
+            "success": 88.9,
+            "samples": 18,
+            "offset": 15
+          },
+          {
+            "iter": 7,
+            "dataset": "teknium/OpenHermes-2.5",
+            "success": 82.5,
+            "samples": 20,
+            "offset": 17
+          },
+          {
+            "iter": 8,
+            "dataset": "HuggingFaceTB/smoltalk",
+            "success": 86.1,
+            "samples": 18,
+            "offset": 19
+          },
+          {
+            "iter": 9,
+            "dataset": "mosaicml/instruct-v3",
+            "success": 87.5,
+            "samples": 20,
+            "offset": 20
+          },
+          {
+            "iter": 10,
+            "dataset": "nvidia/OpenMathInstruct-1",
+            "success": 75,
+            "samples": 18,
+            "offset": 20
+          }
+        ]
+      },
+      {
+        "campaign": "rotation",
+        "policyFile": "policy-multi.json",
+        "datasetCount": 13,
+        "iterations": 15,
+        "totalSamples": 288,
+        "finalSuccessRate": 0.75,
+        "policyVersion": 122,
+        "qualityThreshold": 0.49,
+        "categoryScores": {
+          "general_qa": {
+            "success": 3,
+            "total": 3
+          },
+          "Generation": {
+            "success": 0,
+            "total": 1
+          },
+          "infini-instruct-top-500k": {
+            "success": 1,
+            "total": 1
+          },
+          "openhermes-100k": {
+            "success": 1,
+            "total": 1
+          },
+          "open_qa": {
+            "success": 0,
+            "total": 1
+          }
+        },
+        "perDataset": [
+          {
+            "dataset": "databricks/databricks-dolly-15k",
+            "iterations": 2,
+            "samples": 35,
+            "avgHeuristicSuccess": 0.8125
+          },
+          {
+            "dataset": "google/boolq",
+            "iterations": 2,
+            "samples": 35,
+            "avgHeuristicSuccess": 0.7867647058823529
+          },
+          {
+            "dataset": "allenai/sciq",
+            "iterations": 1,
+            "samples": 19,
+            "avgHeuristicSuccess": 0.47368421052631576
+          },
+          {
+            "dataset": "HuggingFaceH4/no_robots",
+            "iterations": 1,
+            "samples": 19,
+            "avgHeuristicSuccess": 0.42105263157894735
+          },
+          {
+            "dataset": "yahma/alpaca-cleaned",
+            "iterations": 1,
+            "samples": 17,
+            "avgHeuristicSuccess": 0.8235294117647058
+          },
+          {
+            "dataset": "tatsu-lab/alpaca",
+            "iterations": 1,
+            "samples": 19,
+            "avgHeuristicSuccess": 0.7894736842105263
+          },
+          {
+            "dataset": "teknium/GPTeacher-General-Instruct",
+            "iterations": 1,
+            "samples": 20,
+            "avgHeuristicSuccess": 0.7
+          },
+          {
+            "dataset": "Anthropic/hh-rlhf",
+            "iterations": 1,
+            "samples": 18,
+            "avgHeuristicSuccess": 0.8888888888888888
+          },
+          {
+            "dataset": "cais/mmlu",
+            "iterations": 1,
+            "samples": 0,
+            "avgHeuristicSuccess": 0.85
+          },
+          {
+            "dataset": "mlabonne/FineTome-100k",
+            "iterations": 1,
+            "samples": 18,
+            "avgHeuristicSuccess": 0.9722222222222222
+          },
+          {
+            "dataset": "HuggingFaceTB/smoltalk",
+            "iterations": 1,
+            "samples": 20,
+            "avgHeuristicSuccess": 0.95
+          },
+          {
+            "dataset": "nvidia/OpenMathInstruct-1",
+            "iterations": 1,
+            "samples": 20,
+            "avgHeuristicSuccess": 0.975
+          },
+          {
+            "dataset": "Open-Orca/OpenOrca",
+            "iterations": 1,
+            "samples": 20,
+            "avgHeuristicSuccess": 0.925
+          }
+        ],
+        "summary": [
+          {
+            "iter": 1,
+            "dataset": "databricks/databricks-dolly-15k",
+            "success": 80,
+            "samples": 15,
+            "offset": 0
+          },
+          {
+            "iter": 2,
+            "dataset": "google/boolq",
+            "success": 82.4,
+            "samples": 17,
+            "offset": 0
+          },
+          {
+            "iter": 3,
+            "dataset": "allenai/sciq",
+            "success": 47.4,
+            "samples": 19,
+            "offset": 0
+          },
+          {
+            "iter": 4,
+            "dataset": "HuggingFaceH4/no_robots",
+            "success": 42.1,
+            "samples": 19,
+            "offset": 0
+          },
+          {
+            "iter": 5,
+            "dataset": "yahma/alpaca-cleaned",
+            "success": 82.4,
+            "samples": 17,
+            "offset": 0
+          },
+          {
+            "iter": 6,
+            "dataset": "tatsu-lab/alpaca",
+            "success": 78.9,
+            "samples": 19,
+            "offset": 0
+          },
+          {
+            "iter": 7,
+            "dataset": "teknium/GPTeacher-General-Instruct",
+            "success": 70,
+            "samples": 20,
+            "offset": 0
+          },
+          {
+            "iter": 8,
+            "dataset": "Anthropic/hh-rlhf",
+            "success": 88.9,
+            "samples": 18,
+            "offset": 0
+          },
+          {
+            "iter": 9,
+            "dataset": "cais/mmlu",
+            "success": 85,
+            "samples": 0,
+            "offset": 0
+          },
+          {
+            "iter": 10,
+            "dataset": "mlabonne/FineTome-100k",
+            "success": 97.2,
+            "samples": 18,
+            "offset": 0
+          },
+          {
+            "iter": 11,
+            "dataset": "HuggingFaceTB/smoltalk",
+            "success": 95,
+            "samples": 20,
+            "offset": 0
+          },
+          {
+            "iter": 12,
+            "dataset": "nvidia/OpenMathInstruct-1",
+            "success": 97.5,
+            "samples": 20,
+            "offset": 0
+          },
+          {
+            "iter": 13,
+            "dataset": "Open-Orca/OpenOrca",
+            "success": 92.5,
+            "samples": 20,
+            "offset": 0
+          },
+          {
+            "iter": 14,
+            "dataset": "databricks/databricks-dolly-15k",
+            "success": 82.5,
+            "samples": 20,
+            "offset": 15
+          },
+          {
+            "iter": 15,
+            "dataset": "google/boolq",
+            "success": 75,
+            "samples": 18,
+            "offset": 17
+          }
+        ]
+      }
+    ]
+  },
+  "hfLegacy3x50": [
+    {
+      "campaign": "alpaca",
+      "policyFile": "policy-alpaca.json",
+      "iterations": 50,
+      "totalSamples": 525,
+      "finalSuccessRate": 0.8333333333333334,
+      "policyVersion": 100,
+      "appliedImprovements": 75,
+      "lastBatch": 11,
+      "summary": [],
+      "skipped": true
+    },
+    {
+      "campaign": "openorca",
+      "policyFile": "policy-openorca.json",
+      "iterations": 50,
+      "totalSamples": 1052,
+      "finalSuccessRate": 0.775,
+      "policyVersion": 100,
+      "appliedImprovements": 69,
+      "lastBatch": 18,
+      "summary": [
+        {
+          "iter": 1,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 100,
+          "samples": 15
+        },
+        {
+          "iter": 2,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 93.8,
+          "samples": 17
+        },
+        {
+          "iter": 3,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 89.5,
+          "samples": 19
+        },
+        {
+          "iter": 4,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 92.5,
+          "samples": 20
+        },
+        {
+          "iter": 5,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 80.6,
+          "samples": 18
+        },
+        {
+          "iter": 6,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 80,
+          "samples": 20
+        },
+        {
+          "iter": 7,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 91.7,
+          "samples": 18
+        },
+        {
+          "iter": 8,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 87.5,
+          "samples": 20
+        },
+        {
+          "iter": 9,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 80,
+          "samples": 20
+        },
+        {
+          "iter": 10,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 82.5,
+          "samples": 20
+        },
+        {
+          "iter": 11,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 82.5,
+          "samples": 20
+        },
+        {
+          "iter": 12,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 90,
+          "samples": 20
+        },
+        {
+          "iter": 13,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 83.3,
+          "samples": 18
+        },
+        {
+          "iter": 14,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 82.5,
+          "samples": 20
+        },
+        {
+          "iter": 15,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 77.8,
+          "samples": 18
+        },
+        {
+          "iter": 16,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 80,
+          "samples": 20
+        },
+        {
+          "iter": 17,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 70,
+          "samples": 20
+        },
+        {
+          "iter": 18,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 63.9,
+          "samples": 18
+        },
+        {
+          "iter": 19,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 62.5,
+          "samples": 16
+        },
+        {
+          "iter": 20,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 71.4,
+          "samples": 14
+        },
+        {
+          "iter": 21,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 78.6,
+          "samples": 14
+        },
+        {
+          "iter": 22,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 78.1,
+          "samples": 16
+        },
+        {
+          "iter": 23,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 69.4,
+          "samples": 18
+        },
+        {
+          "iter": 24,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 78.1,
+          "samples": 16
+        },
+        {
+          "iter": 25,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 88.9,
+          "samples": 18
+        },
+        {
+          "iter": 26,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 82.5,
+          "samples": 20
+        },
+        {
+          "iter": 27,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 77.5,
+          "samples": 20
+        },
+        {
+          "iter": 28,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 80,
+          "samples": 20
+        },
+        {
+          "iter": 29,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 80,
+          "samples": 20
+        },
+        {
+          "iter": 30,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 95,
+          "samples": 20
+        },
+        {
+          "iter": 31,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 77.5,
+          "samples": 20
+        },
+        {
+          "iter": 32,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 80.6,
+          "samples": 18
+        },
+        {
+          "iter": 33,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 90,
+          "samples": 20
+        },
+        {
+          "iter": 34,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 92.5,
+          "samples": 20
+        },
+        {
+          "iter": 35,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 90,
+          "samples": 20
+        },
+        {
+          "iter": 36,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 75,
+          "samples": 20
+        },
+        {
+          "iter": 37,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 77.8,
+          "samples": 18
+        },
+        {
+          "iter": 38,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 87.5,
+          "samples": 20
+        },
+        {
+          "iter": 39,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 80.6,
+          "samples": 18
+        },
+        {
+          "iter": 40,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 87.5,
+          "samples": 20
+        },
+        {
+          "iter": 41,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 94.4,
+          "samples": 18
+        },
+        {
+          "iter": 42,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 87.5,
+          "samples": 20
+        },
+        {
+          "iter": 43,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 92.5,
+          "samples": 20
+        },
+        {
+          "iter": 44,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 87.5,
+          "samples": 20
+        },
+        {
+          "iter": 45,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 82.5,
+          "samples": 20
+        },
+        {
+          "iter": 46,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 80,
+          "samples": 20
+        },
+        {
+          "iter": 47,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 80.6,
+          "samples": 18
+        },
+        {
+          "iter": 48,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 95,
+          "samples": 20
+        },
+        {
+          "iter": 49,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 92.5,
+          "samples": 20
+        },
+        {
+          "iter": 50,
+          "dataset": "Open-Orca/OpenOrca",
+          "success": 77.5,
+          "samples": 20
+        }
+      ]
+    },
+    {
+      "campaign": "rotation",
+      "policyFile": "policy-rotation.json",
+      "iterations": 50,
+      "totalSamples": 490,
+      "finalSuccessRate": 0.6111111111111112,
+      "policyVersion": 359,
+      "appliedImprovements": 71,
+      "lastBatch": 7,
+      "summary": [
+        {
+          "iter": 1,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 66.7,
+          "samples": 15
+        },
+        {
+          "iter": 2,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 57.7,
+          "samples": 13
+        },
+        {
+          "iter": 3,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 72.7,
+          "samples": 11
+        },
+        {
+          "iter": 4,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 94.4,
+          "samples": 9
+        },
+        {
+          "iter": 5,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 72.7,
+          "samples": 11
+        },
+        {
+          "iter": 6,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 61.1,
+          "samples": 9
+        },
+        {
+          "iter": 7,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 92.9,
+          "samples": 7
+        },
+        {
+          "iter": 8,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 72.2,
+          "samples": 9
+        },
+        {
+          "iter": 9,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 50,
+          "samples": 7
+        },
+        {
+          "iter": 10,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 70,
+          "samples": 5
+        },
+        {
+          "iter": 11,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 50,
+          "samples": 5
+        },
+        {
+          "iter": 12,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 40,
+          "samples": 5
+        },
+        {
+          "iter": 13,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 60,
+          "samples": 5
+        },
+        {
+          "iter": 14,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 90,
+          "samples": 5
+        },
+        {
+          "iter": 15,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 71.4,
+          "samples": 7
+        },
+        {
+          "iter": 16,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 70,
+          "samples": 5
+        },
+        {
+          "iter": 17,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 80,
+          "samples": 5
+        },
+        {
+          "iter": 18,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 85.7,
+          "samples": 7
+        },
+        {
+          "iter": 19,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 77.8,
+          "samples": 9
+        },
+        {
+          "iter": 20,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 77.3,
+          "samples": 11
+        },
+        {
+          "iter": 21,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 76.9,
+          "samples": 13
+        },
+        {
+          "iter": 22,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 56.7,
+          "samples": 15
+        },
+        {
+          "iter": 23,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 61.5,
+          "samples": 13
+        },
+        {
+          "iter": 24,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 63.6,
+          "samples": 11
+        },
+        {
+          "iter": 25,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 50,
+          "samples": 9
+        },
+        {
+          "iter": 26,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 42.9,
+          "samples": 7
+        },
+        {
+          "iter": 27,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 80,
+          "samples": 5
+        },
+        {
+          "iter": 28,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 85.7,
+          "samples": 7
+        },
+        {
+          "iter": 29,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 83.3,
+          "samples": 9
+        },
+        {
+          "iter": 30,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 68.2,
+          "samples": 11
+        },
+        {
+          "iter": 31,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 66.7,
+          "samples": 9
+        },
+        {
+          "iter": 32,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 64.3,
+          "samples": 7
+        },
+        {
+          "iter": 33,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 71.4,
+          "samples": 7
+        },
+        {
+          "iter": 34,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 80,
+          "samples": 5
+        },
+        {
+          "iter": 35,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 50,
+          "samples": 7
+        },
+        {
+          "iter": 36,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 30,
+          "samples": 5
+        },
+        {
+          "iter": 37,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 40,
+          "samples": 5
+        },
+        {
+          "iter": 38,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 90,
+          "samples": 5
+        },
+        {
+          "iter": 39,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 85.7,
+          "samples": 7
+        },
+        {
+          "iter": 40,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 66.7,
+          "samples": 9
+        },
+        {
+          "iter": 41,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 64.3,
+          "samples": 7
+        },
+        {
+          "iter": 42,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 78.6,
+          "samples": 7
+        },
+        {
+          "iter": 43,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 66.7,
+          "samples": 9
+        },
+        {
+          "iter": 44,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 71.4,
+          "samples": 7
+        },
+        {
+          "iter": 45,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 60,
+          "samples": 5
+        },
+        {
+          "iter": 46,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 60,
+          "samples": 5
+        },
+        {
+          "iter": 47,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 80,
+          "samples": 5
+        },
+        {
+          "iter": 48,
+          "dataset": "HuggingFaceH4/no_robots",
+          "success": 85.7,
+          "samples": 7
+        },
+        {
+          "iter": 49,
+          "dataset": "tatsu-lab/alpaca",
+          "success": 66.7,
+          "samples": 9
+        },
+        {
+          "iter": 50,
+          "dataset": "databricks/databricks-dolly-15k",
+          "success": 61.1,
+          "samples": 9
+        }
+      ]
+    }
+  ],
+  "postMultiOperational": {
+    "goldenSetSuccessRate": 0.5,
+    "policyVersion": 196,
+    "telemetryOperationalRate": 0.7933333333333333
+  },
+  "multiDatasetBreakdown": [
+    {
+      "campaign": "tier-a",
+      "dataset": "databricks/databricks-dolly-15k",
+      "samples": 34,
+      "avgHeuristicSuccess": 0.7947368421052632
+    },
+    {
+      "campaign": "tier-a",
+      "dataset": "google/boolq",
+      "samples": 37,
+      "avgHeuristicSuccess": 0.7867647058823529
+    },
+    {
+      "campaign": "tier-a",
+      "dataset": "allenai/sciq",
+      "samples": 37,
+      "avgHeuristicSuccess": 0.527046783625731
+    },
+    {
+      "campaign": "tier-a",
+      "dataset": "HuggingFaceH4/no_robots",
+      "samples": 37,
+      "avgHeuristicSuccess": 0.5402046783625731
+    },
+    {
+      "campaign": "tier-b",
+      "dataset": "yahma/alpaca-cleaned",
+      "samples": 34,
+      "avgHeuristicSuccess": 0.880701754385965
+    },
+    {
+      "campaign": "tier-b",
+      "dataset": "tatsu-lab/alpaca",
+      "samples": 37,
+      "avgHeuristicSuccess": 0.7551470588235294
+    },
+    {
+      "campaign": "tier-b",
+      "dataset": "teknium/GPTeacher-General-Instruct",
+      "samples": 33,
+      "avgHeuristicSuccess": 0.6972222222222222
+    },
+    {
+      "campaign": "tier-b",
+      "dataset": "Anthropic/hh-rlhf",
+      "samples": 29,
+      "avgHeuristicSuccess": 0.8605769230769231
+    },
+    {
+      "campaign": "tier-b",
+      "dataset": "cais/mmlu",
+      "samples": 0,
+      "avgHeuristicSuccess": 0.8444444444444444
+    },
+    {
+      "campaign": "tier-b",
+      "dataset": "mlabonne/FineTome-100k",
+      "samples": 37,
+      "avgHeuristicSuccess": 0.9161764705882353
+    },
+    {
+      "campaign": "tier-c",
+      "dataset": "Open-Orca/OpenOrca",
+      "samples": 33,
+      "avgHeuristicSuccess": 0.9444444444444444
+    },
+    {
+      "campaign": "tier-c",
+      "dataset": "teknium/OpenHermes-2.5",
+      "samples": 37,
+      "avgHeuristicSuccess": 0.85
+    },
+    {
+      "campaign": "tier-c",
+      "dataset": "HuggingFaceTB/smoltalk",
+      "samples": 37,
+      "avgHeuristicSuccess": 0.8252923976608187
+    },
+    {
+      "campaign": "tier-c",
+      "dataset": "mosaicml/instruct-v3",
+      "samples": 40,
+      "avgHeuristicSuccess": 0.9125
+    },
+    {
+      "campaign": "tier-c",
+      "dataset": "nvidia/OpenMathInstruct-1",
+      "samples": 38,
+      "avgHeuristicSuccess": 0.8375
+    },
+    {
+      "campaign": "rotation",
+      "dataset": "databricks/databricks-dolly-15k",
+      "samples": 35,
+      "avgHeuristicSuccess": 0.8125
+    },
+    {
+      "campaign": "rotation",
+      "dataset": "google/boolq",
+      "samples": 35,
+      "avgHeuristicSuccess": 0.7867647058823529
+    },
+    {
+      "campaign": "rotation",
+      "dataset": "allenai/sciq",
+      "samples": 19,
+      "avgHeuristicSuccess": 0.47368421052631576
+    },
+    {
+      "campaign": "rotation",
+      "dataset": "HuggingFaceH4/no_robots",
+      "samples": 19,
+      "avgHeuristicSuccess": 0.42105263157894735
+    },
+    {
+      "campaign": "rotation",
+      "dataset": "yahma/alpaca-cleaned",
+      "samples": 17,
+      "avgHeuristicSuccess": 0.8235294117647058
+    },
+    {
+      "campaign": "rotation",
+      "dataset": "tatsu-lab/alpaca",
+      "samples": 19,
+      "avgHeuristicSuccess": 0.7894736842105263
+    },
+    {
+      "campaign": "rotation",
+      "dataset": "teknium/GPTeacher-General-Instruct",
+      "samples": 20,
+      "avgHeuristicSuccess": 0.7
+    },
+    {
+      "campaign": "rotation",
+      "dataset": "Anthropic/hh-rlhf",
+      "samples": 18,
+      "avgHeuristicSuccess": 0.8888888888888888
+    },
+    {
+      "campaign": "rotation",
+      "dataset": "cais/mmlu",
+      "samples": 0,
+      "avgHeuristicSuccess": 0.85
+    },
+    {
+      "campaign": "rotation",
+      "dataset": "mlabonne/FineTome-100k",
+      "samples": 18,
+      "avgHeuristicSuccess": 0.9722222222222222
+    },
+    {
+      "campaign": "rotation",
+      "dataset": "HuggingFaceTB/smoltalk",
+      "samples": 20,
+      "avgHeuristicSuccess": 0.95
+    },
+    {
+      "campaign": "rotation",
+      "dataset": "nvidia/OpenMathInstruct-1",
+      "samples": 20,
+      "avgHeuristicSuccess": 0.975
+    },
+    {
+      "campaign": "rotation",
+      "dataset": "Open-Orca/OpenOrca",
+      "samples": 20,
+      "avgHeuristicSuccess": 0.925
+    }
+  ],
+  "notes": {
+    "heuristic": "HF heuristic = evaluateSample overlap/length; per-dataset avg from training-multi-report",
+    "operational": "CLOL operational = APPROVED verdict on golden set + telemetry window"
+  }
 }

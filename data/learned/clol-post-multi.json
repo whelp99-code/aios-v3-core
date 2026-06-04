@@ -1,0 +1,8 @@
+{
+  "policyFile": "policy-multi.json",
+  "iterations": 50,
+  "goldenBefore": 0,
+  "goldenAfter": 0.5,
+  "telemetryRate": 0.765,
+  "policyVersion": 196
+}

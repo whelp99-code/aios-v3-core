@@ -1,0 +1,48 @@
+{
+  "version": 87,
+  "iteration": 8,
+  "successRate": 0.5277777777777778,
+  "avgReward": 0.4933333333333337,
+  "qualityThreshold": 0.52,
+  "batchSize": 18,
+  "synthesisKeywords": [
+    "missing",
+    "incomplete",
+    "error",
+    "bug",
+    "short",
+    "expand"
+  ],
+  "routingBias": {
+    "preferredProvider": "huggingface"
+  },
+  "categoryScores": {
+    "open_qa": {
+      "success": 5,
+      "total": 10
+    },
+    "Generation": {
+      "success": 7,
+      "total": 7
+    },
+    "closed_qa": {
+      "success": 1,
+      "total": 1
+    }
+  },
+  "appliedImprovements": [
+    "[iter-1] High success rate — increase batch size",
+    "[iter-2] Reduce batch size for better per-sample quality",
+    "[iter-2] High success rate — increase batch size",
+    "[iter-3] Success rate 52.6% below threshold 55%",
+    "[iter-3] Add synthesis keywords for incomplete responses",
+    "[iter-4] Add synthesis keywords for incomplete responses",
+    "[iter-5] Reduce batch size for better per-sample quality",
+    "[iter-5] High success rate — increase batch size",
+    "[iter-6] Add synthesis keywords for incomplete responses",
+    "[iter-6] Reduce batch size for better per-sample quality",
+    "[iter-7] Add synthesis keywords for incomplete responses",
+    "[iter-8] Add synthesis keywords for incomplete responses"
+  ],
+  "updatedAt": "2026-06-04T01:14:12.452Z"
+}

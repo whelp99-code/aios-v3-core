@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContinuousLearningKernel = void 0;
 const hf_dataset_loader_1 = require("./hf-dataset-loader");
+const dataset_cursor_store_1 = require("./dataset-cursor-store");
 const improvement_analyzer_1 = require("./improvement-analyzer");
 const improvement_applier_1 = require("./improvement-applier");
 const learned_policy_store_1 = require("./learned-policy-store");
@@ -13,6 +14,7 @@ class ContinuousLearningKernel {
         this.analyzer = new improvement_analyzer_1.ImprovementAnalyzer();
         this.applier = new improvement_applier_1.ImprovementApplier(this.policyStore, hotPatch);
         this.experience = experience;
+        this.cursorStore = dataDir ? new dataset_cursor_store_1.DatasetCursorStore(dataDir) : null;
     }
     evaluateSample(row, policy) {
         const instruction = row.context
@@ -50,9 +52,11 @@ class ContinuousLearningKernel {
             category: row.category,
         };
     }
-    async runIteration(iteration, cfg, ingestSample) {
+    async runIteration(iteration, cfg, ingestSample, useCursor = true) {
         const policy = this.policyStore.get();
-        const offset = (iteration - 1) * policy.batchSize;
+        const offset = useCursor && this.cursorStore
+            ? this.cursorStore.advance(cfg.dataset, policy.batchSize, cfg.config, cfg.split)
+            : (iteration - 1) * policy.batchSize;
         const batch = await this.loader.fetchRows(cfg, offset, policy.batchSize);
         const sampleResults = [];
         for (const row of batch.rows) {
@@ -82,7 +86,7 @@ class ContinuousLearningKernel {
                 scores[row.category] = cat;
                 this.policyStore.update({ categoryScores: scores });
             }
-            await ingestSample?.(result, iteration);
+            await ingestSample?.(result, iteration, cfg.dataset);
         }
         const analysis = this.analyzer.analyze(this.experience.getRecent(policy.batchSize * 2), this.policyStore.get(), iteration);
         const { applied, policy: updatedPolicy, proposalIds } = this.applier.apply(analysis.improvements, iteration);
@@ -125,19 +129,20 @@ class ContinuousLearningKernel {
         };
     }
     async runFullLoop(config = {}) {
-        const datasets = config.datasets?.length
-            ? config.datasets
-            : [config.dataset ?? 'databricks/databricks-dolly-15k'];
+        const entries = (0, hf_dataset_loader_1.resolveDatasetList)(config.datasets, config.dataset);
         const iterations = config.iterations ?? 10;
+        const useCursor = config.useCursorStore !== false && !!this.cursorStore;
         const results = [];
         let totalSamples = 0;
-        const modeLabel = datasets.length > 1 ? `rotation [${datasets.join(' → ')}]` : datasets[0];
+        const modeLabel = entries.length > 1
+            ? `rotation [${entries.map((e) => e.id).join(' → ')}]`
+            : entries[0].id;
         console.log(`\n🤗 HF Continuous Learning — ${iterations} iterations on ${modeLabel}\n`);
         for (let i = 1; i <= iterations; i++) {
-            const datasetId = datasets[(i - 1) % datasets.length];
-            const hfConfig = { dataset: datasetId, config: 'default', split: 'train' };
-            console.log(`━━━ Iteration ${i}/${iterations} [${datasetId}] ━━━`);
-            const result = await this.runIteration(i, hfConfig, config.ingestSample);
+            const entry = entries[(i - 1) % entries.length];
+            const hfConfig = (0, hf_dataset_loader_1.toHFDatasetConfig)(entry);
+            console.log(`━━━ Iteration ${i}/${iterations} [${hfConfig.dataset}] config=${hfConfig.config} split=${hfConfig.split} ━━━`);
+            const result = await this.runIteration(i, hfConfig, config.ingestSample, useCursor);
             results.push(result);
             totalSamples += result.samplesProcessed + result.retrainSamples;
             console.log(`  Samples: ${result.samplesProcessed} | Success: ${(result.successRate * 100).toFixed(1)}% | ` +

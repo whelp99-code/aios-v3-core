@@ -131,21 +131,38 @@ export class AIOS {
 
   async runTraining(options: {
     dataset?: string;
-    datasets?: string[];
+    datasets?: Array<string | { id: string; config?: string; split?: string; domain?: string }>;
     iterations?: number;
+    policyFile?: string;
+    resetCursors?: boolean;
   } = {}) {
     const dataDir = path.join(this.config.dataDir ?? path.resolve(process.cwd(), 'data'), 'learned');
+    const entries = options.datasets?.length
+      ? options.datasets
+      : options.dataset
+        ? [options.dataset]
+        : undefined;
+
+    if (options.resetCursors && this.evolution.training.cursorStore) {
+      this.evolution.training.cursorStore.reset();
+    }
 
     const report = await this.evolution.training.runFullLoop({
       dataset: options.dataset,
-      datasets: options.datasets,
+      datasets: entries,
       iterations: options.iterations ?? 10,
       dataDir,
-      ingestSample: async (sample, iteration) => {
+      policyFile: options.policyFile,
+      ingestSample: async (sample, iteration, datasetId) => {
+        const list = entries ?? [options.dataset ?? 'unknown'];
+        const idx = (iteration - 1) % list.length;
+        const entry = list[idx];
         const ds =
-          options.datasets?.[(iteration - 1) % (options.datasets?.length ?? 1)] ??
+          datasetId ??
+          (typeof entry === 'string' ? entry : entry?.id) ??
           options.dataset ??
           'unknown';
+        const domain = typeof entry === 'object' && entry && 'domain' in entry ? entry.domain : undefined;
         await this.knowledge.ingestion.ingest({
           type: 'dataset',
           data: {
@@ -156,7 +173,8 @@ export class AIOS {
             category: sample.category,
             iteration,
             dataset: ds,
-            rowIdx: sample.rowIdx,
+            domain,
+            hfRowIdx: sample.rowIdx,
           },
         });
       },
