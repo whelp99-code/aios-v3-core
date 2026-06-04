@@ -1,0 +1,139 @@
+{
+  "version": 359,
+  "iteration": 50,
+  "successRate": 0.6111111111111112,
+  "avgReward": 0.6841397849462365,
+  "qualityThreshold": 0.4,
+  "batchSize": 7,
+  "synthesisKeywords": [
+    "missing",
+    "incomplete",
+    "error",
+    "bug",
+    "short",
+    "expand"
+  ],
+  "routingBias": {
+    "preferredProvider": "huggingface"
+  },
+  "categoryScores": {
+    "information_extraction": {
+      "success": 8,
+      "total": 9
+    },
+    "Brainstorm": {
+      "success": 7,
+      "total": 8
+    },
+    "open_qa": {
+      "success": 26,
+      "total": 40
+    },
+    "Generation": {
+      "success": 36,
+      "total": 53
+    },
+    "Chat": {
+      "success": 5,
+      "total": 8
+    },
+    "closed_qa": {
+      "success": 11,
+      "total": 11
+    },
+    "classification": {
+      "success": 4,
+      "total": 4
+    },
+    "Rewrite": {
+      "success": 1,
+      "total": 1
+    },
+    "general_qa": {
+      "success": 4,
+      "total": 4
+    },
+    "Closed QA": {
+      "success": 2,
+      "total": 2
+    },
+    "Open QA": {
+      "success": 1,
+      "total": 1
+    }
+  },
+  "appliedImprovements": [
+    "[iter-1] Reduce batch size for better per-sample quality",
+    "[iter-2] Reduce batch size for better per-sample quality",
+    "[iter-3] Reduce batch size for better per-sample quality",
+    "[iter-4] High success rate — increase batch size",
+    "[iter-5] Reduce batch size for better per-sample quality",
+    "[iter-6] Add synthesis keywords for incomplete responses",
+    "[iter-6] Reduce batch size for better per-sample quality",
+    "[iter-7] High success rate — increase batch size",
+    "[iter-8] Reduce batch size for better per-sample quality",
+    "[iter-9] Success rate 50.0% below threshold 55%",
+    "[iter-9] Reduce batch size for better per-sample quality",
+    "[iter-10] Reduce batch size for better per-sample quality",
+    "[iter-11] Success rate 50.0% below threshold 52%",
+    "[iter-11] Boost quality checks for weak category: open_qa",
+    "[iter-11] Reduce batch size for better per-sample quality",
+    "[iter-12] Success rate 40.0% below threshold 49%",
+    "[iter-12] Add synthesis keywords for incomplete responses",
+    "[iter-12] Boost quality checks for weak category: open_qa",
+    "[iter-12] Reduce batch size for better per-sample quality",
+    "[iter-13] Boost quality checks for weak category: open_qa",
+    "[iter-13] Reduce batch size for better per-sample quality",
+    "[iter-14] Boost quality checks for weak category: open_qa",
+    "[iter-14] High success rate — increase batch size",
+    "[iter-15] Boost quality checks for weak category: open_qa",
+    "[iter-15] Reduce batch size for better per-sample quality",
+    "[iter-16] Boost quality checks for weak category: open_qa",
+    "[iter-17] High success rate — increase batch size",
+    "[iter-18] High success rate — increase batch size",
+    "[iter-19] Reduce batch size for better per-sample quality",
+    "[iter-19] High success rate — increase batch size",
+    "[iter-20] Reduce batch size for better per-sample quality",
+    "[iter-20] High success rate — increase batch size",
+    "[iter-21] Reduce batch size for better per-sample quality",
+    "[iter-21] High success rate — increase batch size",
+    "[iter-22] Reduce batch size for better per-sample quality",
+    "[iter-23] Add synthesis keywords for incomplete responses",
+    "[iter-23] Reduce batch size for better per-sample quality",
+    "[iter-24] Add synthesis keywords for incomplete responses",
+    "[iter-24] Reduce batch size for better per-sample quality",
+    "[iter-25] Reduce batch size for better per-sample quality",
+    "[iter-26] Success rate 42.9% below threshold 46%",
+    "[iter-26] Add synthesis keywords for incomplete responses",
+    "[iter-26] Reduce batch size for better per-sample quality",
+    "[iter-27] High success rate — increase batch size",
+    "[iter-28] High success rate — increase batch size",
+    "[iter-29] Reduce batch size for better per-sample quality",
+    "[iter-29] High success rate — increase batch size",
+    "[iter-30] Reduce batch size for better per-sample quality",
+    "[iter-31] Reduce batch size for better per-sample quality",
+    "[iter-32] Add synthesis keywords for incomplete responses",
+    "[iter-33] Reduce batch size for better per-sample quality",
+    "[iter-34] High success rate — increase batch size",
+    "[iter-35] Reduce batch size for better per-sample quality",
+    "[iter-36] Success rate 30.0% below threshold 43%",
+    "[iter-36] Reduce batch size for better per-sample quality",
+    "[iter-37] Reduce batch size for better per-sample quality",
+    "[iter-38] High success rate — increase batch size",
+    "[iter-39] High success rate — increase batch size",
+    "[iter-40] Add synthesis keywords for incomplete responses",
+    "[iter-40] Reduce batch size for better per-sample quality",
+    "[iter-41] Add synthesis keywords for incomplete responses",
+    "[iter-42] High success rate — increase batch size",
+    "[iter-43] Reduce batch size for better per-sample quality",
+    "[iter-44] Reduce batch size for better per-sample quality",
+    "[iter-45] Reduce batch size for better per-sample quality",
+    "[iter-46] Reduce batch size for better per-sample quality",
+    "[iter-47] High success rate — increase batch size",
+    "[iter-48] High success rate — increase batch size",
+    "[iter-49] Add synthesis keywords for incomplete responses",
+    "[iter-50] Add synthesis keywords for incomplete responses",
+    "[iter-50] Reduce batch size for better per-sample quality"
+  ],
+  "updatedAt": "2026-06-04T00:42:19.790Z"
+}

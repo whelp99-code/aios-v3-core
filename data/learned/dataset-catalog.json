@@ -1,0 +1,671 @@
+{
+  "probedAt": "2026-06-04T00:31:51.728Z",
+  "results": [
+    {
+      "id": "databricks/databricks-dolly-15k",
+      "category": "Human instruction",
+      "expectedSize": "~15K",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 15011,
+      "splitSizes": {
+        "train": 15011
+      },
+      "sampleFields": [
+        "instruction",
+        "context",
+        "response",
+        "category"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "When did Virgin Australia start operating?",
+        "response": "Virgin Australia commenced services on 31 August 2000 as Virgin Blue, with two aircraft on a single route.",
+        "category": "closed_qa"
+      },
+      "error": null,
+      "latencyMs": 531
+    },
+    {
+      "id": "tatsu-lab/alpaca",
+      "category": "Instruction tuning",
+      "expectedSize": "~52K",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 52002,
+      "splitSizes": {
+        "train": 52002
+      },
+      "sampleFields": [
+        "instruction",
+        "input",
+        "output",
+        "text"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Give three tips for staying healthy.",
+        "response": "1.Eat a balanced diet and make sure to include plenty of fruits and vegetables. \n2. Exercise regularly to keep your body"
+      },
+      "error": null,
+      "latencyMs": 323
+    },
+    {
+      "id": "Open-Orca/OpenOrca",
+      "category": "Synthetic reasoning",
+      "expectedSize": "~4M",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 2942029,
+      "splitSizes": {
+        "train": 2942029
+      },
+      "sampleFields": [
+        "id",
+        "system_prompt",
+        "question",
+        "response"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "You will be given a definition of a task first, then some input of the task.\nThis task is about using the specified sent",
+        "response": "[\n  [\"AFC Ajax (amateurs)\", \"has ground\", \"Sportpark De Toekomst\"],\n  [\"Ajax Youth Academy\", \"plays at\", \"Sportpark De T"
+      },
+      "error": null,
+      "latencyMs": 3193
+    },
+    {
+      "id": "HuggingFaceH4/no_robots",
+      "category": "Human SFT",
+      "expectedSize": "~10K",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train",
+        "test"
+      ],
+      "totalRows": 9500,
+      "splitSizes": {
+        "train": 9500,
+        "test": 500
+      },
+      "sampleFields": [
+        "prompt",
+        "prompt_id",
+        "messages",
+        "category"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Please summarize the goals for scientists in this text:\n\nWithin three days, the intertwined cup nest of grasses was comp",
+        "response": "Scientists are studying nests hoping to learn about transitional habitats that could help restore the shoreline of San F",
+        "category": "Summarize"
+      },
+      "error": null,
+      "latencyMs": 495
+    },
+    {
+      "id": "OpenAssistant/oasst1",
+      "category": "Human dialogue",
+      "expectedSize": "~88K",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train",
+        "validation"
+      ],
+      "totalRows": 84437,
+      "splitSizes": {
+        "train": 84437,
+        "validation": 4401
+      },
+      "sampleFields": [
+        "message_id",
+        "parent_id",
+        "user_id",
+        "created_date",
+        "text",
+        "role",
+        "lang",
+        "review_count",
+        "review_result",
+        "deleted",
+        "rank",
+        "synthetic",
+        "model_name",
+        "detoxify",
+        "message_tree_id",
+        "tree_state",
+        "emojis",
+        "labels"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Can you write a short introduction about the relevance of the term \"monopsony\" in economics? Please use examples related",
+        "response": ""
+      },
+      "error": null,
+      "latencyMs": 194
+    },
+    {
+      "id": "yahma/alpaca-cleaned",
+      "category": "Instruction (cleaned)",
+      "expectedSize": "~52K",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 51760,
+      "splitSizes": {
+        "train": 51760
+      },
+      "sampleFields": [
+        "output",
+        "input",
+        "instruction"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Give three tips for staying healthy.",
+        "response": "1. Eat a balanced and nutritious diet: Make sure your meals are inclusive of a variety of fruits and vegetables, lean pr"
+      },
+      "error": null,
+      "latencyMs": 405
+    },
+    {
+      "id": "teknium/OpenHermes-2.5",
+      "category": "Synthetic chat",
+      "expectedSize": "~1M",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 1001551,
+      "splitSizes": {
+        "train": 1001551
+      },
+      "sampleFields": [
+        "custom_instruction",
+        "topic",
+        "model_name",
+        "model",
+        "skip_prompt_formatting",
+        "category",
+        "conversations",
+        "views",
+        "language",
+        "id",
+        "title",
+        "idx",
+        "hash",
+        "avatarUrl",
+        "system_prompt",
+        "source"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Every day, a tree drops 7 leaves. How many leaves would it drop in a month of February in a non-leap year? Include your ",
+        "response": "Here's the logic behind this:\n\n1. We know that February has 28 days in a non-leap year.\n2. If the tree drops 7 leaves ev",
+        "category": "orca"
+      },
+      "error": null,
+      "latencyMs": 445
+    },
+    {
+      "id": "WizardLM/WizardLM_evol_instruct_V2_196k",
+      "category": "Evolved instructions",
+      "expectedSize": "~196K",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (404): WizardLM/WizardLM_evol_instruct_V2_196k",
+      "latencyMs": 94
+    },
+    {
+      "id": "mosaicml/instruct-v3",
+      "category": "Instruction mix",
+      "expectedSize": "large",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train",
+        "test"
+      ],
+      "totalRows": 56167,
+      "splitSizes": {
+        "train": 56167,
+        "test": 6807
+      },
+      "sampleFields": [
+        "prompt",
+        "response",
+        "source"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Below is an instruction that describes a task. Write a response that appropriately completes the request.\n\n### Instructi",
+        "response": "On Wednesday she covered half of the distance from Tuesday, so 50 / 2 = 25 kilometers. On Thursday she rode 40 + 25 = 65",
+        "category": "cot_gsm8k"
+      },
+      "error": null,
+      "latencyMs": 683
+    },
+    {
+      "id": "argilla/databricks-math-dolly",
+      "category": "Math + dolly",
+      "expectedSize": "small",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (401): argilla/databricks-math-dolly",
+      "latencyMs": 61
+    },
+    {
+      "id": "stanfordnlp/coqa",
+      "category": "Conversational QA",
+      "expectedSize": "~127K",
+      "status": "schema_mismatch",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train",
+        "validation"
+      ],
+      "totalRows": 7199,
+      "splitSizes": {
+        "train": 7199,
+        "validation": 500
+      },
+      "sampleFields": [
+        "source",
+        "story",
+        "questions",
+        "answers"
+      ],
+      "compatible": false,
+      "samplePreview": {
+        "instruction": "",
+        "response": "",
+        "category": "wikipedia"
+      },
+      "error": null,
+      "latencyMs": 622
+    },
+    {
+      "id": "squad",
+      "category": "Reading QA",
+      "expectedSize": "~100K",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (404): squad",
+      "latencyMs": 60
+    },
+    {
+      "id": "google/boolq",
+      "category": "Boolean QA",
+      "expectedSize": "~9K",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train",
+        "validation"
+      ],
+      "totalRows": 9427,
+      "splitSizes": {
+        "train": 9427,
+        "validation": 3270
+      },
+      "sampleFields": [
+        "question",
+        "answer",
+        "passage"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "do iran and afghanistan speak the same language",
+        "response": "true"
+      },
+      "error": null,
+      "latencyMs": 1066
+    },
+    {
+      "id": "allenai/sciq",
+      "category": "Science QA",
+      "expectedSize": "~13K",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train",
+        "validation",
+        "test"
+      ],
+      "totalRows": 11679,
+      "splitSizes": {
+        "train": 11679,
+        "validation": 1000,
+        "test": 1000
+      },
+      "sampleFields": [
+        "question",
+        "distractor3",
+        "distractor1",
+        "distractor2",
+        "correct_answer",
+        "support"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "What type of organism is commonly used in preparation of foods such as cheese and yogurt?",
+        "response": ""
+      },
+      "error": null,
+      "latencyMs": 460
+    },
+    {
+      "id": "cais/mmlu",
+      "category": "Multi-task benchmark",
+      "expectedSize": "~15K",
+      "status": "compatible",
+      "configs": [
+        "abstract_algebra",
+        "all",
+        "anatomy",
+        "astronomy",
+        "auxiliary_train",
+        "business_ethics",
+        "clinical_knowledge",
+        "college_biology",
+        "college_chemistry",
+        "college_computer_science",
+        "college_mathematics",
+        "college_medicine",
+        "college_physics",
+        "computer_security",
+        "conceptual_physics",
+        "econometrics",
+        "electrical_engineering",
+        "elementary_mathematics",
+        "formal_logic",
+        "global_facts",
+        "high_school_biology",
+        "high_school_chemistry",
+        "high_school_computer_science",
+        "high_school_european_history",
+        "high_school_geography",
+        "high_school_government_and_politics",
+        "high_school_macroeconomics",
+        "high_school_mathematics",
+        "high_school_microeconomics",
+        "high_school_physics",
+        "high_school_psychology",
+        "high_school_statistics",
+        "high_school_us_history",
+        "high_school_world_history",
+        "human_aging",
+        "human_sexuality",
+        "international_law",
+        "jurisprudence",
+        "logical_fallacies",
+        "machine_learning",
+        "management",
+        "marketing",
+        "medical_genetics",
+        "miscellaneous",
+        "moral_disputes",
+        "moral_scenarios",
+        "nutrition",
+        "philosophy",
+        "prehistory",
+        "professional_accounting",
+        "professional_law",
+        "professional_medicine",
+        "professional_psychology",
+        "public_relations",
+        "security_studies",
+        "sociology",
+        "us_foreign_policy",
+        "virology",
+        "world_religions"
+      ],
+      "splits": [
+        "test",
+        "validation",
+        "dev"
+      ],
+      "totalRows": 14042,
+      "splitSizes": {
+        "test": 100,
+        "validation": 11,
+        "dev": 5
+      },
+      "sampleFields": [
+        "question",
+        "subject",
+        "choices",
+        "answer"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Find the degree for the given field extension Q(sqrt(2), sqrt(3), sqrt(18)) over Q.",
+        "response": "1"
+      },
+      "error": null,
+      "latencyMs": 224
+    },
+    {
+      "id": "Anthropic/hh-rlhf",
+      "category": "RLHF preferences",
+      "expectedSize": "~170K",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train",
+        "test"
+      ],
+      "totalRows": 160800,
+      "splitSizes": {
+        "train": 160800,
+        "test": 8552
+      },
+      "sampleFields": [
+        "chosen",
+        "rejected"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "",
+        "response": "\n\nHuman: What are some cuss words in english?\n\nAssistant: Here’s an incomplete list.\n\nAss, dick, bugger, crap, fuck, shi"
+      },
+      "error": null,
+      "latencyMs": 813
+    },
+    {
+      "id": "HuggingFaceTB/smoltalk",
+      "category": "Small instruct",
+      "expectedSize": "~1M",
+      "status": "compatible",
+      "configs": [
+        "all",
+        "apigen-80k",
+        "everyday-conversations",
+        "explore-instruct-rewriting",
+        "longalign",
+        "metamathqa-50k",
+        "numina-cot-100k",
+        "openhermes-100k",
+        "self-oss-instruct",
+        "smol-constraints",
+        "smol-magpie-ultra",
+        "smol-rewrite",
+        "smol-summarize",
+        "systemchats-30k"
+      ],
+      "splits": [
+        "train",
+        "test"
+      ],
+      "totalRows": 1043917,
+      "splitSizes": {
+        "train": 1043917,
+        "test": 54948
+      },
+      "sampleFields": [
+        "messages",
+        "source"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "The function \\( g(x) \\) satisfies the functional equation\n\\[ g(x + y) = g(x) + g(y) \\]\nfor all real numbers \\( x \\) and ",
+        "response": "Given the functional equation and the specific value \\( g(3) = 4 \\), we can find \\( g(1) \\) by using the equation multip",
+        "category": "numina-cot-100k"
+      },
+      "error": null,
+      "latencyMs": 494
+    },
+    {
+      "id": "mlabonne/FineTome-100k",
+      "category": "Fine-tuning mix",
+      "expectedSize": "~100K",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": 100000,
+      "splitSizes": {
+        "train": 100000
+      },
+      "sampleFields": [
+        "conversations",
+        "source",
+        "score"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Explain what boolean operators are, what they do, and provide examples of how they can be used in programming. Additiona",
+        "response": "Boolean operators are logical operators used in programming to manipulate boolean values. They operate on one or more bo",
+        "category": "infini-instruct-top-500k"
+      },
+      "error": null,
+      "latencyMs": 499
+    },
+    {
+      "id": "BAAI/Infinity-Instruct",
+      "category": "Instruction",
+      "expectedSize": "large",
+      "status": "error",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train"
+      ],
+      "totalRows": null,
+      "splitSizes": {},
+      "sampleFields": [],
+      "compatible": false,
+      "samplePreview": null,
+      "error": "HF dataset fetch failed (401): BAAI/Infinity-Instruct",
+      "latencyMs": 69
+    },
+    {
+      "id": "nvidia/OpenMathInstruct-1",
+      "category": "Math instruct",
+      "expectedSize": "~2M",
+      "status": "compatible",
+      "configs": [
+        "default"
+      ],
+      "splits": [
+        "train",
+        "validation"
+      ],
+      "totalRows": 5752065,
+      "splitSizes": {
+        "train": 5752065,
+        "validation": 1127629
+      },
+      "sampleFields": [
+        "question",
+        "expected_answer",
+        "predicted_answer",
+        "error_message",
+        "is_correct",
+        "generation_type",
+        "dataset",
+        "generated_solution"
+      ],
+      "compatible": true,
+      "samplePreview": {
+        "instruction": "Martha has 18 crayons. She lost half of them, so she bought a new set of 20 crayons. How many crayons in total does Mart",
+        "response": ""
+      },
+      "error": null,
+      "latencyMs": 534
+    }
+  ]
+}
