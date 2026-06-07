@@ -1,6 +1,7 @@
 {
   "name": "aios-monorepo",
   "private": true,
+  "deprecated": "Project abandoned — no further development.",
   "engines": {
     "node": ">=22.0.0"
   },
