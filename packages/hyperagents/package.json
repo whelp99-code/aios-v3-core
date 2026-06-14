@@ -1,0 +1,36 @@
+{
+  "name": "@aios/hyperagents",
+  "version": "0.1.0",
+  "description": "Meta-cognitive system for reflective, self-improving agents — PR-09",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "aios",
+    "hyperagents",
+    "meta-cognitive",
+    "self-improving",
+    "recursive",
+    "safety"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "typescript": "^5.4.0"
+  }
+}

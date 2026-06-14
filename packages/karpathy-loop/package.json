@@ -1,0 +1,24 @@
+{
+  "name": "@aios/karpathy-loop",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Karpathy-style automatic learning loop for iterative code improvement",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "dev": "tsc --watch"
+  },
+  "keywords": [
+    "aios",
+    "karpathy",
+    "learning-loop",
+    "automatic-improvement",
+    "code-patching"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^25.9.2"
+  }
+}

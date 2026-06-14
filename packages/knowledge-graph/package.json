@@ -1,5 +1,5 @@
 {
-  "name": "@aios/knowledge-graph",
+  "name": "aios-knowledge-graph",
   "version": "1.0.0",
   "description": "Infinite Knowledge Graph - OpenKB integration for AIOS",
   "main": "dist/index.js",

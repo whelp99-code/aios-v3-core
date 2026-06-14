@@ -1,0 +1,24 @@
+{
+  "name": "aios-monitoring",
+  "version": "0.1.0",
+  "description": "Langfuse 기반 LLM 관측성 시스템",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "langfuse:up": "docker compose -f docker-compose.langfuse.yml up -d",
+    "langfuse:down": "docker compose -f docker-compose.langfuse.yml down"
+  },
+  "dependencies": {
+    "langfuse": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "typescript": "^5.0.0",
+    "vitest": "^3.0.0"
+  }
+}

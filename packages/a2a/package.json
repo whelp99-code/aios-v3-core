@@ -1,0 +1,37 @@
+{
+  "name": "@aios/a2a",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Google A2A (Agent-to-Agent) protocol implementation for AIOS",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "axios": "^1.7.0",
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  },
+  "license": "MIT",
+  "keywords": [
+    "a2a",
+    "agent-to-agent",
+    "google-a2a",
+    "aios",
+    "multi-agent"
+  ]
+}

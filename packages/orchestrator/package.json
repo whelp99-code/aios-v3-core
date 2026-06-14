@@ -1,5 +1,5 @@
 {
-  "name": "@aios/orchestrator",
+  "name": "aios-orchestrator",
   "version": "1.0.0",
   "description": "AIOS Orchestrator package for multi-agent swarm management and workflow execution.",
   "main": "dist/index.js",

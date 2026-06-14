@@ -1,0 +1,21 @@
+{
+  "name": "@aios/benchmark",
+  "version": "0.1.0",
+  "description": "EvoAgentX 기반 벤치마크 프레임워크",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "benchmark": "tsx src/cli.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^3.0.0"
+  }
+}

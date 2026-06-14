@@ -1,5 +1,5 @@
 {
-  "name": "@aios/mcp-adapters",
+  "name": "aios-mcp-adapters",
   "version": "1.0.0",
   "description": "MCP adapters for AIOS external app integrations",
   "main": "dist/index.js",
