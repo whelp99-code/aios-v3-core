@@ -6,15 +6,18 @@
     "node": ">=22.0.0"
   },
   "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p server/tsconfig.json",
     "dev": "pnpm --filter web dev",
     "build": "pnpm build:packages && pnpm --filter web build && pnpm --filter desktop build",
-    "build:packages": "pnpm --filter @aios/knowledge-graph build && pnpm --filter @aios/self-evolution build && pnpm --filter @aios/ai-core build && pnpm --filter @aios/mcp-adapters build && pnpm --filter @aios/orchestrator build && pnpm --filter @aios/core build",
+    "build:packages": "pnpm --filter @aios/knowledge-graph build && pnpm --filter @aios/self-evolution build && pnpm --filter @aios/ai-core build && pnpm --filter @aios/mcp-adapters build && pnpm --filter @aios/orchestrator build && pnpm --filter @aios/core build && pnpm --filter @aios/monitoring build && pnpm --filter @aios/benchmark build && pnpm --filter @aios/lightrag build && pnpm --filter @aios/sandbox build && pnpm --filter @aios/workflow build && pnpm --filter @aios/evolution build && pnpm --filter @aios/ag-ui build && pnpm --filter @aios/a2a build && pnpm --filter @aios/karpathy-loop build && pnpm --filter @aios/hyperagents build",
     "verify": "./scripts/verify-all.sh",
     "verify:api": "./scripts/verify-api.sh",
     "train:hf": "./scripts/hf-train-10x.sh",
     "desktop": "pnpm --filter desktop dev"
   },
   "devDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^3.2.6"
   }
 }
