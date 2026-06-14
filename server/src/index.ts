@@ -29,7 +29,7 @@ function apiKeyAuth(req: Request, res: Response, next: NextFunction): void {
 }
 
 const app: Express = express();
-const PORT = process.env.PORT || 3200;
+const PORT = process.env.PORT || 3201;
 
 // Middleware
 app.use(cors());
