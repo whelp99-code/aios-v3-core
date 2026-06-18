@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # Rapid-MLX 추론 엔진 (중앙 AI 엔진)
+  rapid-mlx:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rapid-mlx-engine
+    ports:
+      - "8001:8000"
+    volumes:
+      - rapid-mlx-cache:/app/cache
+      - rapid-mlx-models:/app/models
+    environment:
+      - RAPID_MLX_MODEL=qwen3.5-9b-8bit
+      - RAPID_MLX_PORT=8000
+      - PYTHONUNBUFFERED=1
+    networks:
+      - aios-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  rapid-mlx-cache:
+    driver: local
+  rapid-mlx-models:
+    driver: local
+
+networks:
+  aios-network:
+    driver: bridge
