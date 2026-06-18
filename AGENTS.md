@@ -6,7 +6,7 @@
 
 | Location | Path / branch | Role |
 |----------|---------------|------|
-| **Local (primary)** | `~/Documents/Playground/F - aios-v3-core` · `codex/phase5-review-hardening` | Day-to-day coding, `pnpm install`, Rapid-MLX / LM Studio |
+| **Local (primary)** | `/Users/jmpark/Documents/Playground/F - aios-v3-core` · `codex/phase5-review-hardening` | Day-to-day coding, `pnpm install`, Rapid-MLX / LM Studio |
 | **GitHub (source of truth)** | `origin/codex/phase5-review-hardening` @ `c1eeaaf` | Shared commits; push from local |
 | **Cursor Cloud (optional)** | Linux VM clone | PR review, CI-like checks; not for MLX inference |
 
@@ -17,7 +17,7 @@ Cloud Agents should treat **local + pushed branch** as authoritative. Do not com
 ## Local setup (Mac)
 
 ```bash
-cd ~/Documents/Playground/F\ -\ aios-v3-core
+cd "/Users/jmpark/Documents/Playground/F - aios-v3-core"
 git checkout codex/phase5-review-hardening
 git pull origin codex/phase5-review-hardening
 pnpm install
