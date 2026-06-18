@@ -79,9 +79,9 @@
     <div class="card">
       <h2>📋 워크플로우 리스트</h2>
       <div class="tabs">
-        <div class="tab active" onclick="filterWorkflows('all')">전체</div>
-        <div class="tab" onclick="filterWorkflows('favorites')">⭐ 즐겨찾기</div>
-        <div class="tab" onclick="filterWorkflows('recent')">🕐 최근 실행</div>
+        <div class="tab active" onclick="filterWorkflows('all', this)">전체</div>
+        <div class="tab" onclick="filterWorkflows('favorites', this)">⭐ 즐겨찾기</div>
+        <div class="tab" onclick="filterWorkflows('recent', this)">🕐 최근 실행</div>
       </div>
       <div class="workflow-list" id="workflowList"></div>
       <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="showCreateForm()">+ 새 워크플로우 만들기</button>
@@ -149,6 +149,7 @@
     const API_BASE = window.AIOS_API_BASE || 'http://localhost:3201';
     let workflows = [];
     let selectedWorkflowId = null;
+    let editingWorkflowId = null;
     let history = [];
 
     // 초기화
@@ -362,9 +363,9 @@ ${w.steps.map((s, i) => `  ${i+1}. ${s.name}`).join('\n')}
     }
 
     // 필터 탭
-    function filterWorkflows(filter) {
+    function filterWorkflows(filter, tab) {
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      event.target.classList.add('active');
+      tab.classList.add('active');
       renderWorkflowList(filter);
     }
 
@@ -391,10 +392,12 @@ ${w.steps.map((s, i) => `  ${i+1}. ${s.name}`).join('\n')}
 
     // 새 워크플로우 폼
     function showCreateForm() {
+      editingWorkflowId = null;
       document.getElementById('createModal').style.display = 'block';
     }
 
     function closeCreateForm() {
+      editingWorkflowId = null;
       document.getElementById('createModal').style.display = 'none';
       document.getElementById('newName').value = '';
       document.getElementById('newDescription').value = '';
@@ -420,7 +423,14 @@ ${w.steps.map((s, i) => `  ${i+1}. ${s.name}`).join('\n')}
         return;
       }
 
-      const newWorkflow = {
+      const existingIndex = workflows.findIndex(w => w.id === editingWorkflowId);
+      const savedWorkflow = existingIndex >= 0 ? {
+        ...workflows[existingIndex],
+        name,
+        description,
+        category,
+        steps
+      } : {
         id: 'wf-' + Date.now(),
         name,
         description,
@@ -431,22 +441,26 @@ ${w.steps.map((s, i) => `  ${i+1}. ${s.name}`).join('\n')}
         runCount: 0
       };
 
-      workflows.push(newWorkflow);
+      if (existingIndex >= 0) {
+        workflows[existingIndex] = savedWorkflow;
+      } else {
+        workflows.push(savedWorkflow);
+      }
       closeCreateForm();
       renderWorkflowList();
-      selectWorkflow(newWorkflow.id);
+      selectWorkflow(savedWorkflow.id);
     }
 
     // 편집
     function editWorkflow(id) {
       const w = workflows.find(w => w.id === id);
       if (!w) return;
+      editingWorkflowId = id;
       document.getElementById('newName').value = w.name;
       document.getElementById('newDescription').value = w.description;
       document.getElementById('newCategory').value = w.category;
       document.getElementById('newSteps').value = JSON.stringify(w.steps, null, 2);
       document.getElementById('createModal').style.display = 'block';
-      workflows = workflows.filter(wf => wf.id !== id);
     }
 
     // 시작
