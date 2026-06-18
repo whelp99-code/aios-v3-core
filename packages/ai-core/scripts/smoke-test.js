@@ -1,9 +1,11 @@
 const { DynamicRouter } = require('../dist/dynamic-router');
 const { ModelRegistry } = require('../dist/model-registry');
 const { ResourceAllocator } = require('../dist/resource-allocator');
+const { LMStudioClient } = require('../dist/rapid-mlx-client');
 
 async function main() {
-  const router = new DynamicRouter({});
+  const lmStudioClient = new LMStudioClient({ baseURL: 'http://localhost:1234/v1', timeout: 60000 });
+  const router = new DynamicRouter({ lmStudioClient });
   const registry = new ModelRegistry();
   const allocator = new ResourceAllocator();
 

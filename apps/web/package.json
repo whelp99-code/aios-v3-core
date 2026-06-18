@@ -6,13 +6,14 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@aios/core": "workspace:*",
     "@aios/ai-core": "workspace:*",
-    "@aios/mcp-adapters": "workspace:*",
-    "@aios/orchestrator": "workspace:*",
+    "aios-mcp-adapters": "workspace:*",
+    "aios-orchestrator": "workspace:*",
     "axios": "^1.6.0",
     "next": "16.2.6",
     "react": "19.2.4",

@@ -3,9 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ModelRegistry = void 0;
 const DEFAULT_MODELS = [
     {
-        modelId: 'qwen3.5-9b-4bit',
+        modelId: 'qwen/qwen3.5-9b',
         provider: 'local',
-        displayName: 'Qwen 3.5 9B (Local)',
+        displayName: 'Qwen 3.5 9B (LM Studio)',
         capabilities: ['chat', 'code_generation', 'tool_use'],
         costPerToken: 0,
         latencyMs: 80,
@@ -14,14 +14,25 @@ const DEFAULT_MODELS = [
         status: 'active',
     },
     {
-        modelId: 'deepseek-r1-14b-4bit',
+        modelId: 'google/gemma-4-26b-a4b',
         provider: 'local',
-        displayName: 'DeepSeek R1 14B (Local)',
+        displayName: 'Gemma 4 26B (LM Studio)',
         capabilities: ['reasoning', 'chat'],
         costPerToken: 0,
         latencyMs: 120,
         securityLevel: 'local_only',
         contextWindow: 32768,
+        status: 'active',
+    },
+    {
+        modelId: 'text-embedding-nomic-embed-text-v1.5',
+        provider: 'local',
+        displayName: 'Nomic Embed Text (LM Studio)',
+        capabilities: ['embedding'],
+        costPerToken: 0,
+        latencyMs: 50,
+        securityLevel: 'local_only',
+        contextWindow: 8192,
         status: 'active',
     },
     {
@@ -99,6 +110,17 @@ const DEFAULT_MODELS = [
         latencyMs: 800,
         securityLevel: 'cloud_secure',
         contextWindow: 64000,
+        status: 'active',
+    },
+    {
+        modelId: 'mimo-v2.5-pro',
+        provider: 'mimo',
+        displayName: 'Mimo v2.5 Pro (Cloud)',
+        capabilities: ['chat', 'code_generation', 'reasoning', 'tool_use', 'multilingual'],
+        costPerToken: 0.000001,
+        latencyMs: 600,
+        securityLevel: 'cloud_secure',
+        contextWindow: 128000,
         status: 'active',
     },
 ];

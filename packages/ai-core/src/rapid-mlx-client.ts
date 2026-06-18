@@ -1,9 +1,12 @@
 import axios, { AxiosInstance } from 'axios';
 
-export interface RapidMLXConfig {
+export interface LMStudioConfig {
   baseURL: string;
   timeout: number;
 }
+
+/** @deprecated Use LMStudioConfig. */
+export type RapidMLXConfig = LMStudioConfig;
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -16,7 +19,7 @@ export interface ChatCompletionRequest {
   stream?: boolean;
   temperature?: number;
   max_tokens?: number;
-  tools?: any[];
+  tools?: unknown[];
   tool_choice?: string;
 }
 
@@ -30,7 +33,7 @@ export interface ChatCompletionResponse {
     message: {
       role: string;
       content: string;
-      tool_calls?: any[];
+      tool_calls?: unknown[];
     };
     finish_reason: string;
   }>;
@@ -41,11 +44,11 @@ export interface ChatCompletionResponse {
   };
 }
 
-export class RapidMLXClient {
+export class LMStudioClient {
   private client: AxiosInstance;
-  private config: RapidMLXConfig;
+  private config: LMStudioConfig;
 
-  constructor(config: RapidMLXConfig = { baseURL: 'http://localhost:8000/v1', timeout: 60000 }) {
+  constructor(config: LMStudioConfig = { baseURL: 'http://localhost:1234/v1', timeout: 60000 }) {
     this.config = config;
     this.client = axios.create({
       baseURL: config.baseURL,
@@ -61,17 +64,17 @@ export class RapidMLXClient {
       });
       return response.data;
     } catch (error) {
-      console.error('Rapid-MLX chat completion error:', error);
+      console.error('LM Studio chat completion error:', error);
       throw error;
     }
   }
 
-  async listModels(): Promise<any[]> {
+  async listModels(): Promise<Array<{ id: string }>> {
     try {
-      const response = await this.client.get('/models');
+      const response = await this.client.get<{ data?: Array<{ id: string }> }>('/models');
       return response.data.data || [];
     } catch (error) {
-      console.error('Rapid-MLX list models error:', error);
+      console.error('LM Studio list models error:', error);
       throw error;
     }
   }
@@ -81,17 +84,19 @@ export class RapidMLXClient {
       const response = await this.client.get('/models');
       return response.status === 200;
     } catch (error) {
-      console.error('Rapid-MLX health check failed:', error);
+      console.error('LM Studio health check failed:', error);
       return false;
     }
   }
 
-  // Rapid-MLX의 강점인 도구 호출 복구 로직 (시뮬레이션/래퍼)
+  // LM Studio의 도구 호출 복구 로직 (시뮬레이션/래퍼)
   async chatWithToolRecovery(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
-    // Rapid-MLX 엔진 자체에 파서가 내장되어 있으므로 기본 호출을 사용하되,
+    // LM Studio 엔진 자체에 파서가 내장되어 있으므로 기본 호출을 사용하되,
     // 필요 시 추가적인 정규화 로직을 여기에 배치할 수 있습니다.
     return this.chatCompletion(request);
   }
 }
 
-export default RapidMLXClient;
+/** @deprecated Use LMStudioClient. */
+export { LMStudioClient as RapidMLXClient };
+export default LMStudioClient;

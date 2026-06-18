@@ -22,7 +22,7 @@ export class ResourceAllocator {
   }
 
   getLocalLoad(): number {
-    const envLoad = process.env.RAPID_MLX_LOAD;
+    const envLoad = process.env.LM_STUDIO_LOAD ?? process.env.RAPID_MLX_LOAD;
     if (envLoad) {
       const parsed = parseFloat(envLoad);
       if (!Number.isNaN(parsed)) return Math.max(0, Math.min(1, parsed));

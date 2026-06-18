@@ -6,15 +6,16 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "Manus AI",
   "license": "MIT",
   "dependencies": {
     "@aios/ai-core": "workspace:*",
-    "@aios/mcp-adapters": "workspace:*",
-    "@aios/knowledge-graph": "workspace:*",
+    "aios-mcp-adapters": "workspace:*",
+    "aios-knowledge-graph": "workspace:*",
     "@aios/self-evolution": "workspace:*",
     "@langchain/langgraph": "^0.0.1",
     "js-yaml": "^4.1.0"

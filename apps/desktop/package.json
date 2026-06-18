@@ -6,7 +6,9 @@
   "type": "commonjs",
   "scripts": {
     "dev": "electron .",
-    "build": "tsc && electron-builder"
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "package": "pnpm run build && electron-builder"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

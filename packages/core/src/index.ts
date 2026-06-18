@@ -1,30 +1,33 @@
 import path from 'path';
 import {
-  RapidMLXClient,
-  ModelRouter,
+  LMStudioClient,
   DynamicRouter,
+  ModelRouter,
   type EngineMode,
   type EnginePreferences,
 } from '@aios/ai-core';
-import { OpenKB } from '@aios/knowledge-graph';
-import { MCPRegistry } from '@aios/mcp-adapters';
+import { OpenKB } from 'aios-knowledge-graph';
+import { MCPRegistry } from 'aios-mcp-adapters';
 import {
   Orchestrator,
   SkillParser,
   createInitialWorkflowState,
   type AgentWorkflowState,
   type WorkflowStepEvent,
-} from '@aios/orchestrator';
+} from 'aios-orchestrator';
 import { EvolutionKernel } from '@aios/self-evolution';
 import { PluginManager } from './plugin-manager';
 import { WebhookEvent, WebhookPublisher } from './webhook-publisher';
 import { CommunityRegistry } from './community-registry';
 
 export interface AIOSConfig {
-  rapidMLXBaseURL?: string;
+  lmStudioBaseURL?: string;
   openaiApiKey?: string;
   anthropicApiKey?: string;
   huggingfaceApiKey?: string;
+  mimoApiKey?: string;
+  mimoBaseURL?: string;
+  mimoProvider?: 'together' | 'fireworks' | 'replicate' | 'custom';
   dataDir?: string;
   skillsDirectory?: string;
   engineMode?: EngineMode;
@@ -60,19 +63,22 @@ export class AIOS {
   constructor(config: AIOSConfig = {}) {
     this.config = config;
     const dataDir = config.dataDir ?? path.resolve(process.cwd(), 'data');
-    const client = new RapidMLXClient({
-      baseURL: config.rapidMLXBaseURL ?? 'http://localhost:8000/v1',
+    const client = new LMStudioClient({
+      baseURL: config.lmStudioBaseURL ?? 'http://localhost:1234/v1',
       timeout: 60000,
     });
 
     this.dynamicRouter = new DynamicRouter({
-      rapidMLXClient: client,
+      lmStudioClient: client,
       openaiApiKey: config.openaiApiKey ?? process.env.OPENAI_API_KEY,
       anthropicApiKey: config.anthropicApiKey ?? process.env.ANTHROPIC_API_KEY,
       huggingfaceApiKey:
         config.huggingfaceApiKey ??
         process.env.HF_TOKEN ??
         process.env.HUGGINGFACE_API_KEY,
+      mimoApiKey: config.mimoApiKey ?? process.env.MIMO_API_KEY,
+      mimoBaseURL: config.mimoBaseURL,
+      mimoProvider: config.mimoProvider,
       preferences: {
         mode: config.engineMode ?? 'auto',
         ...config.enginePreferences,
@@ -296,3 +302,27 @@ export class AIOS {
 export { PluginManager, type AIOSPlugin } from './plugin-manager';
 export { WebhookPublisher, type WebhookEvent, type WebhookSubscription } from './webhook-publisher';
 export { CommunityRegistry, type CommunityContribution } from './community-registry';
+
+// API Contract
+export {
+  API_CONTRACT,
+  type ExecutionStatus,
+  type ExecutionMode,
+  type ExecutionResponse,
+  type ErrorResponse,
+  type HealthResponse,
+  type Workflow,
+  type WorkflowStep,
+  type WorkflowExecuteRequest,
+  type WorkflowExecuteResponse,
+  type OrchestratorStatus,
+  type OrchestratorRunRequest,
+  type OrchestratorRunResponse,
+  type KnowledgeDocument,
+  type KnowledgeCreateRequest,
+  type LightRAGStatus,
+  type LightRAGSearchResult,
+  type LightRAGIngestRequest,
+  type LightRAGIngestResponse,
+  type MonitoringDashboard,
+} from './api-contract';

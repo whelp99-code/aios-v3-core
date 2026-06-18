@@ -1,16 +1,19 @@
 import { DynamicRouter, type EngineMode, type EnginePreferences } from '@aios/ai-core';
-import { OpenKB } from '@aios/knowledge-graph';
-import { MCPRegistry } from '@aios/mcp-adapters';
-import { Orchestrator, type AgentWorkflowState, type WorkflowStepEvent } from '@aios/orchestrator';
+import { OpenKB } from 'aios-knowledge-graph';
+import { MCPRegistry } from 'aios-mcp-adapters';
+import { Orchestrator, type AgentWorkflowState, type WorkflowStepEvent } from 'aios-orchestrator';
 import { EvolutionKernel } from '@aios/self-evolution';
 import { PluginManager } from './plugin-manager';
 import { WebhookPublisher } from './webhook-publisher';
 import { CommunityRegistry } from './community-registry';
 export interface AIOSConfig {
-    rapidMLXBaseURL?: string;
+    lmStudioBaseURL?: string;
     openaiApiKey?: string;
     anthropicApiKey?: string;
     huggingfaceApiKey?: string;
+    mimoApiKey?: string;
+    mimoBaseURL?: string;
+    mimoProvider?: 'together' | 'fireworks' | 'replicate' | 'custom';
     dataDir?: string;
     skillsDirectory?: string;
     engineMode?: EngineMode;
@@ -61,8 +64,8 @@ export declare class AIOS {
         onStep?: (step: WorkflowStepEvent) => void;
         userApprovalHandler?: (state: AgentWorkflowState) => Promise<boolean>;
     }): Promise<AIOSRunResult>;
-    queryKnowledge(question: string): import("@aios/knowledge-graph").KnowledgeQueryResult;
-    validateKnowledge(): import("@aios/knowledge-graph").ValidationIssue[];
+    queryKnowledge(question: string): import("aios-knowledge-graph").KnowledgeQueryResult;
+    validateKnowledge(): import("aios-knowledge-graph").ValidationIssue[];
     getStats(): {
         knowledge: {
             nodeCount: number;
@@ -86,3 +89,4 @@ export declare class AIOS {
 export { PluginManager, type AIOSPlugin } from './plugin-manager';
 export { WebhookPublisher, type WebhookEvent, type WebhookSubscription } from './webhook-publisher';
 export { CommunityRegistry, type CommunityContribution } from './community-registry';
+export { API_CONTRACT, type ExecutionStatus, type ExecutionMode, type ExecutionResponse, type ErrorResponse, type HealthResponse, type Workflow, type WorkflowStep, type WorkflowExecuteRequest, type WorkflowExecuteResponse, type OrchestratorStatus, type OrchestratorRunRequest, type OrchestratorRunResponse, type KnowledgeDocument, type KnowledgeCreateRequest, type LightRAGStatus, type LightRAGSearchResult, type LightRAGIngestRequest, type LightRAGIngestResponse, type MonitoringDashboard, } from './api-contract';

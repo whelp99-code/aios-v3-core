@@ -9,7 +9,8 @@
     "start": "node dist/index.js",
     "server": "cd server && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload",
     "docker:build": "docker build -t lightrag-server -f Dockerfile .",
-    "docker:run": "docker run -p 8000:8000 lightrag-server"
+    "docker:run": "docker run -p 8000:8000 lightrag-server",
+    "typecheck": "tsc --noEmit"
   },
   "license": "MIT",
   "dependencies": {

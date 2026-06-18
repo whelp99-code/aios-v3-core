@@ -1,7 +1,9 @@
-export interface RapidMLXConfig {
+export interface LMStudioConfig {
     baseURL: string;
     timeout: number;
 }
+/** @deprecated Use LMStudioConfig. */
+export type RapidMLXConfig = LMStudioConfig;
 export interface ChatMessage {
     role: 'system' | 'user' | 'assistant';
     content: string;
@@ -12,7 +14,7 @@ export interface ChatCompletionRequest {
     stream?: boolean;
     temperature?: number;
     max_tokens?: number;
-    tools?: any[];
+    tools?: unknown[];
     tool_choice?: string;
 }
 export interface ChatCompletionResponse {
@@ -25,7 +27,7 @@ export interface ChatCompletionResponse {
         message: {
             role: string;
             content: string;
-            tool_calls?: any[];
+            tool_calls?: unknown[];
         };
         finish_reason: string;
     }>;
@@ -35,14 +37,18 @@ export interface ChatCompletionResponse {
         total_tokens: number;
     };
 }
-export declare class RapidMLXClient {
+export declare class LMStudioClient {
     private client;
     private config;
-    constructor(config?: RapidMLXConfig);
+    constructor(config?: LMStudioConfig);
     chatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse>;
-    listModels(): Promise<any[]>;
+    listModels(): Promise<Array<{
+        id: string;
+    }>>;
     healthCheck(): Promise<boolean>;
     chatWithToolRecovery(request: ChatCompletionRequest): Promise<ChatCompletionResponse>;
 }
-export default RapidMLXClient;
+/** @deprecated Use LMStudioClient. */
+export { LMStudioClient as RapidMLXClient };
+export default LMStudioClient;
 //# sourceMappingURL=rapid-mlx-client.d.ts.map

@@ -5,7 +5,7 @@ const dynamic_router_1 = require("./dynamic-router");
 /** Backward-compatible wrapper — delegates to DynamicRouter */
 class ModelRouter {
     constructor(client, config, router) {
-        this.router = router ?? new dynamic_router_1.DynamicRouter({ rapidMLXClient: client });
+        this.router = router ?? new dynamic_router_1.DynamicRouter({ lmStudioClient: client });
         this.modelConfig = {
             chat: config?.chat || 'qwen3.5-9b-4bit',
             code: config?.code || 'qwen3.5-9b-4bit',
