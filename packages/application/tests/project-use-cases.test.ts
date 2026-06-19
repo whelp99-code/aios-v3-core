@@ -174,6 +174,8 @@ describe('ApproveAction', () => {
     });
 
     expect(result.decision).toBe('rejected');
+    expect(approvalRequest.reason).toBe('Budget exceeded');
+    expect(repo.save).toHaveBeenCalledWith(approvalRequest);
   });
 
   it('should reject self-approval (requestedBy === decidedBy)', async () => {

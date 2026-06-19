@@ -73,7 +73,9 @@ export class PrismaApprovalRepository implements ApprovalRepository {
       row.requestedBy,
       row.status as ApprovalStatus,
       row.reason,
-      metadata
+      metadata,
+      row.decidedBy,
+      row.decidedAt
     );
   }
 }
