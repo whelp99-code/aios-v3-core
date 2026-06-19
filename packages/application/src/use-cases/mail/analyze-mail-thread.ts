@@ -1,14 +1,14 @@
 import type { UseCase } from '../index.js';
-import type { MailThreadRepository, MailAnalysisPort } from '../../ports/index.js';
+import type { MailThreadRepository, MailAnalysisPort, ThreadAnalysis } from '../../ports/index.js';
 
 export interface AnalyzeMailThreadInput {
   threadId: string;
 }
 
 export interface AnalyzeMailThreadOutput {
-  customers: unknown[];
-  requests: unknown[];
-  deadlines: unknown[];
+  customers: ThreadAnalysis['customers'];
+  requests: ThreadAnalysis['requests'];
+  deadlines: ThreadAnalysis['deadlines'];
   confidence: number;
 }
 
@@ -31,19 +31,11 @@ export class AnalyzeMailThread implements UseCase<AnalyzeMailThreadInput, Analyz
 
     const result = await this.analysis.analyzeThread(thread);
 
-    // Return normalized analysis
-    const analysis = result as {
-      customers?: unknown[];
-      requests?: unknown[];
-      deadlines?: unknown[];
-      confidence?: number;
-    };
-
     return {
-      customers: analysis.customers ?? [],
-      requests: analysis.requests ?? [],
-      deadlines: analysis.deadlines ?? [],
-      confidence: analysis.confidence ?? 0,
+      customers: result.customers,
+      requests: result.requests,
+      deadlines: result.deadlines,
+      confidence: result.confidence,
     };
   }
 }

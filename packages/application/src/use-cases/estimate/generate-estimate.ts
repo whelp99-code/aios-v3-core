@@ -1,3 +1,4 @@
+
 import type { UseCase } from '../index.js';
 import type { EstimateLineItem } from '@aios/domain';
 
@@ -21,11 +22,43 @@ export interface GenerateEstimateOutput {
 /**
  * GenerateEstimate
  * Creates an estimate draft from project requirements.
+ * Validates: single currency, non-negative amounts, no NaN.
  * Status is always 'draft' until approved.
  */
 export class GenerateEstimate implements UseCase<GenerateEstimateInput, GenerateEstimateOutput> {
   async execute(input: GenerateEstimateInput): Promise<GenerateEstimateOutput> {
-    // Calculate totals using domain rules
+    if (input.items.length === 0) {
+      return {
+        estimateId: globalThis.crypto.randomUUID(),
+        subtotal: 0,
+        tax: 0,
+        total: 0,
+        currency: 'KRW',
+        status: 'draft',
+      };
+    }
+
+    // Validate single currency
+    const currencies = new Set(input.items.map((i) => i.currency));
+    if (currencies.size > 1) {
+      throw new Error(
+        `Mixed currencies not allowed: ${[...currencies].join(', ')}`
+      );
+    }
+
+    // Validate each item
+    for (const item of input.items) {
+      if (item.quantity < 0 || !Number.isFinite(item.quantity)) {
+        throw new Error(`Invalid quantity: ${item.quantity}`);
+      }
+      if (item.unitPrice < 0 || !Number.isFinite(item.unitPrice)) {
+        throw new Error(`Invalid unitPrice: ${item.unitPrice}`);
+      }
+      if (!Number.isFinite(item.taxRate) || item.taxRate < 0) {
+        throw new Error(`Invalid taxRate: ${item.taxRate}`);
+      }
+    }
+
     const { subtotal, tax, total } = input.items.reduce(
       (acc, item) => {
         const itemTotal = item.quantity * item.unitPrice;
@@ -40,11 +73,11 @@ export class GenerateEstimate implements UseCase<GenerateEstimateInput, Generate
     );
 
     return {
-      estimateId: `estimate-${Date.now()}`,
-      subtotal: Math.round(subtotal),
-      tax: Math.round(tax),
-      total: Math.round(total),
-      currency: input.items[0]?.currency ?? 'KRW',
+      estimateId: globalThis.crypto.randomUUID(),
+      subtotal: Math.round(subtotal * 100) / 100,
+      tax: Math.round(tax * 100) / 100,
+      total: Math.round((subtotal + tax) * 100) / 100,
+      currency: input.items[0].currency,
       status: 'draft',
     };
   }

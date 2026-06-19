@@ -1,3 +1,4 @@
+
 import type { UseCase } from '../index.js';
 
 export interface GenerateProposalInput {
@@ -17,9 +18,9 @@ export interface GenerateProposalOutput {
  * Creates a proposal draft.
  */
 export class GenerateProposal implements UseCase<GenerateProposalInput, GenerateProposalOutput> {
-  async execute(input: GenerateProposalInput): Promise<GenerateProposalOutput> {
+  async execute(_input: GenerateProposalInput): Promise<GenerateProposalOutput> {
     return {
-      proposalId: `proposal-${Date.now()}`,
+      proposalId: globalThis.crypto.randomUUID(),
       status: 'draft',
     };
   }

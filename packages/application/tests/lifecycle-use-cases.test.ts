@@ -31,6 +31,7 @@ describe('PrepareCfoHandoff', () => {
     expect(result.totalAmount).toBe(1500000);
     expect(result.status).toBe('draft');
     expect(result.approvalRequired).toBe(true);
+    expect(result.handoffId).toMatch(/^[0-9a-f-]{36}$/);
   });
 });
 
@@ -45,7 +46,7 @@ describe('RegisterCustomerProduct', () => {
       installationDate: new Date(),
     });
 
-    expect(result.productId).toBeDefined();
+    expect(result.productId).toMatch(/^[0-9a-f-]{36}$/);
     expect(result.customerId).toBe('c1');
   });
 });
@@ -61,7 +62,7 @@ describe('OpenMaintenanceCase', () => {
     });
 
     expect(result.status).toBe('open');
-    expect(result.caseId).toBeDefined();
+    expect(result.caseId).toMatch(/^[0-9a-f-]{36}$/);
   });
 });
 
@@ -75,6 +76,6 @@ describe('ProposeNewSolution', () => {
     });
 
     expect(result.status).toBe('proposed');
-    expect(result.solutionId).toBeDefined();
+    expect(result.solutionId).toMatch(/^[0-9a-f-]{36}$/);
   });
 });

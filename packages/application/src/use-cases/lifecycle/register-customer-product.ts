@@ -1,3 +1,4 @@
+
 import type { UseCase } from '../index.js';
 
 export interface RegisterCustomerProductInput {
@@ -20,7 +21,7 @@ export interface RegisterCustomerProductOutput {
 export class RegisterCustomerProduct implements UseCase<RegisterCustomerProductInput, RegisterCustomerProductOutput> {
   async execute(input: RegisterCustomerProductInput): Promise<RegisterCustomerProductOutput> {
     return {
-      productId: `product-${Date.now()}`,
+      productId: globalThis.crypto.randomUUID(),
       customerId: input.customerId,
     };
   }

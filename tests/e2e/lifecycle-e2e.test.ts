@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   ReviewProjectCandidate,
   PromoteProjectCandidate,
@@ -15,11 +15,52 @@ import {
   OpenMaintenanceCase,
   ProposeNewSolution
 } from '../../packages/application/src/index.js';
+import {
+  ProjectCandidate,
+  ApprovalRequest,
+  ConfidenceScore,
+} from '../../packages/domain/src/index.js';
+import type {
+  ProjectCandidateRepository,
+  ApprovalRepository,
+} from '../../packages/application/src/ports/index.js';
+
+/** In-memory mock candidate repo backed by a Map */
+function createCandidateRepo(initial: ProjectCandidate[] = []): ProjectCandidateRepository {
+  const store = new Map(initial.map((c) => [c.id, c]));
+  return {
+    save: vi.fn(async (c: ProjectCandidate) => { store.set(c.id, c); }),
+    findById: vi.fn(async (id: string) => store.get(id) ?? null),
+    findByThreadId: vi.fn(async (tid: string) =>
+      [...store.values()].find((c) => c.threadId === tid) ?? null
+    ),
+  };
+}
+
+/** In-memory mock approval repo backed by a Map */
+function createApprovalRepo(initial: ApprovalRequest[] = []): ApprovalRepository {
+  const store = new Map(initial.map((a) => [a.id, a]));
+  return {
+    save: vi.fn(async (a: ApprovalRequest) => { store.set(a.id, a); }),
+    findById: vi.fn(async (id: string) => store.get(id) ?? null),
+    findPendingByProject: vi.fn(async (pid: string) =>
+      [...store.values()].filter((a) => a.projectId === pid && a.status === 'pending')
+    ),
+  };
+}
 
 describe('Full AIOS Lifecycle E2E', () => {
   it('Mail → Candidate → Project → Estimate → Approval → Completion', async () => {
-    // Step 1: Review project candidate
-    const review = new ReviewProjectCandidate();
+    // Pre-seed an approved candidate
+    const candidate = new ProjectCandidate(
+      'candidate-1', 'thread-1', 'customer-1',
+      new ConfidenceScore(0.9), 'approved'
+    );
+    const candidateRepo = createCandidateRepo([candidate]);
+    const approvalRepo = createApprovalRepo();
+
+    // Step 1: Review project candidate (already approved, review again to verify)
+    const review = new ReviewProjectCandidate(candidateRepo);
     const reviewResult = await review.execute({
       candidateId: 'candidate-1',
       action: 'approve',
@@ -27,7 +68,7 @@ describe('Full AIOS Lifecycle E2E', () => {
     expect(reviewResult.status).toBe('approved');
 
     // Step 2: Promote to project
-    const promote = new PromoteProjectCandidate();
+    const promote = new PromoteProjectCandidate(candidateRepo);
     const projectResult = await promote.execute({
       candidateId: 'candidate-1',
       projectName: 'AIOS Implementation',
@@ -35,12 +76,12 @@ describe('Full AIOS Lifecycle E2E', () => {
     });
     expect(projectResult.projectId).toBeDefined();
 
-    // Step 3: Generate tasks
+    // Step 3: Generate tasks (no repo needed)
     const tasks = new GenerateProjectTasks();
     const taskResult = await tasks.execute({ projectId: projectResult.projectId });
     expect(taskResult.tasks.length).toBeGreaterThan(0);
 
-    // Step 4: Generate estimate
+    // Step 4: Generate estimate (no repo needed)
     const estimate = new GenerateEstimate();
     const estimateResult = await estimate.execute({
       projectId: projectResult.projectId,
@@ -88,7 +129,7 @@ describe('Full AIOS Lifecycle E2E', () => {
     expect(emailResult.approvalRequired).toBe(true);
 
     // Step 8: Request approval for external send
-    const approval = new RequestExternalActionApproval();
+    const approval = new RequestExternalActionApproval(approvalRepo);
     const approvalResult = await approval.execute({
       projectId: projectResult.projectId,
       actionType: 'email_send',
@@ -97,14 +138,14 @@ describe('Full AIOS Lifecycle E2E', () => {
     });
     expect(approvalResult.status).toBe('pending');
 
-    // Step 9: Approve the action
-    const approve = new ApproveAction();
+    // Step 9: Approve the action (actor ≠ requestedBy)
+    const approve = new ApproveAction(approvalRepo);
     const approveResult = await approve.execute({
       approvalId: approvalResult.approvalId,
       decision: 'approve',
       actor: 'manager-1',
     });
-    expect(approveResult.decision).toBe('approve');
+    expect(approveResult.decision).toBe('approved');
 
     // Step 10: Complete project
     const complete = new CompleteProject();
