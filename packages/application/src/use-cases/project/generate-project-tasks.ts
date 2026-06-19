@@ -2,6 +2,7 @@
 import type { UseCase } from '../index.js';
 import { TaskCard } from '@aios/domain';
 import type { LifecycleRepository, ProjectRepository } from '../../ports/index.js';
+import { requireProjectInStatus } from '../../validation/lifecycle-state.js';
 
 export interface GenerateProjectTasksInput {
   projectId: string;
@@ -30,7 +31,7 @@ export class GenerateProjectTasks implements UseCase<GenerateProjectTasksInput, 
   ) {}
 
   async execute(input: GenerateProjectTasksInput): Promise<GenerateProjectTasksOutput> {
-    if (!await this.projectRepo.findById(input.projectId)) throw new Error(`Project ${input.projectId} not found`);
+    await requireProjectInStatus(this.projectRepo, input.projectId, ['candidate', 'active']);
     const defaultTasks: TaskDefinition[] = [
       { title: '요구사항 분석', description: '프로젝트 요구사항 상세 분석' },
       { title: '기술 설계', description: '기술 아키텍처 및 상세 설계' },

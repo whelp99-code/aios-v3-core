@@ -35,6 +35,7 @@ import {
 export interface Phase6ApiDependencies {
   prisma?: PrismaClient;
   mailIntelligenceBaseUrl?: string;
+  resolveApprovalActor?: (req: Request, res: Response) => ApprovalActor | null;
 }
 
 const reviewSchema = z.object({
@@ -106,13 +107,18 @@ const solutionSchema = z.object({
   currency: z.string().min(1).optional(),
 });
 
-function actorFromRequest(req: Request): ApprovalActor {
-  const id = req.header('x-actor-id')?.trim();
-  const roles = req.header('x-actor-roles')
-    ?.split(',')
+function actorFromPrincipal(
+  req: Request,
+  res: Response,
+  resolver?: Phase6ApiDependencies['resolveApprovalActor']
+): ApprovalActor {
+  const principal = resolver?.(req, res)
+    ?? res.locals.approvalPrincipal as ApprovalActor | undefined;
+  const id = principal?.id.trim();
+  const roles = principal?.roles
     .map((role) => role.trim().toLowerCase())
     .filter(Boolean) ?? [];
-  if (!id) throw new Error('Authenticated actor header x-actor-id is required');
+  if (!id) throw new Error('Authenticated approval principal is required');
   return { id, roles };
 }
 
@@ -123,7 +129,7 @@ function respondError(res: Response, error: unknown): void {
   }
   const message = error instanceof Error ? error.message : 'Unknown error';
   const status = /not found/i.test(message) ? 404
-    : /not authorized|authenticated actor/i.test(message) ? 403
+    : /not authorized|authenticated .*principal/i.test(message) ? 403
       : /already|concurrently|cannot|requires|required/i.test(message) ? 409
         : 500;
   res.status(status).json({ error: message });
@@ -216,9 +222,9 @@ export function createPhase6Router(dependencies: Phase6ApiDependencies = {}): Ro
 
   router.post('/api/v2/projects/:projectId/approvals', async (req, res) => {
     try {
-      const actor = actorFromRequest(req);
+      const actor = actorFromPrincipal(req, res, dependencies.resolveApprovalActor);
       const input = approvalRequestSchema.parse(req.body);
-      res.status(201).json(await new RequestExternalActionApproval(approvalRepo).execute({
+      res.status(201).json(await new RequestExternalActionApproval(projectRepo, approvalRepo).execute({
         projectId: req.params.projectId,
         requestedBy: actor.id,
         ...input,
@@ -230,7 +236,7 @@ export function createPhase6Router(dependencies: Phase6ApiDependencies = {}): Ro
 
   router.post('/api/v2/approvals/:approvalId/decide', async (req, res) => {
     try {
-      const actor = actorFromRequest(req);
+      const actor = actorFromPrincipal(req, res, dependencies.resolveApprovalActor);
       const input = decisionSchema.parse(req.body);
       res.json(await new ApproveAction(approvalRepo).execute({
         approvalId: req.params.approvalId,
@@ -254,7 +260,7 @@ export function createPhase6Router(dependencies: Phase6ApiDependencies = {}): Ro
   router.post('/api/v2/projects/:projectId/estimates', async (req, res) => {
     try {
       const input = estimateSchema.parse(req.body);
-      res.status(201).json(await new GenerateEstimate(projectRepo, lifecycleRepo).execute({
+      res.status(201).json(await new GenerateEstimate(projectRepo, customerRepo, lifecycleRepo).execute({
         projectId: req.params.projectId, ...input,
       }));
     } catch (error) { respondError(res, error); }
@@ -263,7 +269,7 @@ export function createPhase6Router(dependencies: Phase6ApiDependencies = {}): Ro
   router.post('/api/v2/projects/:projectId/proposals', async (req, res) => {
     try {
       const input = proposalSchema.parse(req.body);
-      res.status(201).json(await new GenerateProposal(projectRepo, lifecycleRepo).execute({
+      res.status(201).json(await new GenerateProposal(projectRepo, customerRepo, lifecycleRepo).execute({
         projectId: req.params.projectId, ...input,
       }));
     } catch (error) { respondError(res, error); }
@@ -281,7 +287,7 @@ export function createPhase6Router(dependencies: Phase6ApiDependencies = {}): Ro
   router.post('/api/v2/projects/:projectId/email-drafts', async (req, res) => {
     try {
       const input = emailDraftSchema.parse(req.body);
-      res.status(201).json(await new GenerateCustomerEmail(projectRepo, lifecycleRepo).execute({
+      res.status(201).json(await new GenerateCustomerEmail(projectRepo, customerRepo, lifecycleRepo).execute({
         projectId: req.params.projectId, ...input,
       }));
     } catch (error) { respondError(res, error); }

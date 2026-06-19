@@ -33,6 +33,9 @@ export class RegisterCustomerProduct implements UseCase<RegisterCustomerProductI
     const project = await this.projectRepo.findById(input.projectId);
     if (!project) throw new Error(`Project ${input.projectId} not found`);
     if (project.status !== 'completed') throw new Error('Product registration requires a completed project');
+    if (project.customerId !== input.customerId) {
+      throw new Error(`Project ${input.projectId} does not belong to customer ${input.customerId}`);
+    }
     const product = new CustomerProduct(
       globalThis.crypto.randomUUID(), input.customerId, input.projectId,
       input.productName, input.version, input.installationDate

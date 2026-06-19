@@ -1,5 +1,7 @@
 # Phase 6 Live Integration Evidence
 
+> Historical incomplete evidence. Required service results marked `NOT_CONFIGURED` or `DEGRADED` do not satisfy the v0.6.2 release gate. This file is retained for traceability only.
+
 > Generated: 2026-06-19T01:16:36Z
 > Branch: `phase6-c1-doc-rebaseline`
 > Commit: latest (C2)

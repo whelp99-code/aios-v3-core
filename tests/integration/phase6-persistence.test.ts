@@ -93,7 +93,7 @@ describeDatabase('Phase 6 PostgreSQL persistence', () => {
     expect(second.projectId).toBe(first.projectId);
     expect(await prisma.project.count({ where: { candidateId: candidate.id } })).toBe(1);
 
-    const request = await new RequestExternalActionApproval(approvalRepo).execute({
+    const request = await new RequestExternalActionApproval(projectRepo, approvalRepo).execute({
       projectId: first.projectId,
       actionType: 'email_send',
       target: 'customer@example.com',
@@ -134,11 +134,11 @@ describeDatabase('Phase 6 PostgreSQL persistence', () => {
     });
 
     await new GenerateProjectTasks(projectRepo, lifecycleRepo).execute({ projectId: 'project-lifecycle' });
-    const estimate = await new GenerateEstimate(projectRepo, lifecycleRepo).execute({
+    const estimate = await new GenerateEstimate(projectRepo, customerRepo, lifecycleRepo).execute({
       projectId: 'project-lifecycle', projectName: 'Lifecycle Project', customerName: 'Lifecycle Customer',
       items: [{ description: 'Engineering', quantity: 1.5, unitPrice: 100.10, currency: 'USD', taxRate: 7.5 }],
     });
-    await new GenerateProposal(projectRepo, lifecycleRepo).execute({
+    await new GenerateProposal(projectRepo, customerRepo, lifecycleRepo).execute({
       projectId: 'project-lifecycle', projectName: 'Lifecycle Project', customerName: 'Lifecycle Customer',
       sections: [{ title: 'Scope', content: 'Implementation' }],
     });
@@ -146,7 +146,7 @@ describeDatabase('Phase 6 PostgreSQL persistence', () => {
       projectId: 'project-lifecycle', projectName: 'Lifecycle Project', objectives: ['Validate'],
       scope: 'Core', timeline: [{ phase: 'POC', duration: '1 week' }], successCriteria: ['Pass'],
     });
-    await new GenerateCustomerEmail(projectRepo, lifecycleRepo).execute({
+    await new GenerateCustomerEmail(projectRepo, customerRepo, lifecycleRepo).execute({
       projectId: 'project-lifecycle', projectName: 'Lifecycle Project', customerName: 'Lifecycle Customer',
       recipientEmail: 'customer@lifecycle.test', purpose: 'proposal',
     });

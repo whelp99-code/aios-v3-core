@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Project } from '@aios/domain';
-import type { LifecycleRepository, ProjectRepository } from '../src/ports/index.js';
+import { Organization, Project } from '@aios/domain';
+import type { CustomerRepository, LifecycleRepository, ProjectRepository } from '../src/ports/index.js';
 import {
   GenerateCustomerEmail,
   GenerateEstimate,
@@ -8,12 +8,22 @@ import {
   GenerateProposal,
 } from '../src/use-cases/estimate/index.js';
 
-function projectRepo(): ProjectRepository {
-  const project = new Project('p1', 'Test Project', 'c1', null, 'active');
+function projectRepo(status: 'candidate' | 'active' | 'completed' | 'rejected' = 'active'): ProjectRepository {
+  const project = new Project('p1', 'Test Project', 'c1', null, status);
   return {
     save: vi.fn(async (value: Project) => value),
+    promoteCandidate: vi.fn(async (value: Project) => value),
     findById: vi.fn(async (id: string) => id === project.id ? project : null),
     findByCandidateId: vi.fn().mockResolvedValue(null),
+  };
+}
+
+function customerRepo(found = true): CustomerRepository {
+  const customer = new Organization('c1', 'Test Corp', 'test.com');
+  return {
+    save: vi.fn().mockResolvedValue(undefined),
+    findById: vi.fn(async (id: string) => found && id === customer.id ? customer : null),
+    findByDomain: vi.fn().mockResolvedValue(customer),
   };
 }
 
@@ -35,7 +45,7 @@ function lifecycleRepo(): LifecycleRepository {
 describe('GenerateEstimate', () => {
   it('calculates decimal totals and persists a draft', async () => {
     const persistence = lifecycleRepo();
-    const result = await new GenerateEstimate(projectRepo(), persistence).execute({
+    const result = await new GenerateEstimate(projectRepo(), customerRepo(), persistence).execute({
       projectId: 'p1', projectName: 'Test Project', customerName: 'Test Corp',
       items: [
         { description: 'Development', quantity: 1.5, unitPrice: 100.10, currency: 'KRW', taxRate: 10 },
@@ -56,17 +66,31 @@ describe('GenerateEstimate', () => {
     ['negative quantity', [{ description: 'A', quantity: -1, unitPrice: 100, currency: 'KRW', taxRate: 0 }], 'Invalid quantity'],
     ['NaN price', [{ description: 'A', quantity: 1, unitPrice: NaN, currency: 'KRW', taxRate: 0 }], 'Invalid unitPrice'],
     ['tax above 100', [{ description: 'A', quantity: 1, unitPrice: 100, currency: 'KRW', taxRate: 101 }], 'Invalid taxRate'],
+    ['empty currency', [{ description: 'A', quantity: 1, unitPrice: 100, currency: ' ', taxRate: 0 }], 'Currency is required'],
   ])('rejects %s', async (_name, items, message) => {
-    await expect(new GenerateEstimate(projectRepo(), lifecycleRepo()).execute({
+    await expect(new GenerateEstimate(projectRepo(), customerRepo(), lifecycleRepo()).execute({
       projectId: 'p1', projectName: 'Test', customerName: 'Test', items,
     })).rejects.toThrow(message);
+  });
+
+  it('rejects closed projects and missing project customers', async () => {
+    const input = {
+      projectId: 'p1', projectName: 'Test', customerName: 'Test',
+      items: [{ description: 'A', quantity: 1, unitPrice: 100, currency: 'KRW', taxRate: 0 }],
+    };
+    await expect(new GenerateEstimate(
+      projectRepo('completed'), customerRepo(), lifecycleRepo()
+    ).execute(input)).rejects.toThrow('status completed');
+    await expect(new GenerateEstimate(
+      projectRepo(), customerRepo(false), lifecycleRepo()
+    ).execute(input)).rejects.toThrow('Customer for project');
   });
 });
 
 describe('document drafts', () => {
   it('persists proposal and POC drafts', async () => {
     const persistence = lifecycleRepo();
-    const proposal = await new GenerateProposal(projectRepo(), persistence).execute({
+    const proposal = await new GenerateProposal(projectRepo(), customerRepo(), persistence).execute({
       projectId: 'p1', projectName: 'Test', customerName: 'Test Corp',
       sections: [{ title: 'Overview', content: 'Project overview' }],
     });
@@ -83,7 +107,7 @@ describe('document drafts', () => {
 
   it('persists an email draft without sending it', async () => {
     const persistence = lifecycleRepo();
-    const result = await new GenerateCustomerEmail(projectRepo(), persistence).execute({
+    const result = await new GenerateCustomerEmail(projectRepo(), customerRepo(), persistence).execute({
       projectId: 'p1', projectName: 'AIOS', customerName: 'Test Corp',
       recipientEmail: 'contact@test.com', purpose: 'estimate',
     });

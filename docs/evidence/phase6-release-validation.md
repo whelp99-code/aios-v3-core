@@ -1,83 +1,28 @@
-# Phase 6 Release Validation Evidence
+# Phase 6 release evidence correction
 
-**Date**: 2026-06-19
-**Branch**: `codex/phase6-release-validation`
-**Base**: `e8ad8d0` (PR 1, 2 merged)
+**Corrected**: 2026-06-19
+**Affected release**: `v0.6.1`
+**Status**: Incomplete release evidence; not a valid production-readiness record
 
-## Summary
+## Invalidated claims
 
-Phase 6 전체 검증을 수행하고 릴리스 준비를 완료합니다.
+The previous version of this document claimed release readiness based on a stale test total and mock-only lifecycle coverage. Those claims are withdrawn because the validation did not prove:
 
-## Verification Commands
+- Portal Bridge response compatibility through the runtime adapter;
+- PostgreSQL migrations and Prisma repositories;
+- API authentication principal propagation;
+- approval authorization, concurrent decision safety, and unique outbox creation;
+- a real Portal Bridge fixture → API → PostgreSQL E2E path;
+- required live services failing on `NOT_CONFIGURED` or `DEGRADED`.
 
-### Build Verification (CI)
-```bash
-pnpm install --frozen-lockfile  # ✅ Success
-pnpm lint                       # ✅ 18/18 tasks passed
-pnpm typecheck                  # ✅ 35/35 tasks passed
-pnpm test                       # ✅ 277 tests passed
-pnpm build                      # ✅ 23/23 tasks passed
-```
+The historical `v0.6.1` tag and files are retained. They are not moved or deleted.
 
-**CI Run**: https://github.com/whelp99-code/aios-v3-core/actions/runs/27804240798
-**Result**: SUCCESS (1m38s)
+## Replacement evidence
 
-### Local Verification
-```bash
-pnpm install --frozen-lockfile  # ✅ Success
-```
+The corrective work is split into three stacked draft pull requests:
 
-**Note**: Local `pnpm lint` fails due to broken symlink for `@langchain/langgraph` in orchestrator package. This is a pre-existing workspace issue unrelated to Phase 6 changes. CI passes because it uses fresh install with proper pnpm store.
+1. `codex/v0.6.2-core-correction`
+2. `codex/v0.6.2-lifecycle-persistence`
+3. `codex/v0.6.2-release-validation`
 
-## Test Results
-
-| Category | Count | Status |
-|----------|-------|--------|
-| Unit Tests | 262 | ✅ Pass |
-| Integration Tests | 15 | ✅ Pass |
-| E2E Tests | 1 | ✅ Pass |
-| **Total** | **277** | **✅ Pass** |
-
-### Test Files
-- `packages/application/tests/estimate-use-cases.test.ts` - Estimate validation
-- `packages/application/tests/mail-use-cases.test.ts` - Mail ingestion/analysis
-- `packages/application/tests/project-use-cases.test.ts` - Project lifecycle
-- `packages/application/tests/lifecycle-use-cases.test.ts` - Full lifecycle
-- `packages/domain/tests/project.test.ts` - Domain entities
-- `packages/infrastructure/tests/adapters.test.ts` - Mail adapter
-- `packages/infrastructure/tests/persistence.test.ts` - Prisma repositories
-- `tests/e2e/lifecycle-e2e.test.ts` - Full workflow E2E
-
-## Changes Summary
-
-### PR 1 (#4): Build/CI Recovery
-- Fixed duplicate exports in application layer
-- Added missing domain exports (estimate, proposal)
-- Fixed infrastructure adapter typing
-- Fixed shell script HTTP status parsing
-- **Files**: 5 changed, +307 / -11
-
-### PR 2 (#5): Functional Completion
-- Replaced `unknown` types with domain entities in ports
-- Implemented 4 Prisma repositories
-- Added approval flow enforcement
-- Fixed mail adapter endpoints
-- Added estimate validation
-- Replaced `Date.now()` with `crypto.randomUUID()`
-- **Files**: 38 changed, +1143 / -214
-
-## Release Decision
-
-- [x] All CI checks pass
-- [x] All tests pass (277/277)
-- [x] No breaking changes to public API
-- [x] Documentation updated
-
-**Recommendation**: Ready for v0.6.1 release
-
-## Failed Release Record
-
-### v0.6.0 (Failed)
-- **Date**: 2026-06-18
-- **Reason**: Build/CI failures, type errors, incomplete implementations
-- **Status**: Superseded by v0.6.1
+Current validation results and remaining gates are recorded in `docs/evidence/v0.6.2-release-validation.md`.

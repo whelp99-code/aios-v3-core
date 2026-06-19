@@ -1,267 +1,289 @@
-import { describe, it, expect, vi } from 'vitest';
-import {
-  ReviewProjectCandidate,
-  PromoteProjectCandidate,
-  GenerateProjectTasks,
-  GenerateEstimate,
-  GenerateProposal,
-  GeneratePocPlan,
-  GenerateCustomerEmail,
-  RequestExternalActionApproval,
-  ApproveAction,
-  CompleteProject,
-  PrepareCfoHandoff,
-  RegisterCustomerProduct,
-  OpenMaintenanceCase,
-  ProposeNewSolution
-} from '../../packages/application/src/index.js';
-import {
-  ProjectCandidate,
-  Project,
-  ApprovalRequest,
-  ConfidenceScore,
-  CustomerProduct,
-  Organization,
-} from '../../packages/domain/src/index.js';
-import type {
-  ProjectCandidateRepository,
-  ApprovalRepository,
-  ProjectRepository,
-  CustomerRepository,
-  LifecycleRepository,
-} from '../../packages/application/src/ports/index.js';
+import type { AddressInfo } from 'node:net';
+import type { Server } from 'node:http';
+import express from 'express';
+import { PrismaClient } from '@prisma/client';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { createPhase6Router } from '../../apps/api/src/index.js';
 
-/** In-memory mock candidate repo backed by a Map */
-function createCandidateRepo(initial: ProjectCandidate[] = []): ProjectCandidateRepository {
-  const store = new Map(initial.map((c) => [c.id, c]));
-  return {
-    save: vi.fn(async (c: ProjectCandidate) => { store.set(c.id, c); }),
-    findById: vi.fn(async (id: string) => store.get(id) ?? null),
-    findByThreadId: vi.fn(async (tid: string) =>
-      [...store.values()].find((c) => c.threadId === tid) ?? null
-    ),
-  };
+const databaseUrl = process.env.TEST_DATABASE_URL;
+const describeDatabase = databaseUrl ? describe : describe.skip;
+
+async function listen(app: express.Express): Promise<{ server: Server; baseUrl: string }> {
+  return new Promise((resolve, reject) => {
+    const server = app.listen(0, '127.0.0.1');
+    server.once('error', reject);
+    server.once('listening', () => {
+      const address = server.address() as AddressInfo;
+      resolve({ server, baseUrl: `http://127.0.0.1:${address.port}` });
+    });
+  });
 }
 
-/** In-memory mock approval repo backed by a Map */
-function createApprovalRepo(initial: ApprovalRequest[] = []): ApprovalRepository {
-  const store = new Map(initial.map((a) => [a.id, a]));
-  return {
-    save: vi.fn(async (a: ApprovalRequest) => { store.set(a.id, a); }),
-    findById: vi.fn(async (id: string) => store.get(id) ?? null),
-    findPendingByProject: vi.fn(async (pid: string) =>
-      [...store.values()].filter((a) => a.projectId === pid && a.status === 'pending')
-    ),
-    decidePending: vi.fn(async (input) => {
-      const request = store.get(input.approvalId);
-      if (!request || request.status !== 'pending') return null;
-      if (input.decision === 'approved') request.approve(input.actorId);
-      else request.reject(input.actorId, input.reason ?? 'rejected');
-      store.set(request.id, request);
-      return request;
-    }),
-  };
+async function close(server: Server | undefined): Promise<void> {
+  if (!server) return;
+  await new Promise<void>((resolve, reject) => {
+    server.close((error) => error ? reject(error) : resolve());
+  });
 }
 
-function createProjectRepo(): ProjectRepository {
-  const store = new Map<string, Project>();
-  return {
-    save: vi.fn(async (project: Project) => {
-      const existing = [...store.values()].find((item) => item.candidateId === project.candidateId);
-      if (existing) return existing;
-      store.set(project.id, project);
-      return project;
-    }),
-    findById: vi.fn(async (id: string) => store.get(id) ?? null),
-    findByCandidateId: vi.fn(async (candidateId: string) =>
-      [...store.values()].find((project) => project.candidateId === candidateId) ?? null
-    ),
-  };
+async function request<T>(baseUrl: string, path: string, init: RequestInit = {}) {
+  const response = await fetch(`${baseUrl}${path}`, {
+    ...init,
+    headers: {
+      'content-type': 'application/json',
+      ...init.headers,
+    },
+  });
+  const body = await response.json() as T;
+  return { status: response.status, body };
 }
 
-function createCustomerRepo(): CustomerRepository {
-  const customer = new Organization('customer-1', 'Test Corp', 'test.com');
-  return {
-    save: vi.fn().mockResolvedValue(undefined),
-    findById: vi.fn(async (id: string) => id === customer.id ? customer : null),
-    findByDomain: vi.fn().mockResolvedValue(customer),
-  };
-}
+describeDatabase('Portal Bridge → API → PostgreSQL lifecycle E2E', () => {
+  const prisma = new PrismaClient({ datasourceUrl: databaseUrl });
+  let portalServer: Server | undefined;
+  let apiServer: Server | undefined;
+  let apiBaseUrl = '';
 
-function createLifecycleRepo(): LifecycleRepository {
-  const products = new Map<string, CustomerProduct>();
-  return {
-    saveTasks: vi.fn().mockResolvedValue(undefined),
-    saveEstimate: vi.fn().mockResolvedValue(undefined),
-    saveProposal: vi.fn().mockResolvedValue(undefined),
-    savePocPlan: vi.fn().mockResolvedValue(undefined),
-    saveEmailDraft: vi.fn().mockResolvedValue(undefined),
-    saveCfoHandoff: vi.fn().mockResolvedValue(undefined),
-    saveCustomerProduct: vi.fn(async (product: CustomerProduct) => {
-      products.set(product.id, product);
-      return product;
-    }),
-    findCustomerProduct: vi.fn(async (id: string) => products.get(id) ?? null),
-    saveMaintenanceCase: vi.fn().mockResolvedValue(undefined),
-    saveSolutionProposal: vi.fn().mockResolvedValue(undefined),
-  };
-}
+  beforeAll(async () => {
+    await prisma.maintenanceCase.deleteMany();
+    await prisma.solutionProposal.deleteMany();
+    await prisma.customerProduct.deleteMany();
+    await prisma.cfoHandoff.deleteMany();
+    await prisma.emailDraft.deleteMany();
+    await prisma.pocPlan.deleteMany();
+    await prisma.proposal.deleteMany();
+    await prisma.estimate.deleteMany();
+    await prisma.externalActionOutbox.deleteMany();
+    await prisma.approvalDecision.deleteMany();
+    await prisma.auditEvent.deleteMany();
+    await prisma.approvalRequest.deleteMany();
+    await prisma.taskCard.deleteMany();
+    await prisma.project.deleteMany();
+    await prisma.projectCandidate.deleteMany();
+    await prisma.contact.deleteMany();
+    await prisma.organization.deleteMany();
+    await prisma.mailMessage.deleteMany();
+    await prisma.mailThread.deleteMany();
 
-describe('Full AIOS Lifecycle E2E', () => {
-  it('Mail → Candidate → Project → Estimate → Approval → Completion', async () => {
-    // Pre-seed an approved candidate
-    const candidate = new ProjectCandidate(
-      'candidate-1', 'thread-1', 'customer-1',
-      new ConfidenceScore(0.9), 'approved'
+    const portal = express();
+    portal.get('/api/portal/thread-insights', (_req, res) => res.json({
+      threads: [{
+        threadKey: 'portal-thread-1',
+        threadTitle: 'AIOS rollout request',
+        sourceProvider: 'mail-intelligence',
+        messageCount: 1,
+        messageIds: ['portal-message-1'],
+        latestReceivedAt: '2026-06-19T00:00:00.000Z',
+        status: 'active',
+        aiEnhanced: true,
+        summary: 'Please prepare a rollout proposal.',
+        nextActions: [{ recommendedAction: 'Prepare rollout proposal', owner: 'delivery' }],
+        evidenceItems: ['Customer requested a rollout proposal'],
+        participantDomains: ['customer.example'],
+        metadata: {},
+      }],
+      count: 1,
+    }));
+    portal.get('/api/portal/thread/:threadKey', (req, res) => res.json({
+      thread: {
+        key: req.params.threadKey,
+        label: 'AIOS rollout request',
+        count: 1,
+        messageIds: ['portal-message-1'],
+        participants: ['buyer@customer.example'],
+      },
+      messages: [{
+        id: 'portal-message-1',
+        subject: 'AIOS rollout request',
+        from: 'buyer@customer.example',
+        to: ['delivery@aios.local'],
+        cc: [],
+        receivedAt: '2026-06-19T00:00:00.000Z',
+        bodyPreview: 'Please prepare a rollout proposal.',
+        attachmentNames: ['requirements.xlsx'],
+      }],
+    }));
+    portal.get('/api/portal/entity-candidates', (_req, res) => res.json({
+      candidates: [{
+        email: 'buyer@customer.example',
+        domain: 'customer.example',
+        candidateName: 'Customer Example',
+        entityRole: 'customer',
+        confidence: 0.95,
+      }],
+      count: 1,
+    }));
+    portal.get('/api/portal/calendar-hints', (_req, res) => res.json({
+      calendar: [{
+        title: 'Proposal deadline',
+        when: '2026-06-30T00:00:00.000Z',
+        messageId: 'portal-message-1',
+      }],
+      count: 1,
+    }));
+    portal.get('/api/outlook/health', (_req, res) => res.json({ status: 'ok' }));
+    const portalListener = await listen(portal);
+    portalServer = portalListener.server;
+
+    const api = express();
+    api.use(express.json());
+    api.use(createPhase6Router({
+      prisma,
+      mailIntelligenceBaseUrl: portalListener.baseUrl,
+      resolveApprovalActor: (req) => {
+        const id = req.header('x-test-principal-id')?.trim();
+        if (!id) return null;
+        const roles = req.header('x-test-principal-roles')
+          ?.split(',')
+          .map((role) => role.trim())
+          .filter(Boolean) ?? [];
+        return { id, roles };
+      },
+    }));
+    const apiListener = await listen(api);
+    apiServer = apiListener.server;
+    apiBaseUrl = apiListener.baseUrl;
+  });
+
+  afterAll(async () => {
+    await close(apiServer);
+    await close(portalServer);
+    await prisma.$disconnect();
+  });
+
+  it('persists mail data, promotes a project, and emits exactly one approved outbox action', async () => {
+    const sync = await request<{
+      ingested: number;
+      results: Array<{ threadId: string; customerId: string; candidateId: string }>;
+    }>(apiBaseUrl, '/api/v2/mail/sync', {
+      method: 'POST',
+      body: JSON.stringify({ since: '2026-01-01T00:00:00.000Z' }),
+    });
+    expect(sync.status).toBe(200);
+    expect(sync.body.ingested).toBe(1);
+    expect(await prisma.mailThread.count()).toBe(1);
+    expect(await prisma.mailMessage.count()).toBe(1);
+    expect(await prisma.organization.count()).toBe(1);
+    expect(await prisma.contact.count()).toBe(1);
+
+    const candidateId = sync.body.results[0]?.candidateId;
+    const customerId = sync.body.results[0]?.customerId;
+    expect(candidateId).toBeTruthy();
+    expect(customerId).toBeTruthy();
+
+    const review = await request<{ status: string }>(
+      apiBaseUrl,
+      `/api/v2/project-candidates/${candidateId}/review`,
+      { method: 'POST', body: JSON.stringify({ action: 'approve' }) },
     );
-    const candidateRepo = createCandidateRepo([candidate]);
-    const approvalRepo = createApprovalRepo();
-    const projectRepo = createProjectRepo();
-    const customerRepo = createCustomerRepo();
-    const lifecycleRepo = createLifecycleRepo();
+    expect(review).toMatchObject({ status: 200, body: { status: 'approved' } });
 
-    // Step 1: Review project candidate (already approved, review again to verify)
-    const review = new ReviewProjectCandidate(candidateRepo);
-    const reviewResult = await review.execute({
-      candidateId: 'candidate-1',
-      action: 'approve',
+    const promotion = await request<{ projectId: string }>(
+      apiBaseUrl,
+      `/api/v2/project-candidates/${candidateId}/promote`,
+      { method: 'POST', body: JSON.stringify({ projectName: 'Customer AIOS rollout' }) },
+    );
+    expect(promotion.status).toBe(201);
+    expect(await prisma.project.count({ where: { candidateId } })).toBe(1);
+
+    const draft = await request<{ draftId: string; status: string; approvalRequired: boolean }>(
+      apiBaseUrl,
+      `/api/v2/projects/${promotion.body.projectId}/email-drafts`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          projectName: 'Customer AIOS rollout',
+          customerName: 'Customer Example',
+          recipientEmail: 'buyer@customer.example',
+          purpose: 'proposal',
+        }),
+      },
+    );
+    expect(draft).toMatchObject({
+      status: 201,
+      body: { status: 'draft', approvalRequired: true },
     });
-    expect(reviewResult.status).toBe('approved');
 
-    // Step 2: Promote to project
-    const promote = new PromoteProjectCandidate(candidateRepo, projectRepo);
-    const projectResult = await promote.execute({
-      candidateId: 'candidate-1',
-      projectName: 'AIOS Implementation',
-      customerId: 'customer-1',
-    });
-    expect(projectResult.projectId).toBeDefined();
+    const unauthenticatedRequest = await request<{ error: string }>(
+      apiBaseUrl,
+      `/api/v2/projects/${promotion.body.projectId}/approvals`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          actionType: 'email_send',
+          target: 'buyer@customer.example',
+          payload: { draftId: draft.body.draftId },
+          description: 'Unauthenticated request must fail closed',
+        }),
+      },
+    );
+    expect(unauthenticatedRequest.status).toBe(403);
 
-    // Step 3: Generate tasks (no repo needed)
-    const project = await projectRepo.findById(projectResult.projectId);
-    expect(project).not.toBeNull();
-    project?.activate();
-    if (project) await projectRepo.save(project);
+    const approval = await request<{ approvalId: string; status: string }>(
+      apiBaseUrl,
+      `/api/v2/projects/${promotion.body.projectId}/approvals`,
+      {
+        method: 'POST',
+        headers: { 'x-test-principal-id': 'requester-1', 'x-test-principal-roles': 'operator' },
+        body: JSON.stringify({
+          actionType: 'email_send',
+          target: 'buyer@customer.example',
+          payload: { draftId: draft.body.draftId },
+          description: 'Send the approved proposal email',
+        }),
+      },
+    );
+    expect(approval).toMatchObject({ status: 201, body: { status: 'pending' } });
+    expect(await prisma.externalActionOutbox.count()).toBe(0);
 
-    const tasks = new GenerateProjectTasks(projectRepo, lifecycleRepo);
-    const taskResult = await tasks.execute({ projectId: projectResult.projectId });
-    expect(taskResult.tasks.length).toBeGreaterThan(0);
+    const unauthorized = await request<{ error: string }>(
+      apiBaseUrl,
+      `/api/v2/approvals/${approval.body.approvalId}/decide`,
+      {
+        method: 'POST',
+        headers: { 'x-test-principal-id': 'viewer-1', 'x-test-principal-roles': 'viewer' },
+        body: JSON.stringify({ decision: 'approve' }),
+      },
+    );
+    expect(unauthorized.status).toBe(403);
+    expect(await prisma.externalActionOutbox.count()).toBe(0);
 
-    // Step 4: Generate estimate (no repo needed)
-    const estimate = new GenerateEstimate(projectRepo, lifecycleRepo);
-    const estimateResult = await estimate.execute({
-      projectId: projectResult.projectId,
-      projectName: 'AIOS Implementation',
-      customerName: 'Test Corp',
-      items: [
-        { description: 'Development', quantity: 1, unitPrice: 5000000, currency: 'KRW', taxRate: 10 },
-      ],
-    });
-    expect(estimateResult.total).toBe(5500000);
-    expect(estimateResult.status).toBe('draft');
+    const selfApproval = await request<{ error: string }>(
+      apiBaseUrl,
+      `/api/v2/approvals/${approval.body.approvalId}/decide`,
+      {
+        method: 'POST',
+        headers: { 'x-test-principal-id': 'requester-1', 'x-test-principal-roles': 'approver' },
+        body: JSON.stringify({ decision: 'approve' }),
+      },
+    );
+    expect(selfApproval.status).toBe(409);
 
-    // Step 5: Generate proposal
-    const proposal = new GenerateProposal(projectRepo, lifecycleRepo);
-    const proposalResult = await proposal.execute({
-      projectId: projectResult.projectId,
-      projectName: 'AIOS Implementation',
-      customerName: 'Test Corp',
-      sections: [{ title: 'Technical Approach', content: 'AI-driven automation' }],
-    });
-    expect(proposalResult.status).toBe('draft');
-
-    // Step 6: Generate POC plan
-    const poc = new GeneratePocPlan(projectRepo, lifecycleRepo);
-    const pocResult = await poc.execute({
-      projectId: projectResult.projectId,
-      projectName: 'AIOS Implementation',
-      objectives: ['Verify integration'],
-      scope: 'Limited',
-      timeline: [{ phase: 'Phase 1', duration: '2 weeks' }],
-      successCriteria: ['All tests pass'],
-    });
-    expect(pocResult.status).toBe('draft');
-
-    // Step 7: Generate customer email (draft only)
-    const email = new GenerateCustomerEmail(projectRepo, lifecycleRepo);
-    const emailResult = await email.execute({
-      projectId: projectResult.projectId,
-      projectName: 'AIOS Implementation',
-      customerName: 'Test Corp',
-      recipientEmail: 'contact@test.com',
-      purpose: 'estimate',
-    });
-    expect(emailResult.status).toBe('draft');
-    expect(emailResult.approvalRequired).toBe(true);
-
-    // Step 8: Request approval for external send
-    const approval = new RequestExternalActionApproval(approvalRepo);
-    const approvalResult = await approval.execute({
-      projectId: projectResult.projectId,
-      actionType: 'email_send',
-      target: 'contact@test.com',
-      payload: { draftId: emailResult.draftId },
-      description: 'Send estimate to customer',
-      requestedBy: 'user-1',
-    });
-    expect(approvalResult.status).toBe('pending');
-
-    // Step 9: Approve the action (actor ≠ requestedBy)
-    const approve = new ApproveAction(approvalRepo);
-    const approveResult = await approve.execute({
-      approvalId: approvalResult.approvalId,
-      decision: 'approve',
-      actor: { id: 'manager-1', roles: ['approver'] },
-    });
-    expect(approveResult.decision).toBe('approved');
-
-    // Step 10: Complete project
-    const complete = new CompleteProject(projectRepo);
-    const completeResult = await complete.execute({ projectId: projectResult.projectId });
-    expect(completeResult.status).toBe('completed');
-    expect(completeResult.cfoHandoffDraft).toBe(true);
-
-    // Step 11: Prepare CFO handoff
-    const cfo = new PrepareCfoHandoff(projectRepo, lifecycleRepo);
-    const cfoResult = await cfo.execute({
-      projectId: projectResult.projectId,
-      projectName: 'AIOS Implementation',
-      items: [
-        { category: 'Development', description: 'Main implementation', amount: 5000000, currency: 'KRW' },
-      ],
-    });
-    expect(cfoResult.status).toBe('draft');
-    expect(cfoResult.approvalRequired).toBe(true);
-
-    // Step 12: Register customer product
-    const product = new RegisterCustomerProduct(customerRepo, projectRepo, lifecycleRepo);
-    const productResult = await product.execute({
-      customerId: 'customer-1',
-      projectId: projectResult.projectId,
-      projectName: 'AIOS Implementation',
-      productName: 'AIOS Platform',
-      version: '1.0.0',
-      installationDate: new Date(),
-    });
-    expect(productResult.productId).toBeDefined();
-
-    // Step 13: Open maintenance case
-    const maintenance = new OpenMaintenanceCase(customerRepo, lifecycleRepo);
-    const maintenanceResult = await maintenance.execute({
-      customerId: 'customer-1',
-      productId: productResult.productId,
-      description: 'Post-launch support',
-      priority: 'medium',
-    });
-    expect(maintenanceResult.status).toBe('open');
-
-    // Step 14: Propose new solution
-    const solution = new ProposeNewSolution(customerRepo, lifecycleRepo);
-    const solutionResult = await solution.execute({
-      customerId: 'customer-1',
-      description: 'AI-powered analytics upgrade',
-      sourceEvidence: [maintenanceResult.caseId],
-    });
-    expect(solutionResult.status).toBe('proposed');
+    const race = await Promise.all([
+      request<{ decision?: string; error?: string }>(
+        apiBaseUrl,
+        `/api/v2/approvals/${approval.body.approvalId}/decide`,
+        {
+          method: 'POST',
+          headers: { 'x-test-principal-id': 'approver-1', 'x-test-principal-roles': 'approver' },
+          body: JSON.stringify({ decision: 'approve' }),
+        },
+      ),
+      request<{ decision?: string; error?: string }>(
+        apiBaseUrl,
+        `/api/v2/approvals/${approval.body.approvalId}/decide`,
+        {
+          method: 'POST',
+          headers: { 'x-test-principal-id': 'admin-1', 'x-test-principal-roles': 'admin' },
+          body: JSON.stringify({ decision: 'approve' }),
+        },
+      ),
+    ]);
+    expect(race.map((result) => result.status).sort()).toEqual([200, 409]);
+    expect(await prisma.approvalDecision.count({ where: { approvalId: approval.body.approvalId } })).toBe(1);
+    expect(await prisma.externalActionOutbox.count({ where: { approvalId: approval.body.approvalId } })).toBe(1);
+    expect(await prisma.auditEvent.count({
+      where: { aggregateType: 'ApprovalRequest', aggregateId: approval.body.approvalId },
+    })).toBe(1);
   });
 });

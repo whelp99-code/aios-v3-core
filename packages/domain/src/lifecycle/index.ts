@@ -23,7 +23,7 @@ export class DecimalMoney {
   }
 
   static zero(currency: string): DecimalMoney {
-    return new DecimalMoney(0n, currency.toUpperCase());
+    return DecimalMoney.from(0, currency);
   }
 
   add(other: DecimalMoney): DecimalMoney {

@@ -39,6 +39,36 @@ export class PrismaProjectRepository implements ProjectRepository {
     return this.toDomain(row);
   }
 
+  async promoteCandidate(project: Project): Promise<Project> {
+    if (!project.candidateId) throw new Error('Project promotion requires a candidateId');
+    const candidateId = project.candidateId;
+    return this.prisma.$transaction(async (tx) => {
+      const candidate = await tx.projectCandidate.findUnique({
+        where: { id: candidateId },
+      });
+      if (!candidate) throw new Error(`Project candidate ${candidateId} not found`);
+      if (candidate.status !== 'approved') {
+        throw new Error(`Cannot promote candidate in status ${candidate.status}`);
+      }
+
+      const row = await tx.project.upsert({
+        where: { candidateId },
+        create: this.toCreateData(project),
+        update: {
+          status: project.status,
+          owner: project.owner,
+          dueDate: project.dueDate,
+          metadata: toJson(project.metadata),
+        },
+      });
+      await tx.mailThread.update({
+        where: { id: candidate.threadId },
+        data: { status: 'promoted' },
+      });
+      return this.toDomain(row);
+    });
+  }
+
   async findById(id: string): Promise<Project | null> {
     const row = await this.prisma.project.findUnique({ where: { id } });
     return row ? this.toDomain(row) : null;

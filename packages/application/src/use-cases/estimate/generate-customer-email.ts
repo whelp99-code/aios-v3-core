@@ -1,7 +1,8 @@
 
 import type { UseCase } from '../index.js';
 import { EmailAddress, EmailDraft } from '@aios/domain';
-import type { LifecycleRepository, ProjectRepository } from '../../ports/index.js';
+import type { CustomerRepository, LifecycleRepository, ProjectRepository } from '../../ports/index.js';
+import { requireProjectCustomer, requireProjectInStatus } from '../../validation/lifecycle-state.js';
 
 export interface GenerateCustomerEmailInput {
   projectId: string;
@@ -29,11 +30,13 @@ export interface GenerateCustomerEmailOutput {
 export class GenerateCustomerEmail implements UseCase<GenerateCustomerEmailInput, GenerateCustomerEmailOutput> {
   constructor(
     private readonly projectRepo: ProjectRepository,
+    private readonly customerRepo: CustomerRepository,
     private readonly lifecycleRepo: LifecycleRepository
   ) {}
 
   async execute(input: GenerateCustomerEmailInput): Promise<GenerateCustomerEmailOutput> {
-    if (!await this.projectRepo.findById(input.projectId)) throw new Error(`Project ${input.projectId} not found`);
+    const project = await requireProjectInStatus(this.projectRepo, input.projectId, ['candidate', 'active']);
+    await requireProjectCustomer(project, this.customerRepo);
     new EmailAddress(input.recipientEmail);
     const purposeText: Record<string, string> = {
       estimate: '견적서 전달',

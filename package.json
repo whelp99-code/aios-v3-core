@@ -6,7 +6,11 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "test": "vitest run",
+    "test": "pnpm test:unit && pnpm test:integration && pnpm test:e2e",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:e2e": "vitest run --config vitest.e2e.config.ts",
+    "test:live": "RUN_LIVE_TESTS=1 vitest run --config vitest.live.config.ts",
     "typecheck": "turbo typecheck",
     "lint": "turbo lint",
     "dev": "turbo dev --filter=web --filter=@aios/server",
@@ -18,7 +22,9 @@
     "desktop": "pnpm --filter aios-desktop dev"
   },
   "devDependencies": {
+    "@types/express": "^5.0.0",
     "@prisma/client": "^6.0.0",
+    "express": "^4.21.0",
     "prisma": "^6.0.0",
     "turbo": "^2.5.0",
     "typescript": "^5.0.0",

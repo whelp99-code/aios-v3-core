@@ -2,6 +2,7 @@
 import type { UseCase } from '../index.js';
 import { PocPlanDraft } from '@aios/domain';
 import type { LifecycleRepository, ProjectRepository } from '../../ports/index.js';
+import { requireProjectInStatus } from '../../validation/lifecycle-state.js';
 
 export interface GeneratePocPlanInput {
   projectId: string;
@@ -28,7 +29,7 @@ export class GeneratePocPlan implements UseCase<GeneratePocPlanInput, GeneratePo
   ) {}
 
   async execute(input: GeneratePocPlanInput): Promise<GeneratePocPlanOutput> {
-    if (!await this.projectRepo.findById(input.projectId)) throw new Error(`Project ${input.projectId} not found`);
+    await requireProjectInStatus(this.projectRepo, input.projectId, ['candidate', 'active']);
     if (input.objectives.length === 0 || input.successCriteria.length === 0) {
       throw new Error('POC plan requires objectives and success criteria');
     }
