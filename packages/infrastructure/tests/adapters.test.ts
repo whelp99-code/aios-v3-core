@@ -57,6 +57,7 @@ describe('MailIntelligenceAdapter', () => {
       thread: {
         key: 'thread-1',
         label: 'Customer request',
+        sourceProvider: 'outlook',
         count: 1,
         messageIds: ['m1'],
         participants: ['sales@customer.example'],
@@ -82,6 +83,7 @@ describe('MailIntelligenceAdapter', () => {
       sender: 'sales@customer.example',
       recipients: ['owner@aios.local'],
     });
+    expect(details?.thread.sourceProvider).toBe('outlook');
     expect(String(fetchMock.mock.calls[0][0])).toContain('/api/portal/thread/thread-1');
   });
 
@@ -127,6 +129,49 @@ describe('MailIntelligenceAdapter', () => {
     expect(analysis.customers[0]?.domain).toBe('customer.example');
     expect(analysis.requests[0]?.description).toBe('Prepare quote');
     expect(analysis.deadlines[0]?.date).toEqual(new Date('2026-06-30T00:00:00.000Z'));
+  });
+
+  it('falls back to ingest insights when analysis insights omit a thread', async () => {
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes('thread-insights') && url.includes('forIngest=0')) {
+        return jsonResponse({ threads: [], count: 0 });
+      }
+      if (url.includes('thread-insights') && url.includes('forIngest=1')) {
+        return jsonResponse({
+          threads: [{
+            threadKey: 'thread-1', threadTitle: 'Quote', sourceProvider: 'mail-intelligence',
+            messageCount: 1, messageIds: ['m1'], status: 'active', effectiveStatus: 'urgent',
+            summary: 'Quote request', nextActions: [{ recommendedAction: 'Prepare quote' }],
+            evidenceItems: [], participantDomains: ['customer.example'], metadata: {}, aiEnhanced: true,
+          }],
+          count: 1,
+        });
+      }
+      if (url.includes('entity-candidates')) {
+        return jsonResponse({
+          candidates: [{
+            email: 'sales@customer.example', domain: 'customer.example',
+            candidateName: 'Customer', entityRole: 'customer', confidence: 0.9,
+          }],
+          count: 1,
+        });
+      }
+      return jsonResponse({ calendar: [], count: 0 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const adapter = new MailIntelligenceAdapter('http://mail.local');
+    const thread = new MailThread(
+      'internal-1',
+      new ExternalSourceId('mail-intelligence', 'thread-1'),
+      'Quote',
+      ['sales@customer.example']
+    );
+    const analysis = await adapter.analyzeThread(thread);
+
+    expect(analysis.customers[0]?.domain).toBe('customer.example');
+    expect(analysis.requests[0]?.description).toBe('Prepare quote');
   });
 
   it('fails closed when a Portal Bridge response violates the contract', async () => {
