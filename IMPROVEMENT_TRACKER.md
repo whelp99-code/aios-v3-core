@@ -1,17 +1,23 @@
 # AIOS v3 Core 개선 작업 추적 문서
 
-**시작일**: 2026-06-07  
-**목적**: aios-v3-core 프로젝트의 개선사항 검토 및 구현 추적  
-**상태**: 검토 중
+**시작일**: 2026-06-07
+**최종 업데이트**: 2026-06-19 (C1 재기준선)
+**목적**: aios-v3-core 프로젝트의 개선사항 검토 및 구현 추적
+**상태**: Phase 5 기준선 완료, Phase 6 진입
+
+> ⚠️ 이 문서는 2026-06-19에 현재 코드베이스 기준으로 재작성되었습니다.
+> 이전 버전의 "테스트 0개", "Mock 기반", "미구현" 등의 표현은 더 이상 유효하지 않습니다.
+> 상세 구현 수준은 `docs/evidence/phase6-baseline-inventory-2026-06-19.md`를 참조하십시오.
 
 ---
 
-## 1. 프로젝트 현재 상태 분석
+## 1. 프로젝트 현재 상태 (2026-06-19 기준)
 
 ### 1.1 프로젝트 개요
 - **이름**: aios-v3-core (AIOS v3.0 코어 엔진)
-- **목적**: Rapid-MLX 기반 하이브리드 AI 코어, 멀티 에이전트 오케스트레이션, 자가 진화형 커널 구현
-- **기술 스택**: TypeScript, Node.js, pnpm 모노레포, Docker, LangGraph.js
+- **목적**: 하이브리드 AI 코어, 멀티 에이전트 오케스트레이션, 자가 진화형 커널
+- **기술 스택**: TypeScript, Node.js, pnpm 모노레포 (Turborepo), Docker, Vitest
+- **브랜치**: `phase6-c1-doc-rebaseline` (main = `122f10f`, 0 behind)
 
 ### 1.2 아키텍처 구조
 ```
@@ -20,203 +26,189 @@ aios-v3-core/
 │   ├── desktop/          # Electron 메인 프로세스
 │   └── web/              # Next.js 렌더러 (UI)
 ├── packages/
-│   ├── ai-core/          # Rapid-MLX 클라이언트 & 모델 라우터
-│   ├── core/             # 핵심 공통 모듈
-│   ├── knowledge-graph/  # 지식 그래프 패키지
-│   ├── mcp-adapters/     # MCP 어댑터
-│   ├── orchestrator/     # 오케스트레이터
-│   └── self-evolution/   # 자가 진화 모듈
-├── docs/                 # 설계 문서
-├── scripts/              # 검증 스크립트
-└── skills/               # AI 스킬 정의
+│   ├── a2a/              # A2A 프로토콜 (에이전트 간 통신)
+│   ├── ag-ui/            # AG-UI 프로토콜 (에이전트-UI 바인딩)
+│   ├── ai-core/          # 모델 라우터 & 프로바이더
+│   ├── benchmark/        # 벤치마크 러너 & 메트릭
+│   ├── core/             # 핵심 공통 모듈 (API 계약, 플러그인)
+│   ├── evolution/        # 진화형 스토어 & 엔진
+│   ├── hyperagents/      # 메타 인지 에이전트
+│   ├── karpathy-loop/    # Karpathy 루프 (자기 개선)
+│   ├── knowledge-graph/  # 지식 그래프 & GraphRAG
+│   ├── lightrag/         # LightRAG Python 클라이언트
+│   ├── mcp-adapters/     # MCP 어댑터 (3개 앱 연동)
+│   ├── monitoring/       # Langfuse 추적 & 비용 추적
+│   ├── orchestrator/     # 오케스트레이터 & 합의 엔진
+│   ├── sandbox/          # Docker 샌드박스 실행
+│   ├── self-evolution/   # 자가 진화 커널
+│   └── workflow/         # 워크플로우 엔진 & LM Studio 클라이언트
+├── server/               # Express API 서버
+├── dashboard/            # 정적 대시보드
+├── docs/                 # 설계 문서 & 보고서
+└── scripts/              # 검증 스크립트
 ```
 
-### 1.3 구현 완료된 부분
-- [x] Rapid-MLX Mock 서버 (OpenAI 호환 API)
-- [x] 기본적인 모델 레지스트리 및 라우터
-- [x] 하이브리드 AI 코어 프레임워크 (로컬/클라우드 LLM 통합 구조)
-- [x] 멀티 에이전트 오케스트레이션 기본 구조
-- [x] Docker Compose 설정
-- [x] 검증 스크립트 및 가이드
+### 1.3 검증 상태 (2026-06-19)
+| 명령 | 결과 | 상세 |
+|------|------|------|
+| `pnpm install --frozen-lockfile` | ✅ PASS | - |
+| `pnpm typecheck` | ✅ PASS | 29/29 workspace (Turborepo) |
+| `pnpm lint` | ✅ PASS | - |
+| `pnpm test` | ✅ PASS | 13 파일 / **218 테스트** |
+| `pnpm build` | ✅ PASS | 19/19 workspace |
+| PR #2 CI | ✅ PASS | verify (20 jobs), 1m41s |
+| PR #2 merge | ✅ 완료 | Squash merge `122f10f` |
 
 ---
 
-## 2. 주요 개선사항 목록
+## 2. workspace별 구현 수준 분류
 
-### 2.1 긴급 개선 (Critical)
-| 우선순위 | 영역 | 현재 상태 | 개선 목표 | 담당 |
-|---------|------|----------|----------|------|
-| P0 | Rapid-MLX 클라이언트 | Mock 서버만 구현 | 실제 Rapid-MLX 서버 통합 | - |
-| P0 | 모델 라우터 | 기본 라우팅 로직 | 비용/성능/보안 최적화 로직 | - |
+### 2.1 fully implemented — 실제 구현 + 테스트 통과
 
-### 2.2 중요 개선 (High)
-| 우선순위 | 영역 | 현재 상태 | 개선 목표 | 담당 |
-|---------|------|----------|----------|------|
-| P1 | 오케스트레이터 | 기본 LangGraph 구조 | 에이전트 간 협업 메커니즘 강화 | - |
-| P1 | 지식 그래프 | 패키지 구조만 존재 | OpenKB/GraphRAG 통합 | - |
-| P1 | 자가 진화 | 설계 문서만 존재 | Self-Evolving Kernel 실제 구현 | - |
+| 패키지 | 설명 | 테스트 | `any` 수 |
+|--------|------|--------|----------|
+| `packages/a2a` | A2A 프로토콜 (에이전트 간 통신) | 14 tests | 0 |
+| `packages/ag-ui` | AG-UI 프로토콜 (에이전트-UI) | 16 tests | 0 |
+| `packages/ai-core` | 모델 라우터, 동적 라우팅, 프로바이더 | 6 tests | 2 (ollama-client) |
+| `packages/benchmark` | 벤치마크 러너, 메트릭 수집, 리포트 | 20 tests | 8 |
+| `packages/core` | API 계약, 플러그인 매니저 | 0 (서버 테스트로커버) | 0 |
+| `packages/evolution` | 스토어, 캡처러, 진화 엔진 | 18 tests | 9 |
+| `packages/hyperagents` | 메타 인지, 재귀 개선, 안전 가드 | 12 tests | 2 |
+| `packages/karpathy-loop` | 루프, 코드 패atcher, 테스트 러너 | 18 tests | 3 |
+| `packages/lightrag` | LightRAG Python 클라이언트 | 6 tests | 0 |
+| `packages/monitoring` | Langfuse, 비용 추적, 알림 | 29 tests | 24 |
+| `packages/orchestrator` | 오케스트레이터, 합의 엔진 | - | 3 |
+| `packages/sandbox` | Docker 샌드박스 매니저 | 12 tests | 0 |
+| `packages/workflow` | 워크플로우 엔진, LM Studio, 에이전트 | 14 tests | 11 |
+| `server` | Express API, Zod 검증, 보안 미들웨어 | 9 tests | 0 |
 
-### 2.3 일반 개선 (Medium)
-| 우선순위 | 영역 | 현재 상태 | 개선 목표 | 담당 |
-|---------|------|----------|----------|------|
-| P2 | UI/Command Center | 기본 구조 | 실시간 모니터링 대시보드 | - |
-| P2 | MCP 어댑터 | 기본 구조 | 3개 앱 연동 완성 | - |
-| P2 | 검증 시스템 | 기본 스크립트 | 자동화된 CI/CD 파이프라인 | - |
+### 2.2 partially implemented — 구조 존재, 핵심 로직 미완
 
----
+| 패키지 | 설명 | 상태 |
+|--------|------|------|
+| `packages/knowledge-graph` | 지식 그래프, GraphRAG | 소스 코드 존재, 테스트 없음 |
+| `packages/mcp-adapters` | MCP 어댑터 (3개 앱) | 소스 코드 존재, 테스트 없음 |
+| `packages/self-evolution` | 자가 진화 커널 | 소스 코드 존재, 테스트 없음 |
 
-## 3. 상세 개선 작업分解
+### 2.3 not yet implemented — 스켈레톤만
 
-### 3.1 Rapid-MLX 클라이언트 개선
-**현재 파일**: `packages/ai-core/src/rapid-mlx-client.ts`
-
-**개선 작업**:
-1. [ ] 실제 Rapid-MLX 서버 연결 로직 구현
-2. [ ] 에러 핸들링 및 재시도 메커니즘 강화
-3. [ ] 스트리밍 응답 지원 추가
-4. [ ] 연결 풀링 및 관리 최적화
-5. [ ] 성능 모니터링 메트릭 수집
-
-**의존성**: Rapid-MLX 서버 설치 및 설정
-
-### 3.2 모델 라우터 개선
-**현재 파일**: `packages/ai-core/src/dynamic-router.ts`
-
-**개선 작업**:
-1. [ ] 비용 기반 라우팅 알고리즘 구현
-2. [ ] 성능 기반 라우팅 (지연시간, 처리량)
-3. [ ] 보안 수준별 라우팅 (로컬 우선, 클라우드 허용)
-4. [ ] 사용자 선호도 기반 라우팅
-5. [ ] 폴백 메커니즘 강화
-6. [ ] A/B 테스트 지원
-
-### 3.3 오케스트레이터 개선
-**현재 파일**: `packages/orchestrator/src/orchestrator.ts`
-
-**개선 작업**:
-1. [ ] 에이전트 간 합의 메커니즘 구현
-2. [ ] 동적 에이전트 팀 구성
-3. [ ] 작업 분배 최적화
-4. [ ] 상태 관리 및 체크포인트 강화
-5. [ ] 실시간 모니터링 연동
-
-### 3.4 지식 그래프 연동
-**현재 디렉토리**: `packages/knowledge-graph/`
-
-**개선 작업**:
-1. [ ] OpenKB 통합 구현
-2. [ ] GraphRAG 알고리즘 적용
-3. [ ] 실시간 데이터 인제스천 파이프라인
-4. [ ] 지식 품질 검증 (Knowledge Lint)
-5. [ ] 크로스 프로젝트 메모리 구현
-
-### 3.5 자가 진화 기능 구현
-**현재 디렉토리**: `packages/self-evolution/`
-
-**개선 작업**:
-1. [ ] 텔레메트리 수집 시스템
-2. [ ] 경험 재현 버퍼 구현
-3. [ ] 학습 에이전트 (메타 에이전트) 구현
-4. [ ] 코드 합성 엔진 구현
-5. [ ] 샌드박스 검증 환경
-6. [ ] 사용자 승인 워크플로우
+| 패키지 | 설명 |
+|--------|------|
+| `apps/desktop` | Electron 패키징 (빌드 스크립트 존재) |
+| `apps/web` | Next.js UI (기본 라우트 존재) |
+| `dashboard` | 정적 HTML 대시보드 |
 
 ---
 
-## 4. 작업 진행 상황 추적
+## 3. `any` 사용 현황 (소스 코드 기준)
 
-### 4.1 작업 로그
-| 날짜 | 작업 내용 | 결과 | 다음 단계 |
-|------|----------|------|----------|
-| 2026-06-07 | 프로젝트 현재 상태 분석 | 완료 | 개선사항 상세 분석 |
-| 2026-06-07 | 개선사항 문서화 | 진행 중 | 우선순위 결정 |
+C3(Placeholder 제거와 타입 하드닝)의 기준점:
 
-### 4.2 완료된 작업
-- [x] 프로젝트 구조 분석
-- [x] 현재 구현 상태 파악
-- [x] 개선사항 목록 작성
-
-### 4.3 진행 중인 작업
-- [ ] 개선사항 우선순위 결정
-- [ ] 상세 작업 분해
-- [ ] 리소스 및 일정 계획
-
----
-
-## 5. 다음 단계 계획
-
-### 5.1 단기 (1-2주)
-1. **긴급 개선사항 구현**
-   - Rapid-MLX 클라이언트 실제 서버 연결
-   - 모델 라우터 기본 로직 강화
-
-2. **검증 환경 구축**
-   - 실제 Rapid-MLX 서버 설치 및 설정
-   - 통합 테스트 환경 구성
-
-### 5.2 중기 (3-4주)
-1. **핵심 기능 강화**
-   - 오케스트레이터 에이전트 협업 메커니즘
-   - 지식 그래프 기본 기능 구현
-
-2. **UI 개선**
-   - Command Center 대시보드 개발
-   - 실시간 모니터링 기능
-
-### 5.3 장기 (1-2개월)
-1. **고급 기능 구현**
-   - 자가 진화 커널 완성
-   - 멀티 프로젝트 지원
-
-2. **생태계 구축**
-   - 플러그인 시스템
-   - 커뮤니티 기여 체계
+| 패키지 | `any` 수 | 파일 | 비고 |
+|--------|----------|------|------|
+| monitoring | 24 | langfuse-client(14), trace-middleware(4), types(3), alert-manager(3) | **최다** |
+| workflow | 11 | agent-factory(4), workflow-engine(3), types(2), step-runner(1), llm-agent(1) | |
+| evolution | 9 | skill-store(5), skill-capturer(2), evolution-engine(2) | |
+| benchmark | 8 | benchmark-runner(5), types(3) | |
+| karpathy-loop | 3 | test-runner(2), overnight-scheduler(1) | |
+| orchestrator | 3 | skill-parser(3) | |
+| ai-core | 2 | ollama-client(2) | |
+| hyperagents | 2 | safety-guard(1), types(1) | |
+| core | 0 | - | |
+| a2a | 0 | - | |
+| ag-ui | 0 | - | |
+| lightrag | 0 | - | |
+| knowledge-graph | 0 | - | |
+| sandbox | 0 | - | |
+| mcp-adapters | 0 | - | |
+| server | 0 | - | |
+| **합계** | **62** | | |
 
 ---
 
-## 6. 참고 자료 및 리소스
+## 4. 테스트 커버리지 상세
 
-### 6.1 주요 문서
-- `PROJECT_SETUP.md`: 프로젝트 설정 가이드
-- `RAPID_MLX_SETUP.md`: Rapid-MLX 설치 및 설정
-- `SHARED_ENGINE_INTEGRATION.md`: 공유 엔진 통합 가이드
-- `ENGINE_VALIDATION_REPORT.md`: 엔진 검증 보고서
-- `docs/` 디렉토리: 상세 설계 문서들
-
-### 6.2 관련 프로젝트
-- `vibe-coding-os`: AI 기반 코딩 도구
-- `ai-automation-work-portal`: 업무 자동화 포털
-- `project-revenue-ops-os`: 프로젝트 수익 운영 시스템
-
-### 6.3 기술 참조
-- Rapid-MLX: Apple Silicon 최적화 AI 엔진
-- LangGraph.js: 멀티 에이전트 워크플로우 프레임워크
-- OpenKB: 지식 베이스 관리 시스템
-- GraphRAG: 지식 그래프 기반 검색增强 생성
-
----
-
-## 7. 메모 및 참고사항
-
-### 7.1 의사결정 기록
-| 결정 사항 | 이유 | 날짜 |
-|----------|------|------|
-| Rapid-MLX를 기본 엔진으로 채택 | Apple Silicon에서 최고 성능 | 2026-05-25 |
-| LangGraph.js 사용 | 안정적인 상태 관리 및 롤백 지원 | 2026-05-25 |
-| 모노레포 구조 채택 | 코드 공유 및 일관된 빌드 환경 | 2026-05-25 |
-
-### 7.2 리스크 및 고려사항
-- **Rapid-MLX 의존성**: 실제 서버 안정성 필요
-- **복잡성 관리**: 멀티 에이전트 시스템의 디버깅 난이도
-- **성능 최적화**: 로컬 리소스 제한 (M5 Pro 24GB)
-
-### 7.3 팀 커뮤니케이션
-- 정기 검토 회의: 매주 금요일
-- 문서 업데이트: 작업 완료 시 즉시
-- 버전 관리: Git 브랜치 전략 사용
+| 패키지 | 테스트 파일 | 테스트 수 | 비고 |
+|--------|------------|-----------|------|
+| monitoring | monitoring.test.ts | 29 | |
+| benchmark | benchmark.test.ts | 20 | |
+| evolution | evolution.test.ts | 18 | |
+| karpathy-loop | karpathy-loop.test.ts | 18 | |
+| ag-ui | ag-ui.test.ts | 16 | |
+| workflow | workflow.test.ts | 14 | |
+| a2a | a2a.test.ts | 14 | |
+| hyperagents | hyperagents.test.ts | 12 | |
+| sandbox | sandbox.test.ts | 12 | |
+| server/contract | contract.test.ts | 9 | |
+| server/api-contract | api-contract.test.ts | 9 | (스키마 테스트) |
+| lightrag | lightrag.test.ts | 6 | |
+| ai-core | dynamic-router.test.ts | 6 | |
+| **합계** | **13 파일** | **218** | |
 
 ---
 
-**최종 업데이트**: 2026-06-07  
-**문서 관리자**: AI Assistant  
-**다음 검토일**: 2026-06-14
+## 5. PR #2 최종 상태
+
+| 항목 | 값 |
+|------|-----|
+| PR 번호 | #2 |
+| 제목 | [codex] complete Phase 5 integration hardening |
+| 브랜치 | `codex/phase5-review-hardening` → `main` |
+| HEAD | `b889a06` |
+| merge commit | `122f10f` (Squash) |
+| merge 일시 | 2026-06-19T01:08:36Z |
+| CI | verify (20 jobs) PASS |
+| 변경 파일 | 206 files, +24,935 / -4,645 |
+| 상태 | **MERGED** ✅ |
+
+---
+
+## 6. Blueprint 상태
+
+| Blueprint | 상태 | 비고 |
+|-----------|------|------|
+| `docs/blueprint/` (v1, 13개) | **superseded** | v2로 대체됨 |
+| `docs/blueprint/v2/` (10개) | **implemented** | Phase 5에서 구현 완료 |
+
+Blueprint 상세는 `docs/evidence/phase6-baseline-inventory-2026-06-19.md` 참조.
+
+---
+
+## 7. 운영 검증 미완료 항목
+
+다음 항목은 코드는 구현되었으나 실제 런타임 연결 검증이 필요합니다:
+
+| 항목 | 상태 | 검증 방법 |
+|------|------|-----------|
+| Docker sandbox 이미지 실행 | 미검증 | `docker compose up` + 테스트 |
+| LightRAG 실제 연결 | 미검증 | `packages/lightrag/server/main.py` 실행 |
+| Langfuse 실제 연결 | 미검증 | `packages/monitoring/docker/docker-compose.langfuse.yml` |
+| LM Studio 연결 | 미검증 | `packages/workflow/src/lm-studio-client.ts` |
+| Mimo 클라우드 연결 | 미검증 | `packages/ai-core/src/providers/mimo-cloud-provider.ts` |
+| Electron 패키징 | 미검증 | `pnpm --filter aios-desktop package` |
+
+> 상세 검증은 C2 (실제 연동 Smoke와 Evidence 자동화)에서 수행합니다.
+
+---
+
+## 8. 다음 단계 (Phase 6 로드맵)
+
+| Phase | 목표 | 상태 |
+|-------|------|------|
+| C0 | Phase 5 기준선 마감 | ✅ 완료 |
+| C1 | 현재 상태 재기준선과 문서 정리 | 🔄 진행 중 |
+| C2 | 실제 연동 Smoke와 Evidence 자동화 | ⏳ 대기 |
+| C3 | Placeholder 제거와 타입 하드닝 | ⏳ 대기 |
+| C4 | DDD 모듈형 모놀리스 기준 구조 | ⏳ 대기 |
+| C5 | Mail Intelligence 도메인과 Canonical Persistence | ⏳ 대기 |
+| C6 | 기존 Mail Intelligence Adapter와 분석 Pipeline | ⏳ 대기 |
+| C7 | Project Automation과 승인 큐 | ⏳ 대기 |
+| C8 | 견적·제안서·POC 자동화 | ⏳ 대기 |
+| C9 | 완료·CFO 인계·유지보수·개선 생명주기 | ⏳ 대기 |
+| C10 | 관측성, E2E, 보안, 릴리스 준비 | ⏳ 대기 |
+
+---
+
+**최종 업데이트**: 2026-06-19
+**문서 관리자**: Hermes Agent (C1 재기준선)
+**다음 검토일**: C2 완료 시
