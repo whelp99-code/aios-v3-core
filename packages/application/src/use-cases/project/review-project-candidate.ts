@@ -1,4 +1,5 @@
 import type { UseCase } from '../index.js';
+import type { ProjectCandidateRepository } from '../../ports/index.js';
 
 export interface ReviewProjectCandidateInput {
   candidateId: string;
@@ -14,14 +15,34 @@ export interface ReviewProjectCandidateOutput {
 /**
  * ReviewProjectCandidate
  * Reviews a project candidate and updates its status.
+ * Enforces valid state transitions.
  */
 export class ReviewProjectCandidate implements UseCase<ReviewProjectCandidateInput, ReviewProjectCandidateOutput> {
+  constructor(private readonly candidateRepo: ProjectCandidateRepository) {}
+
   async execute(input: ReviewProjectCandidateInput): Promise<ReviewProjectCandidateOutput> {
-    // Will be implemented with repository
+    const candidate = await this.candidateRepo.findById(input.candidateId);
+    if (!candidate) {
+      throw new Error(`Project candidate ${input.candidateId} not found`);
+    }
+
+    switch (input.action) {
+      case 'approve':
+        candidate.approve();
+        break;
+      case 'reject':
+        candidate.reject();
+        break;
+      case 'request_review':
+        candidate.requestReview();
+        break;
+    }
+
+    await this.candidateRepo.save(candidate);
+
     return {
       candidateId: input.candidateId,
-      status: input.action === 'approve' ? 'approved' :
-              input.action === 'reject' ? 'rejected' : 'needs_review',
+      status: candidate.status,
     };
   }
 }

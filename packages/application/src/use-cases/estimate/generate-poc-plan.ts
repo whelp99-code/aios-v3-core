@@ -1,3 +1,4 @@
+
 import type { UseCase } from '../index.js';
 
 export interface GeneratePocPlanInput {
@@ -19,9 +20,9 @@ export interface GeneratePocPlanOutput {
  * Creates a POC plan draft.
  */
 export class GeneratePocPlan implements UseCase<GeneratePocPlanInput, GeneratePocPlanOutput> {
-  async execute(input: GeneratePocPlanInput): Promise<GeneratePocPlanOutput> {
+  async execute(_input: GeneratePocPlanInput): Promise<GeneratePocPlanOutput> {
     return {
-      pocPlanId: `poc-${Date.now()}`,
+      pocPlanId: globalThis.crypto.randomUUID(),
       status: 'draft',
     };
   }

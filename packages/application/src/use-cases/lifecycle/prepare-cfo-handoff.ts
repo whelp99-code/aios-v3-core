@@ -1,3 +1,4 @@
+
 import type { UseCase } from '../index.js';
 
 export interface CfoHandoffItem {
@@ -32,7 +33,7 @@ export class PrepareCfoHandoff implements UseCase<PrepareCfoHandoffInput, Prepar
     const totalAmount = input.items.reduce((sum, item) => sum + item.amount, 0);
 
     return {
-      handoffId: `cfo-${Date.now()}`,
+      handoffId: globalThis.crypto.randomUUID(),
       projectId: input.projectId,
       totalAmount,
       currency: input.items[0]?.currency ?? 'KRW',

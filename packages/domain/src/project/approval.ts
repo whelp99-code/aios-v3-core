@@ -10,6 +10,7 @@ export class ApprovalRequest extends BaseEntity<string> {
   private _status: ApprovalStatus;
   private _decidedAt: Date | null = null;
   private _decidedBy: string | null = null;
+  private _reason: string | null;
 
   constructor(
     id: string,
@@ -17,15 +18,24 @@ export class ApprovalRequest extends BaseEntity<string> {
     public readonly type: ApprovalType,
     public readonly requestedBy: string,
     status: ApprovalStatus = 'pending',
-    public readonly reason: string | null = null,
-    public readonly metadata: Record<string, unknown> = {}
+    reason: string | null = null,
+    public readonly metadata: Record<string, unknown> = {},
+    decidedBy: string | null = null,
+    decidedAt: Date | null = null
   ) {
     super(id);
     this._status = status;
+    this._reason = reason;
+    this._decidedBy = decidedBy;
+    this._decidedAt = decidedAt;
   }
 
   get status(): ApprovalStatus {
     return this._status;
+  }
+
+  get reason(): string | null {
+    return this._reason;
   }
 
   get decidedAt(): Date | null {
@@ -53,6 +63,7 @@ export class ApprovalRequest extends BaseEntity<string> {
     this._status = 'rejected';
     this._decidedAt = new Date();
     this._decidedBy = actor;
+    this._reason = reason;
     return { requestId: this.id, decision: 'rejected', actor, decidedAt: this._decidedAt, reason };
   }
 }

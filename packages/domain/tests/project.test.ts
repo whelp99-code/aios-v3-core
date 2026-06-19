@@ -58,5 +58,24 @@ describe('ApprovalRequest', () => {
     const decision = request.reject('manager1', 'Too expensive');
     expect(decision.decision).toBe('rejected');
     expect(decision.reason).toBe('Too expensive');
+    expect(request.reason).toBe('Too expensive');
+  });
+
+  it('should hydrate persisted decision metadata', () => {
+    const decidedAt = new Date('2026-01-01T00:00:00.000Z');
+    const request = new ApprovalRequest(
+      'a1',
+      'p1',
+      'budget',
+      'user1',
+      'approved',
+      'Approved request',
+      {},
+      'manager1',
+      decidedAt
+    );
+
+    expect(request.decidedBy).toBe('manager1');
+    expect(request.decidedAt).toBe(decidedAt);
   });
 });

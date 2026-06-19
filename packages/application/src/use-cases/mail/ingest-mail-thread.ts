@@ -1,5 +1,7 @@
+
 import type { UseCase } from '../index.js';
 import type { MailThreadRepository, MailSourcePort } from '../../ports/index.js';
+import { MailThread, ExternalSourceId } from '@aios/domain';
 
 export interface IngestMailThreadInput {
   sourceSystem: string;
@@ -31,23 +33,33 @@ export class IngestMailThread implements UseCase<IngestMailThreadInput, IngestMa
 
     if (existing) {
       return {
-        threadId: (existing as { id: string }).id,
+        threadId: existing.id,
         idempotent: true,
       };
     }
 
-    // Fetch from source
+    // Fetch from source (single message represents the thread anchor)
     const raw = await this.source.fetchMessage(input.externalId);
 
-    // Save to canonical DB
-    const threadId = `thread-${Date.now()}`;
-    await this.threadRepo.save({
-      id: threadId,
-      sourceSystem: input.sourceSystem,
-      externalId: input.externalId,
-      status: 'ingested',
-      raw,
-    });
+    // Build participants from message sender/recipients
+    const participants: string[] = [];
+    if (raw) {
+      if (raw.sender) participants.push(raw.sender);
+      if (Array.isArray(raw.recipients)) participants.push(...raw.recipients);
+    }
+
+    // Create domain entity
+    const threadId = globalThis.crypto.randomUUID();
+    const thread = new MailThread(
+      threadId,
+      new ExternalSourceId(input.sourceSystem, input.externalId),
+      raw?.subject ?? '(no subject)',
+      participants,
+      'ingested',
+      { raw }
+    );
+
+    await this.threadRepo.save(thread);
 
     return { threadId, idempotent: false };
   }

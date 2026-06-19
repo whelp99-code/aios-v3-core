@@ -1,3 +1,4 @@
+
 import type { UseCase } from '../index.js';
 
 export interface ProposeNewSolutionInput {
@@ -17,9 +18,9 @@ export interface ProposeNewSolutionOutput {
  * Proposes a new solution based on improvement items or customer feedback.
  */
 export class ProposeNewSolution implements UseCase<ProposeNewSolutionInput, ProposeNewSolutionOutput> {
-  async execute(input: ProposeNewSolutionInput): Promise<ProposeNewSolutionOutput> {
+  async execute(_input: ProposeNewSolutionInput): Promise<ProposeNewSolutionOutput> {
     return {
-      solutionId: `solution-${Date.now()}`,
+      solutionId: globalThis.crypto.randomUUID(),
       status: 'proposed',
     };
   }

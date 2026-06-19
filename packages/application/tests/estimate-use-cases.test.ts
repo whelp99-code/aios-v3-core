@@ -23,6 +23,7 @@ describe('GenerateEstimate', () => {
     expect(result.tax).toBe(200000);
     expect(result.total).toBe(2200000);
     expect(result.status).toBe('draft');
+    expect(result.currency).toBe('KRW');
   });
 
   it('should handle empty items', async () => {
@@ -35,11 +36,121 @@ describe('GenerateEstimate', () => {
     });
 
     expect(result.total).toBe(0);
+    expect(result.status).toBe('draft');
+  });
+
+  it('should use UUID for estimate ID', async () => {
+    const useCase = new GenerateEstimate();
+    const result = await useCase.execute({
+      projectId: 'p1',
+      projectName: 'Test',
+      customerName: 'Test',
+      items: [{ description: 'Item', quantity: 1, unitPrice: 100, currency: 'KRW', taxRate: 0 }],
+    });
+
+    expect(result.estimateId).toBeDefined();
+    expect(result.estimateId).not.toContain('estimate-');
+    // UUID v4 format
+    expect(result.estimateId).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  it('should reject mixed currencies', async () => {
+    const useCase = new GenerateEstimate();
+
+    await expect(
+      useCase.execute({
+        projectId: 'p1',
+        projectName: 'Test',
+        customerName: 'Test',
+        items: [
+          { description: 'A', quantity: 1, unitPrice: 100, currency: 'KRW', taxRate: 0 },
+          { description: 'B', quantity: 1, unitPrice: 100, currency: 'USD', taxRate: 0 },
+        ],
+      })
+    ).rejects.toThrow('Mixed currencies not allowed');
+  });
+
+  it('should reject negative quantity', async () => {
+    const useCase = new GenerateEstimate();
+
+    await expect(
+      useCase.execute({
+        projectId: 'p1',
+        projectName: 'Test',
+        customerName: 'Test',
+        items: [{ description: 'Bad', quantity: -1, unitPrice: 100, currency: 'KRW', taxRate: 0 }],
+      })
+    ).rejects.toThrow('Invalid quantity');
+  });
+
+  it('should reject negative unitPrice', async () => {
+    const useCase = new GenerateEstimate();
+
+    await expect(
+      useCase.execute({
+        projectId: 'p1',
+        projectName: 'Test',
+        customerName: 'Test',
+        items: [{ description: 'Bad', quantity: 1, unitPrice: -100, currency: 'KRW', taxRate: 0 }],
+      })
+    ).rejects.toThrow('Invalid unitPrice');
+  });
+
+  it('should reject NaN quantity', async () => {
+    const useCase = new GenerateEstimate();
+
+    await expect(
+      useCase.execute({
+        projectId: 'p1',
+        projectName: 'Test',
+        customerName: 'Test',
+        items: [{ description: 'Bad', quantity: NaN, unitPrice: 100, currency: 'KRW', taxRate: 0 }],
+      })
+    ).rejects.toThrow('Invalid quantity');
+  });
+
+  it('should reject NaN unitPrice', async () => {
+    const useCase = new GenerateEstimate();
+
+    await expect(
+      useCase.execute({
+        projectId: 'p1',
+        projectName: 'Test',
+        customerName: 'Test',
+        items: [{ description: 'Bad', quantity: 1, unitPrice: NaN, currency: 'KRW', taxRate: 0 }],
+      })
+    ).rejects.toThrow('Invalid unitPrice');
+  });
+
+  it('should reject negative taxRate', async () => {
+    const useCase = new GenerateEstimate();
+
+    await expect(
+      useCase.execute({
+        projectId: 'p1',
+        projectName: 'Test',
+        customerName: 'Test',
+        items: [{ description: 'Bad', quantity: 1, unitPrice: 100, currency: 'KRW', taxRate: -5 }],
+      })
+    ).rejects.toThrow('Invalid taxRate');
+  });
+
+  it('should reject NaN taxRate', async () => {
+    const useCase = new GenerateEstimate();
+
+    await expect(
+      useCase.execute({
+        projectId: 'p1',
+        projectName: 'Test',
+        customerName: 'Test',
+        items: [{ description: 'Bad', quantity: 1, unitPrice: 100, currency: 'KRW', taxRate: NaN }],
+      })
+    ).rejects.toThrow('Invalid taxRate');
   });
 });
 
 describe('GenerateProposal', () => {
-  it('should create proposal draft', async () => {
+  it('should create proposal draft with UUID', async () => {
     const useCase = new GenerateProposal();
     const result = await useCase.execute({
       projectId: 'p1',
@@ -49,12 +160,13 @@ describe('GenerateProposal', () => {
     });
 
     expect(result.proposalId).toBeDefined();
+    expect(result.proposalId).toMatch(/^[0-9a-f-]{36}$/);
     expect(result.status).toBe('draft');
   });
 });
 
 describe('GeneratePocPlan', () => {
-  it('should create POC plan draft', async () => {
+  it('should create POC plan draft with UUID', async () => {
     const useCase = new GeneratePocPlan();
     const result = await useCase.execute({
       projectId: 'p1',
@@ -66,6 +178,7 @@ describe('GeneratePocPlan', () => {
     });
 
     expect(result.pocPlanId).toBeDefined();
+    expect(result.pocPlanId).toMatch(/^[0-9a-f-]{36}$/);
     expect(result.status).toBe('draft');
   });
 });
@@ -85,6 +198,7 @@ describe('GenerateCustomerEmail', () => {
     expect(result.approvalRequired).toBe(true);
     expect(result.subject).toContain('AIOS Project');
     expect(result.body).toContain('Test Corp');
+    expect(result.draftId).toMatch(/^[0-9a-f-]{36}$/);
   });
 
   it('should never send email directly', async () => {
@@ -98,7 +212,6 @@ describe('GenerateCustomerEmail', () => {
       customMessage: 'Please review.',
     });
 
-    // Always draft, never sent
     expect(result.status).toBe('draft');
     expect(result.approvalRequired).toBe(true);
   });

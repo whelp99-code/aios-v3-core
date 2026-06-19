@@ -1,3 +1,4 @@
+
 import type { UseCase } from '../index.js';
 
 export interface GenerateCustomerEmailInput {
@@ -33,7 +34,7 @@ export class GenerateCustomerEmail implements UseCase<GenerateCustomerEmailInput
     };
 
     return {
-      draftId: `email-draft-${Date.now()}`,
+      draftId: globalThis.crypto.randomUUID(),
       subject: `[${input.projectName}] ${purposeText[input.purpose]}`,
       body: `${input.customerName}님께,
 

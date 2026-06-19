@@ -1,3 +1,4 @@
+
 import type { UseCase } from '../index.js';
 
 export interface OpenMaintenanceCaseInput {
@@ -17,9 +18,9 @@ export interface OpenMaintenanceCaseOutput {
  * Opens a maintenance case for a customer product.
  */
 export class OpenMaintenanceCase implements UseCase<OpenMaintenanceCaseInput, OpenMaintenanceCaseOutput> {
-  async execute(input: OpenMaintenanceCaseInput): Promise<OpenMaintenanceCaseOutput> {
+  async execute(_input: OpenMaintenanceCaseInput): Promise<OpenMaintenanceCaseOutput> {
     return {
-      caseId: `maintenance-${Date.now()}`,
+      caseId: globalThis.crypto.randomUUID(),
       status: 'open',
     };
   }
