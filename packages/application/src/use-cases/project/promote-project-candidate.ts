@@ -1,6 +1,7 @@
 
 import type { UseCase } from '../index.js';
-import type { ProjectCandidateRepository } from '../../ports/index.js';
+import type { ProjectCandidateRepository, ProjectRepository } from '../../ports/index.js';
+import { Project } from '@aios/domain';
 
 export interface PromoteProjectCandidateInput {
   candidateId: string;
@@ -21,7 +22,10 @@ export interface PromoteProjectCandidateOutput {
  * Idempotent: returns existing project reference if already promoted.
  */
 export class PromoteProjectCandidate implements UseCase<PromoteProjectCandidateInput, PromoteProjectCandidateOutput> {
-  constructor(private readonly candidateRepo: ProjectCandidateRepository) {}
+  constructor(
+    private readonly candidateRepo: ProjectCandidateRepository,
+    private readonly projectRepo: ProjectRepository
+  ) {}
 
   async execute(input: PromoteProjectCandidateInput): Promise<PromoteProjectCandidateOutput> {
     const candidate = await this.candidateRepo.findById(input.candidateId);
@@ -35,9 +39,23 @@ export class PromoteProjectCandidate implements UseCase<PromoteProjectCandidateI
       );
     }
 
-    const projectId = globalThis.crypto.randomUUID();
+    const existing = await this.projectRepo.findByCandidateId(candidate.id);
+    if (existing) {
+      return { projectId: existing.id, candidateId: candidate.id };
+    }
+
+    const project = new Project(
+      globalThis.crypto.randomUUID(),
+      input.projectName,
+      input.customerId ?? candidate.customerId,
+      candidate.id,
+      'candidate',
+      input.owner ?? null
+    );
+    const persisted = await this.projectRepo.save(project);
+
     return {
-      projectId,
+      projectId: persisted.id,
       candidateId: input.candidateId,
     };
   }

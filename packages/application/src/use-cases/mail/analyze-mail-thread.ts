@@ -30,6 +30,8 @@ export class AnalyzeMailThread implements UseCase<AnalyzeMailThreadInput, Analyz
     }
 
     const result = await this.analysis.analyzeThread(thread);
+    thread.analyze();
+    await this.threadRepo.save(thread);
 
     return {
       customers: result.customers ?? [],

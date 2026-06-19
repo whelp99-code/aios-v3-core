@@ -48,7 +48,7 @@ model MailMessage {
 model Organization {
   id            String   @id @default(cuid())
   name          String
-  domain        String?
+  domain        String?  @unique
   type          String   @default("customer") // customer | partner | vendor
   metadata      Json?
   createdAt     DateTime @default(now())
@@ -78,7 +78,7 @@ model Contact {
 
 model ProjectCandidate {
   id            String   @id @default(cuid())
-  threadId      String
+  threadId      String   @unique
   thread        MailThread @relation(fields: [threadId], references: [id])
   customerId    String?
   confidence    Float    @default(0)
@@ -98,7 +98,7 @@ model Project {
   name          String
   customerId    String?
   customer      Organization? @relation(fields: [customerId], references: [id])
-  candidateId   String?
+  candidateId   String?  @unique
   candidate     ProjectCandidate? @relation(fields: [candidateId], references: [id])
   status        String   @default("candidate") // candidate | active | completed | rejected
   owner         String?
@@ -141,9 +141,59 @@ model ApprovalRequest {
   decidedAt     DateTime?
   reason        String?
   metadata      Json?
+  actionType    String?
+  actionTarget  String?
+  actionPayload Json?
+  payloadHash   String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
+  decision      ApprovalDecision?
+  outbox        ExternalActionOutbox?
+
   @@index([status])
   @@index([projectId])
+}
+
+model ApprovalDecision {
+  id            String   @id @default(cuid())
+  approvalId    String   @unique
+  approval      ApprovalRequest @relation(fields: [approvalId], references: [id])
+  decision      String
+  actorId       String
+  reason        String?
+  decidedAt     DateTime
+  createdAt     DateTime @default(now())
+}
+
+model ExternalActionOutbox {
+  id            String   @id @default(cuid())
+  approvalId    String   @unique
+  approval      ApprovalRequest @relation(fields: [approvalId], references: [id])
+  projectId     String
+  actionType    String
+  target        String
+  payload       Json
+  payloadHash   String
+  status        String   @default("pending")
+  attempts      Int      @default(0)
+  lastError     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([projectId])
+}
+
+model AuditEvent {
+  id            String   @id @default(cuid())
+  aggregateType String
+  aggregateId   String
+  eventType     String
+  actorId       String?
+  data          Json?
+  createdAt     DateTime @default(now())
+
+  @@index([aggregateType, aggregateId])
+  @@index([createdAt])
 }

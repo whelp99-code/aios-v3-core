@@ -18,6 +18,8 @@
     "desktop": "pnpm --filter aios-desktop dev"
   },
   "devDependencies": {
+    "@prisma/client": "^6.0.0",
+    "prisma": "^6.0.0",
     "turbo": "^2.5.0",
     "typescript": "^5.0.0",
     "vitest": "^3.2.6"

@@ -6,8 +6,8 @@ import {
   RequestExternalActionApproval,
   ApproveAction
 } from '../src/use-cases/project/index.js';
-import { ProjectCandidate, ApprovalRequest, ConfidenceScore } from '@aios/domain';
-import type { ProjectCandidateRepository, ApprovalRepository } from '../src/ports/index.js';
+import { Project, ProjectCandidate, ApprovalRequest, ConfidenceScore } from '@aios/domain';
+import type { ProjectCandidateRepository, ApprovalRepository, ProjectRepository } from '../src/ports/index.js';
 
 // --- Mock repositories ---
 
@@ -25,6 +25,16 @@ function mockApprovalRepo(overrides: Partial<ApprovalRepository> = {}): Approval
     save: vi.fn().mockResolvedValue(undefined),
     findById: vi.fn().mockResolvedValue(null),
     findPendingByProject: vi.fn().mockResolvedValue([]),
+    decidePending: vi.fn().mockResolvedValue(null),
+    ...overrides,
+  };
+}
+
+function mockProjectRepo(overrides: Partial<ProjectRepository> = {}): ProjectRepository {
+  return {
+    save: vi.fn(async (project: Project) => project),
+    findById: vi.fn().mockResolvedValue(null),
+    findByCandidateId: vi.fn().mockResolvedValue(null),
     ...overrides,
   };
 }
@@ -77,17 +87,19 @@ describe('PromoteProjectCandidate', () => {
   it('should promote approved candidate', async () => {
     const candidate = new ProjectCandidate('pc1', 'thread1', 'cust1', new ConfidenceScore(0.9), 'approved');
     const repo = mockCandidateRepo({ findById: vi.fn().mockResolvedValue(candidate) });
-    const useCase = new PromoteProjectCandidate(repo);
+    const projectRepo = mockProjectRepo();
+    const useCase = new PromoteProjectCandidate(repo, projectRepo);
 
     const result = await useCase.execute({ candidateId: 'pc1', projectName: 'New Project' });
     expect(result.projectId).toBeDefined();
     expect(result.candidateId).toBe('pc1');
+    expect(projectRepo.save).toHaveBeenCalledTimes(1);
   });
 
   it('should reject promotion of non-approved candidate', async () => {
     const candidate = new ProjectCandidate('pc1', 'thread1', null, new ConfidenceScore(0.5), 'proposed');
     const repo = mockCandidateRepo({ findById: vi.fn().mockResolvedValue(candidate) });
-    const useCase = new PromoteProjectCandidate(repo);
+    const useCase = new PromoteProjectCandidate(repo, mockProjectRepo());
 
     await expect(
       useCase.execute({ candidateId: 'pc1', projectName: 'Test' })
@@ -96,7 +108,7 @@ describe('PromoteProjectCandidate', () => {
 
   it('should throw for non-existent candidate', async () => {
     const repo = mockCandidateRepo();
-    const useCase = new PromoteProjectCandidate(repo);
+    const useCase = new PromoteProjectCandidate(repo, mockProjectRepo());
 
     await expect(
       useCase.execute({ candidateId: 'missing', projectName: 'Test' })
@@ -125,6 +137,8 @@ describe('RequestExternalActionApproval', () => {
     const result = await useCase.execute({
       projectId: 'p1',
       actionType: 'email_send',
+      target: 'customer@example.com',
+      payload: { draftId: 'draft-1' },
       description: 'Send proposal to client',
       requestedBy: 'user1',
     });
@@ -148,34 +162,46 @@ describe('ApproveAction', () => {
   });
 
   it('should approve pending request', async () => {
-    const repo = mockApprovalRepo({ findById: vi.fn().mockResolvedValue(approvalRequest) });
+    const repo = mockApprovalRepo({
+      findById: vi.fn().mockResolvedValue(approvalRequest),
+      decidePending: vi.fn(async (input) => {
+        approvalRequest.approve(input.actorId);
+        return approvalRequest;
+      }),
+    });
     const useCase = new ApproveAction(repo);
 
     const result = await useCase.execute({
       approvalId: 'a1',
       decision: 'approve',
-      actor: 'manager1',
+      actor: { id: 'manager1', roles: ['approver'] },
     });
 
     expect(result.decision).toBe('approved');
     expect(result.decidedAt).toBeInstanceOf(Date);
-    expect(repo.save).toHaveBeenCalledTimes(1);
+    expect(repo.decidePending).toHaveBeenCalledTimes(1);
   });
 
   it('should reject pending request', async () => {
-    const repo = mockApprovalRepo({ findById: vi.fn().mockResolvedValue(approvalRequest) });
+    const repo = mockApprovalRepo({
+      findById: vi.fn().mockResolvedValue(approvalRequest),
+      decidePending: vi.fn(async (input) => {
+        approvalRequest.reject(input.actorId, input.reason ?? 'rejected');
+        return approvalRequest;
+      }),
+    });
     const useCase = new ApproveAction(repo);
 
     const result = await useCase.execute({
       approvalId: 'a1',
       decision: 'reject',
-      actor: 'manager1',
+      actor: { id: 'manager1', roles: ['approver'] },
       reason: 'Budget exceeded',
     });
 
     expect(result.decision).toBe('rejected');
     expect(approvalRequest.reason).toBe('Budget exceeded');
-    expect(repo.save).toHaveBeenCalledWith(approvalRequest);
+    expect(repo.decidePending).toHaveBeenCalledTimes(1);
   });
 
   it('should reject self-approval (requestedBy === decidedBy)', async () => {
@@ -186,7 +212,7 @@ describe('ApproveAction', () => {
       useCase.execute({
         approvalId: 'a1',
         decision: 'approve',
-        actor: 'user1', // same as requestedBy
+        actor: { id: 'user1', roles: ['approver'] },
       })
     ).rejects.toThrow('cannot decide their own approval request');
   });
@@ -200,7 +226,7 @@ describe('ApproveAction', () => {
       useCase.execute({
         approvalId: 'a1',
         decision: 'approve',
-        actor: 'manager2',
+        actor: { id: 'manager2', roles: ['approver'] },
       })
     ).rejects.toThrow('already approved');
   });
@@ -214,7 +240,7 @@ describe('ApproveAction', () => {
       useCase.execute({
         approvalId: 'a1',
         decision: 'reject',
-        actor: 'manager2',
+        actor: { id: 'manager2', roles: ['approver'] },
       })
     ).rejects.toThrow('already rejected');
   });
@@ -227,8 +253,30 @@ describe('ApproveAction', () => {
       useCase.execute({
         approvalId: 'missing',
         decision: 'approve',
-        actor: 'manager1',
+        actor: { id: 'manager1', roles: ['approver'] },
       })
     ).rejects.toThrow('not found');
+  });
+
+  it('should reject actors without an approver role', async () => {
+    const repo = mockApprovalRepo({ findById: vi.fn().mockResolvedValue(approvalRequest) });
+    const useCase = new ApproveAction(repo);
+
+    await expect(useCase.execute({
+      approvalId: 'a1',
+      decision: 'approve',
+      actor: { id: 'viewer1', roles: ['viewer'] },
+    })).rejects.toThrow('not authorized');
+  });
+
+  it('should reject a concurrent decision', async () => {
+    const repo = mockApprovalRepo({ findById: vi.fn().mockResolvedValue(approvalRequest) });
+    const useCase = new ApproveAction(repo);
+
+    await expect(useCase.execute({
+      approvalId: 'a1',
+      decision: 'approve',
+      actor: { id: 'manager1', roles: ['approver'] },
+    })).rejects.toThrow('decided concurrently');
   });
 });

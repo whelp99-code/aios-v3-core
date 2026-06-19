@@ -1,6 +1,7 @@
 import express, { type Express, type Request, type Response, type NextFunction } from 'express';
 import cors from 'cors';
 import type { DockerExecutor } from '@aios/sandbox';
+import { createPhase6Router, type Phase6ApiDependencies } from '@aios/api';
 import { healthRouter } from './routes/health.js';
 import { createWorkflowRouter } from './routes/workflow.js';
 import { orchestratorRouter } from './routes/orchestrator.js';
@@ -17,6 +18,7 @@ import {
 
 export interface AppDependencies {
   workflowExecutor?: Pick<DockerExecutor, 'executeNode'>;
+  phase6?: Phase6ApiDependencies;
 }
 
 function apiKeyAuth(req: Request, res: Response, next: NextFunction): void {
@@ -57,6 +59,7 @@ export function createApp(dependencies: AppDependencies = {}): Express {
   app.use(lightragRouter);
   app.use(monitoringRouter);
   app.use(aiRouter);
+  app.use(createPhase6Router(dependencies.phase6));
 
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     console.error('Unhandled error:', err.message);

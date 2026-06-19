@@ -1,6 +1,6 @@
 import type { PrismaClient, Prisma } from '@prisma/client';
 import type { MailThreadRepository } from '@aios/application';
-import { MailThread, ExternalSourceId } from '@aios/domain';
+import { MailThread, ExternalSourceId, type MailMessage } from '@aios/domain';
 
 /** Safely convert an unknown value to Prisma-compatible JSON */
 function toJson(value: unknown): Prisma.InputJsonValue {
@@ -40,6 +40,69 @@ export class PrismaMailThreadRepository implements MailThreadRepository {
         status: thread.status,
         metadata,
       },
+    });
+  }
+
+  async saveAggregate(thread: MailThread, messages: MailMessage[]): Promise<void> {
+    const participants = toJson([...thread.participants]);
+    const metadata = toJson(thread.metadata);
+
+    await this.prisma.$transaction(async (tx) => {
+      const persistedThread = await tx.mailThread.upsert({
+        where: {
+          sourceSystem_externalId: {
+            sourceSystem: thread.source.system,
+            externalId: thread.source.id,
+          },
+        },
+        create: {
+          id: thread.id,
+          sourceSystem: thread.source.system,
+          externalId: thread.source.id,
+          subject: thread.subject,
+          participants,
+          status: thread.status,
+          metadata,
+        },
+        update: {
+          subject: thread.subject,
+          participants,
+          status: thread.status,
+          metadata,
+        },
+      });
+
+      for (const message of messages) {
+        await tx.mailMessage.upsert({
+          where: {
+            threadId_externalId: {
+              threadId: persistedThread.id,
+              externalId: message.externalId,
+            },
+          },
+          create: {
+            id: message.id,
+            threadId: persistedThread.id,
+            externalId: message.externalId,
+            sender: message.sender,
+            recipients: toJson(message.recipients),
+            subject: message.subject,
+            bodyPreview: message.bodyPreview,
+            sentAt: message.sentAt,
+            attachments: toJson(message.attachmentRefs),
+            metadata: toJson(message.metadata),
+          },
+          update: {
+            sender: message.sender,
+            recipients: toJson(message.recipients),
+            subject: message.subject,
+            bodyPreview: message.bodyPreview,
+            sentAt: message.sentAt,
+            attachments: toJson(message.attachmentRefs),
+            metadata: toJson(message.metadata),
+          },
+        });
+      }
     });
   }
 

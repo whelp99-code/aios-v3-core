@@ -2,6 +2,14 @@ import { BaseEntity } from '../entities/index.js';
 
 export type ApprovalType = 'general' | 'external_send' | 'budget';
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
+export type ExternalActionType = 'email_send' | 'document_share' | 'api_call';
+
+export interface ApprovalAction {
+  type: ExternalActionType;
+  target: string;
+  payload: Record<string, unknown>;
+  payloadHash: string;
+}
 
 /**
  * ApprovalRequest — request for approval on a project action.
@@ -21,7 +29,8 @@ export class ApprovalRequest extends BaseEntity<string> {
     reason: string | null = null,
     public readonly metadata: Record<string, unknown> = {},
     decidedBy: string | null = null,
-    decidedAt: Date | null = null
+    decidedAt: Date | null = null,
+    public readonly action: ApprovalAction | null = null
   ) {
     super(id);
     this._status = status;

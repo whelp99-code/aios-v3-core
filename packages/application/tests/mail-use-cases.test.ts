@@ -6,6 +6,7 @@ import type { MailAnalysisPort, MailThreadRepository } from '../src/ports/index.
 function mockThreadRepo(thread: MailThread | null): MailThreadRepository {
   return {
     save: vi.fn().mockResolvedValue(undefined),
+    saveAggregate: vi.fn().mockResolvedValue(undefined),
     findById: vi.fn().mockResolvedValue(thread),
     findByExternalId: vi.fn().mockResolvedValue(null),
   };
@@ -33,5 +34,7 @@ describe('AnalyzeMailThread', () => {
       deadlines: [],
       confidence: 0,
     });
+    expect(thread.status).toBe('analyzed');
+    expect(repo.save).toHaveBeenCalledWith(thread);
   });
 });
