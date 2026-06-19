@@ -92,7 +92,7 @@ export class LLMAdapter {
    */
   async isHealthy(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/v1/models`);
+      const response = await fetch(`${this.config.baseUrl}/v1/models`);
       return response.ok;
     } catch {
       return false;

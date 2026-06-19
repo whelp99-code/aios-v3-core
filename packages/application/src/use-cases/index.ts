@@ -19,7 +19,7 @@ export interface IngestMailThreadOutput {
   idempotent: boolean;
 }
 
-export interface IngestMailThread extends UseCase<IngestMailThreadInput, IngestMailThreadOutput> {}
+
 
 /** Analyze a mail thread */
 export interface AnalyzeMailThreadInput {
@@ -33,7 +33,7 @@ export interface AnalyzeMailThreadOutput {
   confidence: number;
 }
 
-export interface AnalyzeMailThread extends UseCase<AnalyzeMailThreadInput, AnalyzeMailThreadOutput> {}
+
 
 /** Upsert customer from mail analysis */
 export interface UpsertCustomerFromMailInput {
