@@ -10,3 +10,5 @@ export * from './events/index.js';
 export * from './mail/index.js';
 export * from './customer/index.js';
 export * from './project/index.js';
+export * from './estimate/index.js';
+export * from './proposal/index.js';
