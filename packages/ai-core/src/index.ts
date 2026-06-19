@@ -1,4 +1,9 @@
-export { RapidMLXClient, type RapidMLXConfig } from './rapid-mlx-client';
+export {
+  LMStudioClient,
+  LMStudioClient as RapidMLXClient,
+  type LMStudioConfig,
+  type RapidMLXConfig,
+} from './rapid-mlx-client';
 export type {
   ChatMessage,
   ChatCompletionRequest,
@@ -20,6 +25,7 @@ export type {
   ResourceSnapshot,
   ProviderHealth,
   RoleEngineOverride,
+  SecurityLevel,
 } from './types';
 
 export { OpenAIProvider } from './providers/openai-provider';

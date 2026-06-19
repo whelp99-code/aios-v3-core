@@ -1,0 +1,11 @@
+{
+  "name": "aios-dashboard",
+  "version": "1.0.0",
+  "description": "AIOS v3 Workflow Dashboard",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "author": "",
+  "license": "MIT"
+}

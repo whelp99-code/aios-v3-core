@@ -1,4 +1,4 @@
-import RapidMLXClient from './rapid-mlx-client';
+import LMStudioClient from './rapid-mlx-client';
 import { DynamicRouter, DynamicRouterConfig } from './dynamic-router';
 import { AgentRole, TaskType } from './types';
 
@@ -16,8 +16,8 @@ export class ModelRouter {
   private router: DynamicRouter;
   private modelConfig: ModelConfig;
 
-  constructor(client: RapidMLXClient, config?: Partial<ModelConfig>, router?: DynamicRouter) {
-    this.router = router ?? new DynamicRouter({ rapidMLXClient: client });
+  constructor(client: LMStudioClient, config?: Partial<ModelConfig>, router?: DynamicRouter) {
+    this.router = router ?? new DynamicRouter({ lmStudioClient: client });
     this.modelConfig = {
       chat: config?.chat || 'qwen3.5-9b-4bit',
       code: config?.code || 'qwen3.5-9b-4bit',

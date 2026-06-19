@@ -1,7 +1,13 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+  - 'server'
 allowBuilds:
-  electron: set this to true or false
-  sharp: set this to true or false
-  unrs-resolver: set this to true or false
+  better-sqlite3: true
+  cpu-features: true
+  electron: true
+  esbuild: true
+  protobufjs: true
+  sharp: true
+  ssh2: true
+  unrs-resolver: true

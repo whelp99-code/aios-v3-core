@@ -1,14 +1,21 @@
 import { Router, type IRouter } from 'express';
-import { WorkflowEngine } from '@aios/workflow';
+import { WorkflowEngine } from 'aios-workflow';
 import { DockerExecutor } from '@aios/sandbox';
-
-export const workflowRouter: IRouter = Router();
+import { randomUUID } from 'node:crypto';
+import { validateBody } from '../middleware/security.js';
+import {
+  WorkflowCreateRequestSchema,
+  WorkflowExecuteRequestSchema,
+  WorkflowLegacyExecuteRequestSchema,
+  type Workflow,
+  type WorkflowLegacyExecuteRequest,
+} from '../schemas/api-contract.js';
 
 // 인메모리 워크플로우 저장소
-const workflowStore: Map<string, any> = new Map();
+const workflowStore = new Map<string, Workflow>();
 
 // 기본 워크플로우 등록
-const defaultWorkflows = [
+const defaultWorkflows: Workflow[] = [
   {
     id: 'wf-001',
     name: 'Sangfor 정책 점검',
@@ -70,14 +77,10 @@ const defaultWorkflows = [
 
 defaultWorkflows.forEach(wf => workflowStore.set(wf.id, wf));
 
-interface WorkflowExecuteRequest {
-  name: string;
-  steps: Array<{
-    name: string;
-    code: string;
-  }>;
-  input: any;
-}
+export function createWorkflowRouter(
+  sandboxExecutor: Pick<DockerExecutor, 'executeNode'> = new DockerExecutor()
+): IRouter {
+  const workflowRouter = Router();
 
 // 워크플로우 리스트 조회
 workflowRouter.get('/api/workflows', (req, res) => {
@@ -95,14 +98,14 @@ workflowRouter.get('/api/workflows/:id', (req, res) => {
 });
 
 // 워크플로우 저장
-workflowRouter.post('/api/workflows', (req, res) => {
+workflowRouter.post('/api/workflows', validateBody(WorkflowCreateRequestSchema), (req, res) => {
   const { name, description, category, steps } = req.body;
   if (!name || !steps || !Array.isArray(steps)) {
     res.status(400).json({ error: 'Invalid request. Required: name, steps' });
     return;
   }
   const newWf = {
-    id: 'wf-' + Date.now(),
+    id: `wf-${randomUUID()}`,
     name,
     description: description || '',
     category: category || '기타',
@@ -125,13 +128,85 @@ workflowRouter.delete('/api/workflows/:id', (req, res) => {
   res.json({ success: true });
 });
 
-// Docker 샌드박스 실행기 (RCE 방지: new Function() 대체)
-const sandboxExecutor = new DockerExecutor();
-
-// 워크플로우 실행
-workflowRouter.post('/api/workflow/execute', async (req, res) => {
+// 워크플로우 실행 (v2 프록시 호환: POST /api/workflows/:id/execute)
+workflowRouter.post(
+  '/api/workflows/:id/execute',
+  validateBody(WorkflowExecuteRequestSchema),
+  async (req, res) => {
   try {
-    const { name, steps, input } = req.body as WorkflowExecuteRequest;
+    const workflowId = String(req.params.id);
+    const wf = workflowStore.get(workflowId);
+    if (!wf) {
+      res.status(404).json({ error: 'Workflow not found' });
+      return;
+    }
+
+    const { input } = req.body;
+    const executionId = `exec-${randomUUID()}`;
+    const createdAt = new Date().toISOString();
+
+    // 기존 /api/workflow/execute와 동일한 엔진 사용
+    const engine = new WorkflowEngine({ name: wf.name });
+
+    for (const step of wf.steps) {
+      const sandboxStep = async (stepInput: unknown): Promise<unknown> => {
+        const wrappedCode = `
+          const input = JSON.parse(process.env.SANDBOX_INPUT || '{}');
+          (async () => {
+            ${step.code}
+          })().then(result => {
+            process.stdout.write(JSON.stringify(result));
+          }).catch(err => {
+            process.stderr.write(JSON.stringify({ error: err.message }));
+            process.exit(1);
+          });
+        `;
+        const result = await sandboxExecutor.executeNode(wrappedCode, {
+          env: { SANDBOX_INPUT: JSON.stringify(stepInput) },
+          timeout: 30_000,
+        });
+        if (!result.success) {
+          throw new Error(
+            `Sandbox execution failed for step "${step.name}": ${result.stderr || result.stdout}`
+          );
+        }
+        return JSON.parse(result.stdout);
+      };
+      engine.addStep(step.name, sandboxStep);
+    }
+
+    const result = await engine.execute(input || {});
+
+    // 실행 횟수 업데이트
+    wf.lastRun = Date.now();
+    wf.runCount = (wf.runCount || 0) + 1;
+
+    res.json({
+      executionId,
+      workflowId,
+      workflow: wf.name,
+      status: 'completed',
+      mode: 'live',
+      createdAt,
+      result,
+    });
+  } catch (error) {
+    console.error('Workflow execution error:', error);
+    res.status(500).json({
+      error: 'Workflow execution failed',
+      details: error instanceof Error ? error.message : String(error),
+    });
+  }
+  }
+);
+
+// 워크플로우 실행 (레거시 경로 유지)
+workflowRouter.post(
+  '/api/workflow/execute',
+  validateBody(WorkflowLegacyExecuteRequestSchema),
+  async (req, res) => {
+  try {
+    const { name, steps, input } = req.body as WorkflowLegacyExecuteRequest;
 
     if (!name || !steps || !Array.isArray(steps)) {
       res.status(400).json({
@@ -144,7 +219,7 @@ workflowRouter.post('/api/workflow/execute', async (req, res) => {
 
     for (const step of steps) {
       // 각 스텝의 코드를 Docker 샌드박스에서 안전하게 실행
-      const sandboxStep = async (stepInput: any): Promise<any> => {
+      const sandboxStep = async (stepInput: unknown): Promise<unknown> => {
         const wrappedCode = `
           const input = JSON.parse(process.env.SANDBOX_INPUT || '{}');
           (async () => {
@@ -189,4 +264,8 @@ workflowRouter.post('/api/workflow/execute', async (req, res) => {
       details: error instanceof Error ? error.message : String(error),
     });
   }
-});
+  }
+);
+
+  return workflowRouter;
+}

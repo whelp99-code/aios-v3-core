@@ -10,12 +10,12 @@ import {
   WorkflowStepEvent,
   createInitialWorkflowState,
 } from './types';
-import { RapidMLXClient } from '@aios/ai-core/rapid-mlx-client';
+import { LMStudioClient } from '@aios/ai-core';
 import { AgentRole, ModelRouter, TaskType } from '@aios/ai-core/model-router';
 import type { DynamicRouter } from '@aios/ai-core';
 import type { EngineMode } from './types';
-import { MCPRegistry } from '@aios/mcp-adapters';
-import type { OpenKB } from '@aios/knowledge-graph';
+import { MCPRegistry } from 'aios-mcp-adapters';
+import type { OpenKB } from 'aios-knowledge-graph';
 import type { EvolutionKernel } from '@aios/self-evolution';
 import { ParsedSkill, SkillParser } from './skill-parser';
 import { TaskSplitter } from './task-splitter';
@@ -43,7 +43,7 @@ type WorkflowGraph = {
 
 export class Orchestrator {
   private workflow: WorkflowGraph;
-  private rapidMLXClient: RapidMLXClient;
+  private lmStudioClient: LMStudioClient;
   private modelRouter: ModelRouter;
   private skillParser: SkillParser;
   private loadedSkills = new Map<string, ParsedSkill>();
@@ -60,12 +60,12 @@ export class Orchestrator {
   private parallelExecution: boolean;
 
   constructor(
-    rapidMLXClient: RapidMLXClient,
+    lmStudioClient: LMStudioClient,
     modelRouter: ModelRouter,
     skillParser: SkillParser,
     options: OrchestratorOptions = {}
   ) {
-    this.rapidMLXClient = rapidMLXClient;
+    this.lmStudioClient = lmStudioClient;
     this.modelRouter = modelRouter;
     this.dynamicRouter = modelRouter.getDynamicRouter();
     this.defaultEngineMode = options.engineMode ?? 'auto';
@@ -793,7 +793,7 @@ export class Orchestrator {
         if (!skill) return `- ${name} (not loaded)`;
         const availableTools = this.mcpRegistry
           ? this.mcpRegistry.getAllTools().map((t) => t.function.name)
-          : ['mcp', 'rapid-mlx'];
+          : ['mcp', 'lm-studio'];
         const validation = this.skillParser.validateSkillStepsAgainstTools(skill, availableTools);
         const steps = skill.workflowSteps ? `\n  Steps: ${skill.workflowSteps.slice(0, 200)}...` : '';
         return `- ${skill.metadata.name}: ${skill.metadata.description}${steps}` +

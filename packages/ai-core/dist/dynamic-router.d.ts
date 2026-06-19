@@ -2,13 +2,17 @@ import { ModelRegistry } from './model-registry';
 import { ResourceAllocator } from './resource-allocator';
 import { AgentRole, ChatCompletionResponse, ChatMessage, EngineMode, EnginePreferences, ModelProvider, ProviderHealth, ResourceSnapshot, RoutingDecision, TaskType } from './types';
 import { ILLMProvider } from './providers/base-provider';
-import RapidMLXClient from './rapid-mlx-client';
+import LMStudioClient from './rapid-mlx-client';
 export interface DynamicRouterConfig {
-    rapidMLXClient?: RapidMLXClient;
+    lmStudioClient?: LMStudioClient;
     openaiApiKey?: string;
     anthropicApiKey?: string;
     huggingfaceApiKey?: string;
+    mimoApiKey?: string;
+    mimoBaseURL?: string;
+    mimoProvider?: 'together' | 'fireworks' | 'replicate' | 'custom';
     preferences?: EnginePreferences;
+    providers?: Partial<Record<ModelProvider, ILLMProvider>>;
 }
 export declare class DynamicRouter {
     readonly registry: ModelRegistry;
@@ -24,6 +28,12 @@ export declare class DynamicRouter {
     getResourceSnapshot(): Promise<ResourceSnapshot>;
     getAllProviderHealth(): Promise<ProviderHealth[]>;
     route(role: AgentRole, taskType?: TaskType): Promise<RoutingDecision>;
+    /**
+     * Assess task complexity for routing decisions
+     * Simple: chat, basic code generation
+     * Complex: reasoning, complex planning, architecture decisions
+     */
+    private assessTaskComplexity;
     routeAndChat(role: AgentRole, taskType: TaskType, messages: ChatMessage[], options?: Record<string, unknown>): Promise<{
         content: string;
         routing: RoutingDecision;
@@ -39,11 +49,15 @@ export declare class DynamicRouter {
         content: string;
         error?: string;
     }>>;
+    private executeMultiTargets;
     getModelForRole(role: AgentRole): string;
     getModelForTask(taskType: TaskType): string;
     getLastResourceSnapshot(): ResourceSnapshot | null;
     private roleToTask;
     private buildFallbackChain;
+    private localDecision;
+    private healthyDecision;
+    private firstHealthyCloudDecision;
 }
 export type { EngineMode, EnginePreferences, ModelProvider, RoutingDecision, ResourceSnapshot };
 //# sourceMappingURL=dynamic-router.d.ts.map

@@ -5,14 +5,15 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
   },
   "license": "MIT",
   "dependencies": {
     "@aios/ai-core": "workspace:*",
-    "@aios/knowledge-graph": "workspace:*",
-    "@aios/mcp-adapters": "workspace:*",
-    "@aios/orchestrator": "workspace:*",
+    "aios-knowledge-graph": "workspace:*",
+    "aios-mcp-adapters": "workspace:*",
+    "aios-orchestrator": "workspace:*",
     "@aios/self-evolution": "workspace:*",
     "axios": "^1.6.0"
   },

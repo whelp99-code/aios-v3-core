@@ -3,12 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CommunityRegistry = exports.WebhookPublisher = exports.PluginManager = exports.AIOS = void 0;
+exports.API_CONTRACT = exports.CommunityRegistry = exports.WebhookPublisher = exports.PluginManager = exports.AIOS = void 0;
 const path_1 = __importDefault(require("path"));
 const ai_core_1 = require("@aios/ai-core");
-const knowledge_graph_1 = require("@aios/knowledge-graph");
-const mcp_adapters_1 = require("@aios/mcp-adapters");
-const orchestrator_1 = require("@aios/orchestrator");
+const aios_knowledge_graph_1 = require("aios-knowledge-graph");
+const aios_mcp_adapters_1 = require("aios-mcp-adapters");
+const aios_orchestrator_1 = require("aios-orchestrator");
 const self_evolution_1 = require("@aios/self-evolution");
 const plugin_manager_1 = require("./plugin-manager");
 const webhook_publisher_1 = require("./webhook-publisher");
@@ -17,30 +17,33 @@ class AIOS {
     constructor(config = {}) {
         this.config = config;
         const dataDir = config.dataDir ?? path_1.default.resolve(process.cwd(), 'data');
-        const client = new ai_core_1.RapidMLXClient({
-            baseURL: config.rapidMLXBaseURL ?? 'http://localhost:8000/v1',
+        const client = new ai_core_1.LMStudioClient({
+            baseURL: config.lmStudioBaseURL ?? 'http://localhost:1234/v1',
             timeout: 60000,
         });
         this.dynamicRouter = new ai_core_1.DynamicRouter({
-            rapidMLXClient: client,
+            lmStudioClient: client,
             openaiApiKey: config.openaiApiKey ?? process.env.OPENAI_API_KEY,
             anthropicApiKey: config.anthropicApiKey ?? process.env.ANTHROPIC_API_KEY,
             huggingfaceApiKey: config.huggingfaceApiKey ??
                 process.env.HF_TOKEN ??
                 process.env.HUGGINGFACE_API_KEY,
+            mimoApiKey: config.mimoApiKey ?? process.env.MIMO_API_KEY,
+            mimoBaseURL: config.mimoBaseURL,
+            mimoProvider: config.mimoProvider,
             preferences: {
                 mode: config.engineMode ?? 'auto',
                 ...config.enginePreferences,
             },
         });
         const modelRouter = new ai_core_1.ModelRouter(client, undefined, this.dynamicRouter);
-        this.knowledge = new knowledge_graph_1.OpenKB(path_1.default.join(dataDir, 'knowledge'));
+        this.knowledge = new aios_knowledge_graph_1.OpenKB(path_1.default.join(dataDir, 'knowledge'));
         this.evolution = new self_evolution_1.EvolutionKernel(path_1.default.join(dataDir, 'learned'));
         this.plugins = new plugin_manager_1.PluginManager();
         this.webhooks = new webhook_publisher_1.WebhookPublisher();
         this.community = new community_registry_1.CommunityRegistry();
-        this.mcp = new mcp_adapters_1.MCPRegistry(config.mcp ?? {});
-        this.orchestrator = new orchestrator_1.Orchestrator(client, modelRouter, new orchestrator_1.SkillParser(), {
+        this.mcp = new aios_mcp_adapters_1.MCPRegistry(config.mcp ?? {});
+        this.orchestrator = new aios_orchestrator_1.Orchestrator(client, modelRouter, new aios_orchestrator_1.SkillParser(), {
             maxIterations: config.maxIterations ?? 10,
             skillsDirectory: config.skillsDirectory,
             mcpRegistry: this.mcp,
@@ -120,7 +123,7 @@ class AIOS {
         const projectContext = {
             recalledProjects: relevantMemories.map((m) => ({ id: m.projectId, name: m.name, summary: m.summary })),
         };
-        const state = await this.orchestrator.run((0, orchestrator_1.createInitialWorkflowState)(taskInput, {
+        const state = await this.orchestrator.run((0, aios_orchestrator_1.createInitialWorkflowState)(taskInput, {
             projectContext,
             engineMode: options.engineMode ?? this.getEnginePreferences().mode,
             parallelExecution: options.parallelExecution ?? this.config.parallelExecution ?? true,
@@ -198,4 +201,7 @@ var webhook_publisher_2 = require("./webhook-publisher");
 Object.defineProperty(exports, "WebhookPublisher", { enumerable: true, get: function () { return webhook_publisher_2.WebhookPublisher; } });
 var community_registry_2 = require("./community-registry");
 Object.defineProperty(exports, "CommunityRegistry", { enumerable: true, get: function () { return community_registry_2.CommunityRegistry; } });
+// API Contract
+var api_contract_1 = require("./api-contract");
+Object.defineProperty(exports, "API_CONTRACT", { enumerable: true, get: function () { return api_contract_1.API_CONTRACT; } });
 //# sourceMappingURL=index.js.map

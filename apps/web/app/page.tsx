@@ -15,6 +15,7 @@ interface EngineStatus {
   providers?: Array<{ provider: string; healthy: boolean; error?: string }>;
   resource?: { localLoad: number; localHealthy: boolean; recommendedMode: string; cloudAvailable: boolean };
   preferences?: { mode: string };
+  lmStudio?: { healthy: boolean };
   rapidMLX?: { healthy: boolean };
   error?: string;
 }
@@ -78,7 +79,7 @@ export default function Home() {
   const [parallelExecution, setParallelExecution] = useState(true);
   const [engineStatus, setEngineStatus] = useState<EngineStatus>({
     status: 'checking',
-    engine: 'rapid-mlx',
+    engine: 'lm-studio',
   });
   const [mcpAdapters, setMcpAdapters] = useState<MCPAdapterStatus[]>([]);
   const [workflowSessionId, setWorkflowSessionId] = useState<string | null>(null);
@@ -470,7 +471,10 @@ export default function Home() {
         <h3 className="text-sm font-semibold mb-2 text-zinc-400">Provider 상태</h3>
         <div className="space-y-2 mb-4">
           {(engineStatus.providers ?? [
-            { provider: 'local', healthy: engineStatus.rapidMLX?.healthy ?? false },
+            {
+              provider: 'local',
+              healthy: engineStatus.lmStudio?.healthy ?? engineStatus.rapidMLX?.healthy ?? false,
+            },
           ]).map((p) => (
             <div key={p.provider} className="bg-zinc-800 p-2 rounded-lg flex items-center justify-between">
               <span className="text-xs font-medium">
@@ -537,7 +541,7 @@ export default function Home() {
                 <p className="text-sm">
                   {useWorkflow
                     ? 'Swarm Workflow 모드: 멀티 에이전트가 협력하여 태스크를 수행합니다.'
-                    : 'Direct Chat 모드: Rapid-MLX에 직접 질의합니다.'}
+                    : 'Direct Chat 모드: LM Studio에 직접 질의합니다.'}
                 </p>
               </div>
             </div>

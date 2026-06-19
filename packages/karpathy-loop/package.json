@@ -7,8 +7,9 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
-    "dev": "tsc --watch"
+    "test": "vitest run",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "aios",

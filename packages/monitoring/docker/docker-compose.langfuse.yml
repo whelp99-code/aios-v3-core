@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  langfuse:
+    image: langfuse/langfuse:latest
+    container_name: aios-langfuse
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/langfuse
+      - NEXTAUTH_SECRET=aios-secret-key-change-in-production
+      - NEXTAUTH_URL=http://localhost:3000
+      - SALT=aios-salt-change-in-production
+    depends_on:
+      - postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/public/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: aios-langfuse-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=langfuse
+    volumes:
+      - langfuse-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  langfuse-data:
+    driver: local

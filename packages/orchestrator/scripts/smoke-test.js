@@ -1,11 +1,11 @@
-const { RapidMLXClient } = require('../../ai-core/dist/rapid-mlx-client');
+const { LMStudioClient } = require('../../ai-core/dist/rapid-mlx-client');
 const { ModelRouter } = require('../../ai-core/dist/model-router');
 const { Orchestrator } = require('../dist/orchestrator');
 const { SkillParser } = require('../dist/skill-parser');
 const { createInitialWorkflowState } = require('../dist/types');
 
 async function main() {
-  const client = new RapidMLXClient();
+  const client = new LMStudioClient();
   const router = new ModelRouter(client);
   const parser = new SkillParser();
 

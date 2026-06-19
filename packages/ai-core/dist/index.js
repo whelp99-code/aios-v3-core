@@ -1,8 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RapidMLXProvider = exports.HuggingFaceProvider = exports.AnthropicProvider = exports.OpenAIProvider = exports.ResourceAllocator = exports.DynamicRouter = exports.ModelRegistry = exports.ModelRouter = exports.RapidMLXClient = void 0;
+exports.RapidMLXProvider = exports.HuggingFaceProvider = exports.AnthropicProvider = exports.OpenAIProvider = exports.ResourceAllocator = exports.DynamicRouter = exports.ModelRegistry = exports.ModelRouter = exports.RapidMLXClient = exports.LMStudioClient = void 0;
 var rapid_mlx_client_1 = require("./rapid-mlx-client");
-Object.defineProperty(exports, "RapidMLXClient", { enumerable: true, get: function () { return rapid_mlx_client_1.RapidMLXClient; } });
+Object.defineProperty(exports, "LMStudioClient", { enumerable: true, get: function () { return rapid_mlx_client_1.LMStudioClient; } });
+Object.defineProperty(exports, "RapidMLXClient", { enumerable: true, get: function () { return rapid_mlx_client_1.LMStudioClient; } });
 var model_router_1 = require("./model-router");
 Object.defineProperty(exports, "ModelRouter", { enumerable: true, get: function () { return model_router_1.ModelRouter; } });
 var model_registry_1 = require("./model-registry");

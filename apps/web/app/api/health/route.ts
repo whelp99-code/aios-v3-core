@@ -21,6 +21,7 @@ export async function GET() {
       resource: status.snapshot,
       preferences: status.preferences,
       models: status.models.filter((m) => m.status === 'active').slice(0, 10),
+      lmStudio: localHealth,
       rapidMLX: localHealth,
       timestamp: new Date().toISOString(),
     });

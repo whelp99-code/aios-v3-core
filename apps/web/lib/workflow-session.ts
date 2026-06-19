@@ -38,7 +38,6 @@ export interface WorkflowSession {
 }
 
 declare global {
-  // eslint-disable-next-line no-var
   var __aiosWorkflowSessions: Map<string, WorkflowSession> | undefined;
 }
 

@@ -42,11 +42,11 @@ Object.defineProperty(exports, "createInitialWorkflowState", { enumerable: true,
 const task_splitter_1 = require("./task-splitter");
 const consensus_engine_1 = require("./consensus-engine");
 class Orchestrator {
-    constructor(rapidMLXClient, modelRouter, skillParser, options = {}) {
+    constructor(lmStudioClient, modelRouter, skillParser, options = {}) {
         this.loadedSkills = new Map();
         this.taskSplitter = new task_splitter_1.TaskSplitter();
         this.consensusEngine = new consensus_engine_1.ConsensusEngine();
-        this.rapidMLXClient = rapidMLXClient;
+        this.lmStudioClient = lmStudioClient;
         this.modelRouter = modelRouter;
         this.dynamicRouter = modelRouter.getDynamicRouter();
         this.defaultEngineMode = options.engineMode ?? 'auto';
@@ -598,7 +598,7 @@ class Orchestrator {
                 return `- ${name} (not loaded)`;
             const availableTools = this.mcpRegistry
                 ? this.mcpRegistry.getAllTools().map((t) => t.function.name)
-                : ['mcp', 'rapid-mlx'];
+                : ['mcp', 'lm-studio'];
             const validation = this.skillParser.validateSkillStepsAgainstTools(skill, availableTools);
             const steps = skill.workflowSteps ? `\n  Steps: ${skill.workflowSteps.slice(0, 200)}...` : '';
             return `- ${skill.metadata.name}: ${skill.metadata.description}${steps}` +

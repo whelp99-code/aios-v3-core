@@ -1,4 +1,4 @@
-import RapidMLXClient from './rapid-mlx-client';
+import LMStudioClient from './rapid-mlx-client';
 import { DynamicRouter } from './dynamic-router';
 import { AgentRole, TaskType } from './types';
 export type { TaskType, AgentRole } from './types';
@@ -12,7 +12,7 @@ export interface ModelConfig {
 export declare class ModelRouter {
     private router;
     private modelConfig;
-    constructor(client: RapidMLXClient, config?: Partial<ModelConfig>, router?: DynamicRouter);
+    constructor(client: LMStudioClient, config?: Partial<ModelConfig>, router?: DynamicRouter);
     getDynamicRouter(): DynamicRouter;
     getModelForTask(taskType: TaskType): string;
     getModelForRole(role: AgentRole): string;

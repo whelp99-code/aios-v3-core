@@ -6,10 +6,13 @@ let aiosInstance: AIOS | null = null;
 export function getAIOS(): AIOS {
   if (!aiosInstance) {
     aiosInstance = new AIOS({
-      rapidMLXBaseURL: process.env.RAPID_MLX_BASE_URL || 'http://localhost:8000/v1',
+      lmStudioBaseURL: process.env.LM_STUDIO_BASE_URL || 'http://localhost:1234/v1',
       openaiApiKey: process.env.OPENAI_API_KEY,
       anthropicApiKey: process.env.ANTHROPIC_API_KEY,
       huggingfaceApiKey: process.env.HF_TOKEN ?? process.env.HUGGINGFACE_API_KEY,
+      mimoApiKey: process.env.MIMO_API_KEY,
+      mimoBaseURL: process.env.MIMO_BASE_URL,
+      mimoProvider: (process.env.MIMO_PROVIDER as 'together' | 'fireworks' | 'replicate' | 'custom') || 'custom',
       dataDir: path.resolve(process.cwd(), '../../data'),
       skillsDirectory: path.resolve(process.cwd(), '../../skills'),
       engineMode: (process.env.AIOS_ENGINE_MODE as 'auto' | 'local' | 'cloud') || 'auto',

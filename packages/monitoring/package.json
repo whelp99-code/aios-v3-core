@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "langfuse:up": "docker compose -f docker-compose.langfuse.yml up -d",
-    "langfuse:down": "docker compose -f docker-compose.langfuse.yml down"
+    "langfuse:down": "docker compose -f docker-compose.langfuse.yml down",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "langfuse": "^3.0.0"

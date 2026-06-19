@@ -1,9 +1,9 @@
 import { AgentWorkflowState, WorkflowStepEvent, createInitialWorkflowState } from './types';
-import { RapidMLXClient } from '@aios/ai-core/rapid-mlx-client';
+import { LMStudioClient } from '@aios/ai-core';
 import { ModelRouter } from '@aios/ai-core/model-router';
 import type { EngineMode } from './types';
-import { MCPRegistry } from '@aios/mcp-adapters';
-import type { OpenKB } from '@aios/knowledge-graph';
+import { MCPRegistry } from 'aios-mcp-adapters';
+import type { OpenKB } from 'aios-knowledge-graph';
 import type { EvolutionKernel } from '@aios/self-evolution';
 import { ParsedSkill, SkillParser } from './skill-parser';
 export interface OrchestratorOptions {
@@ -22,7 +22,7 @@ export interface OrchestratorRunOptions {
 }
 export declare class Orchestrator {
     private workflow;
-    private rapidMLXClient;
+    private lmStudioClient;
     private modelRouter;
     private skillParser;
     private loadedSkills;
@@ -37,7 +37,7 @@ export declare class Orchestrator {
     private dynamicRouter;
     private defaultEngineMode;
     private parallelExecution;
-    constructor(rapidMLXClient: RapidMLXClient, modelRouter: ModelRouter, skillParser: SkillParser, options?: OrchestratorOptions);
+    constructor(lmStudioClient: LMStudioClient, modelRouter: ModelRouter, skillParser: SkillParser, options?: OrchestratorOptions);
     private buildWorkflow;
     run(initialState: AgentWorkflowState, options?: OrchestratorRunOptions): Promise<AgentWorkflowState>;
     loadSkill(name: string, skillMarkdown: string): ParsedSkill;

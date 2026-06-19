@@ -1,5 +1,7 @@
 # Dependencies
 node_modules/
+.npmrc
+package-lock.json
 
 # Environment
 .env
@@ -9,6 +11,8 @@ node_modules/
 # Build output
 dist/
 build/
+.next/
+.turbo/
 *.tsbuildinfo
 
 # Logs
@@ -18,8 +22,11 @@ pnpm-debug.log*
 
 # Data & runtime
 data/
+rapid-mlx-cache/
 *.db
 *.sqlite
+__pycache__/
+*.py[cod]
 
 # OS files
 .DS_Store
