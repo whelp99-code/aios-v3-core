@@ -10,6 +10,15 @@ import type {
   Organization,
   Project,
   ProjectCandidate,
+  CfoHandoffDraft,
+  CustomerProduct,
+  EmailDraft,
+  EstimateDraft,
+  MaintenanceCase,
+  PocPlanDraft,
+  ProposalDraft,
+  SolutionProposal,
+  TaskCard,
   ApprovalStatus,
   ExternalActionType,
 } from '@aios/domain';
@@ -140,4 +149,17 @@ export interface ExternalActionOutboxItem {
   payload: Record<string, unknown>;
   payloadHash: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
+}
+
+export interface LifecycleRepository {
+  saveTasks(tasks: TaskCard[]): Promise<void>;
+  saveEstimate(estimate: EstimateDraft): Promise<void>;
+  saveProposal(proposal: ProposalDraft): Promise<void>;
+  savePocPlan(plan: PocPlanDraft): Promise<void>;
+  saveEmailDraft(draft: EmailDraft): Promise<void>;
+  saveCfoHandoff(handoff: CfoHandoffDraft): Promise<void>;
+  saveCustomerProduct(product: CustomerProduct): Promise<CustomerProduct>;
+  findCustomerProduct(id: string): Promise<CustomerProduct | null>;
+  saveMaintenanceCase(maintenanceCase: MaintenanceCase): Promise<void>;
+  saveSolutionProposal(proposal: SolutionProposal): Promise<void>;
 }

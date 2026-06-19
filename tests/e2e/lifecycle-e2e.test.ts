@@ -20,11 +20,15 @@ import {
   Project,
   ApprovalRequest,
   ConfidenceScore,
+  CustomerProduct,
+  Organization,
 } from '../../packages/domain/src/index.js';
 import type {
   ProjectCandidateRepository,
   ApprovalRepository,
   ProjectRepository,
+  CustomerRepository,
+  LifecycleRepository,
 } from '../../packages/application/src/ports/index.js';
 
 /** In-memory mock candidate repo backed by a Map */
@@ -75,6 +79,34 @@ function createProjectRepo(): ProjectRepository {
   };
 }
 
+function createCustomerRepo(): CustomerRepository {
+  const customer = new Organization('customer-1', 'Test Corp', 'test.com');
+  return {
+    save: vi.fn().mockResolvedValue(undefined),
+    findById: vi.fn(async (id: string) => id === customer.id ? customer : null),
+    findByDomain: vi.fn().mockResolvedValue(customer),
+  };
+}
+
+function createLifecycleRepo(): LifecycleRepository {
+  const products = new Map<string, CustomerProduct>();
+  return {
+    saveTasks: vi.fn().mockResolvedValue(undefined),
+    saveEstimate: vi.fn().mockResolvedValue(undefined),
+    saveProposal: vi.fn().mockResolvedValue(undefined),
+    savePocPlan: vi.fn().mockResolvedValue(undefined),
+    saveEmailDraft: vi.fn().mockResolvedValue(undefined),
+    saveCfoHandoff: vi.fn().mockResolvedValue(undefined),
+    saveCustomerProduct: vi.fn(async (product: CustomerProduct) => {
+      products.set(product.id, product);
+      return product;
+    }),
+    findCustomerProduct: vi.fn(async (id: string) => products.get(id) ?? null),
+    saveMaintenanceCase: vi.fn().mockResolvedValue(undefined),
+    saveSolutionProposal: vi.fn().mockResolvedValue(undefined),
+  };
+}
+
 describe('Full AIOS Lifecycle E2E', () => {
   it('Mail → Candidate → Project → Estimate → Approval → Completion', async () => {
     // Pre-seed an approved candidate
@@ -84,6 +116,9 @@ describe('Full AIOS Lifecycle E2E', () => {
     );
     const candidateRepo = createCandidateRepo([candidate]);
     const approvalRepo = createApprovalRepo();
+    const projectRepo = createProjectRepo();
+    const customerRepo = createCustomerRepo();
+    const lifecycleRepo = createLifecycleRepo();
 
     // Step 1: Review project candidate (already approved, review again to verify)
     const review = new ReviewProjectCandidate(candidateRepo);
@@ -94,7 +129,7 @@ describe('Full AIOS Lifecycle E2E', () => {
     expect(reviewResult.status).toBe('approved');
 
     // Step 2: Promote to project
-    const promote = new PromoteProjectCandidate(candidateRepo, createProjectRepo());
+    const promote = new PromoteProjectCandidate(candidateRepo, projectRepo);
     const projectResult = await promote.execute({
       candidateId: 'candidate-1',
       projectName: 'AIOS Implementation',
@@ -103,12 +138,17 @@ describe('Full AIOS Lifecycle E2E', () => {
     expect(projectResult.projectId).toBeDefined();
 
     // Step 3: Generate tasks (no repo needed)
-    const tasks = new GenerateProjectTasks();
+    const project = await projectRepo.findById(projectResult.projectId);
+    expect(project).not.toBeNull();
+    project?.activate();
+    if (project) await projectRepo.save(project);
+
+    const tasks = new GenerateProjectTasks(projectRepo, lifecycleRepo);
     const taskResult = await tasks.execute({ projectId: projectResult.projectId });
     expect(taskResult.tasks.length).toBeGreaterThan(0);
 
     // Step 4: Generate estimate (no repo needed)
-    const estimate = new GenerateEstimate();
+    const estimate = new GenerateEstimate(projectRepo, lifecycleRepo);
     const estimateResult = await estimate.execute({
       projectId: projectResult.projectId,
       projectName: 'AIOS Implementation',
@@ -121,7 +161,7 @@ describe('Full AIOS Lifecycle E2E', () => {
     expect(estimateResult.status).toBe('draft');
 
     // Step 5: Generate proposal
-    const proposal = new GenerateProposal();
+    const proposal = new GenerateProposal(projectRepo, lifecycleRepo);
     const proposalResult = await proposal.execute({
       projectId: projectResult.projectId,
       projectName: 'AIOS Implementation',
@@ -131,7 +171,7 @@ describe('Full AIOS Lifecycle E2E', () => {
     expect(proposalResult.status).toBe('draft');
 
     // Step 6: Generate POC plan
-    const poc = new GeneratePocPlan();
+    const poc = new GeneratePocPlan(projectRepo, lifecycleRepo);
     const pocResult = await poc.execute({
       projectId: projectResult.projectId,
       projectName: 'AIOS Implementation',
@@ -143,7 +183,7 @@ describe('Full AIOS Lifecycle E2E', () => {
     expect(pocResult.status).toBe('draft');
 
     // Step 7: Generate customer email (draft only)
-    const email = new GenerateCustomerEmail();
+    const email = new GenerateCustomerEmail(projectRepo, lifecycleRepo);
     const emailResult = await email.execute({
       projectId: projectResult.projectId,
       projectName: 'AIOS Implementation',
@@ -176,13 +216,13 @@ describe('Full AIOS Lifecycle E2E', () => {
     expect(approveResult.decision).toBe('approved');
 
     // Step 10: Complete project
-    const complete = new CompleteProject();
+    const complete = new CompleteProject(projectRepo);
     const completeResult = await complete.execute({ projectId: projectResult.projectId });
     expect(completeResult.status).toBe('completed');
     expect(completeResult.cfoHandoffDraft).toBe(true);
 
     // Step 11: Prepare CFO handoff
-    const cfo = new PrepareCfoHandoff();
+    const cfo = new PrepareCfoHandoff(projectRepo, lifecycleRepo);
     const cfoResult = await cfo.execute({
       projectId: projectResult.projectId,
       projectName: 'AIOS Implementation',
@@ -194,9 +234,10 @@ describe('Full AIOS Lifecycle E2E', () => {
     expect(cfoResult.approvalRequired).toBe(true);
 
     // Step 12: Register customer product
-    const product = new RegisterCustomerProduct();
+    const product = new RegisterCustomerProduct(customerRepo, projectRepo, lifecycleRepo);
     const productResult = await product.execute({
       customerId: 'customer-1',
+      projectId: projectResult.projectId,
       projectName: 'AIOS Implementation',
       productName: 'AIOS Platform',
       version: '1.0.0',
@@ -205,7 +246,7 @@ describe('Full AIOS Lifecycle E2E', () => {
     expect(productResult.productId).toBeDefined();
 
     // Step 13: Open maintenance case
-    const maintenance = new OpenMaintenanceCase();
+    const maintenance = new OpenMaintenanceCase(customerRepo, lifecycleRepo);
     const maintenanceResult = await maintenance.execute({
       customerId: 'customer-1',
       productId: productResult.productId,
@@ -215,7 +256,7 @@ describe('Full AIOS Lifecycle E2E', () => {
     expect(maintenanceResult.status).toBe('open');
 
     // Step 14: Propose new solution
-    const solution = new ProposeNewSolution();
+    const solution = new ProposeNewSolution(customerRepo, lifecycleRepo);
     const solutionResult = await solution.execute({
       customerId: 'customer-1',
       description: 'AI-powered analytics upgrade',

@@ -12,3 +12,4 @@ export * from './customer/index.js';
 export * from './project/index.js';
 export * from './estimate/index.js';
 export * from './proposal/index.js';
+export * from './lifecycle/index.js';

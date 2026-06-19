@@ -1,5 +1,7 @@
 
 import type { UseCase } from '../index.js';
+import { TaskCard } from '@aios/domain';
+import type { LifecycleRepository, ProjectRepository } from '../../ports/index.js';
 
 export interface GenerateProjectTasksInput {
   projectId: string;
@@ -22,7 +24,14 @@ export interface GenerateProjectTasksOutput {
  * Generates task cards for a project based on template or analysis.
  */
 export class GenerateProjectTasks implements UseCase<GenerateProjectTasksInput, GenerateProjectTasksOutput> {
+  constructor(
+    private readonly projectRepo: ProjectRepository,
+    private readonly lifecycleRepo: LifecycleRepository
+  ) {}
+
   async execute(input: GenerateProjectTasksInput): Promise<GenerateProjectTasksOutput> {
+    if (!await this.projectRepo.findById(input.projectId)) throw new Error(`Project ${input.projectId} not found`);
+    const template = input.template ?? 'default';
     const defaultTasks: TaskDefinition[] = [
       { title: '요구사항 분석', description: '프로젝트 요구사항 상세 분석' },
       { title: '기술 설계', description: '기술 아키텍처 및 상세 설계' },
@@ -31,9 +40,25 @@ export class GenerateProjectTasks implements UseCase<GenerateProjectTasksInput, 
       { title: '배포', description: '운영 환경 배포 및 모니터링' },
     ];
 
+    const tasks = defaultTasks.map((task, index) => new TaskCard(
+      `${input.projectId}:${template}:default-task:${index + 1}`,
+      input.projectId,
+      task.title,
+      task.description ?? null,
+      'pending',
+      task.assignee ?? null,
+      null,
+      { template }
+    ));
+    await this.lifecycleRepo.saveTasks(tasks);
+
     return {
       projectId: input.projectId,
-      tasks: defaultTasks,
+      tasks: tasks.map((task) => ({
+        title: task.title,
+        ...(task.description ? { description: task.description } : {}),
+        ...(task.assignee ? { assignee: task.assignee } : {}),
+      })),
     };
   }
 }
