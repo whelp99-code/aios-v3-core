@@ -44,19 +44,19 @@ probe() {
   start=$(python3 -c "import time; print(int(time.time()*1000))" 2>/dev/null || date +%s)
 
   if [ "$method" = "GET" ]; then
-    body=$(curl -s -w "\n%{http_code}" --connect-timeout "$timeout" --max-time "$timeout" "$endpoint" 2>/dev/null)
+    body=$(curl -s -w $'\n%{http_code}' --connect-timeout "$timeout" --max-time "$timeout" "$endpoint" 2>/dev/null)
     curl_exit=$?
   else
-    body=$(curl -s -w "\n%{http_code}" --connect-timeout "$timeout" --max-time "$timeout" -X "$method" -H "Content-Type: application/json" -d "$data" "$endpoint" 2>/dev/null)
+    body=$(curl -s -w $'\n%{http_code}' --connect-timeout "$timeout" --max-time "$timeout" -X "$method" -H "Content-Type: application/json" -d "$data" "$endpoint" 2>/dev/null)
     curl_exit=$?
   fi
 
   if [ "$curl_exit" -ne 0 ] || [ -z "$body" ]; then
-    body="\n000"
+    body=$'\n000'
   fi
 
   end=$(python3 -c "import time; print(int(time.time()*1000))" 2>/dev/null || date +%s)
-  elapsed=$(( end - start ))
+  elapsed=$(( (end - start) ))
 
   http_code=$(echo "$body" | tail -1)
   body=$(echo "$body" | sed '$d')
@@ -163,15 +163,15 @@ else
 
   # Minimal container test (no image pull — use alpine if available)
   START=$(python3 -c "import time; print(int(time.time()*1000))" 2>/dev/null || date +%s)
-  if timeout 15 docker run --rm --cpus=0.5 --memory=64m alpine:latest echo "sandbox-ok" 2>/dev/null; then
-    END=$(date +%s%N 2>/dev/null || date +%s)
-    ELAPSED=$(( (END - START) / 1000000 2>/dev/null || (END - START) * 1000 ))
+  if docker run --rm --cpus=0.5 --memory=64m alpine:latest echo "sandbox-ok" 2>/dev/null; then
+    END=$(python3 -c "import time; print(int(time.time()*1000))" 2>/dev/null || date +%s)
+    ELAPSED=$(( END - START ))
     echo "  ✅ Docker sandbox exec — PASS (${ELAPSED}ms)"
     PASS=$((PASS + 1))
     RESULTS+=("✅ Docker sandbox exec: PASS | ${ELAPSED}ms")
   else
-    END=$(date +%s%N 2>/dev/null || date +%s)
-    ELAPSED=$(( (END - START) / 1000000 2>/dev/null || (END - START) * 1000 ))
+    END=$(python3 -c "import time; print(int(time.time()*1000))" 2>/dev/null || date +%s)
+    ELAPSED=$(( END - START ))
     echo "  ❌ Docker sandbox exec — FAIL (${ELAPSED}ms)"
     FAIL=$((FAIL + 1))
     RESULTS+=("❌ Docker sandbox exec: FAIL | ${ELAPSED}ms")

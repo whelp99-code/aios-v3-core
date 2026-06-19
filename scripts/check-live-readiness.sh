@@ -26,10 +26,10 @@ check_endpoint() {
   local start end elapsed status
 
   start=$(python3 -c "import time; print(int(time.time()*1000))" 2>/dev/null || date +%s)
-  status=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout "$timeout" --max-time "$timeout" "$url" 2>/dev/null)
+  body=$(curl -s -w $'\n%{http_code}' --connect-timeout "$timeout" --max-time "$timeout" "$url" 2>/dev/null)
   curl_exit=$?
   end=$(python3 -c "import time; print(int(time.time()*1000))" 2>/dev/null || date +%s)
-  elapsed=$(( end - start ))
+  elapsed=$(( (end - start) ))
 
   if [ "$curl_exit" -ne 0 ] || [ -z "$status" ]; then
     status="000"
