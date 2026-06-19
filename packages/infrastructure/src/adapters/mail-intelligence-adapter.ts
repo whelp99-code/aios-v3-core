@@ -56,6 +56,7 @@ const portalThreadResponseSchema = z.object({
   thread: z.object({
     key: z.string().optional(),
     label: z.string().optional(),
+    sourceProvider: z.string().optional(),
     count: z.number().int().nonnegative().optional(),
     messageIds: z.array(z.string()).default([]),
     participants: z.array(z.string()).default([]),
@@ -139,7 +140,7 @@ export class MailIntelligenceAdapter implements MailSourcePort, MailAnalysisPort
       thread: {
         threadKey: payload.thread.key ?? threadKey,
         title: payload.thread.label ?? messages[0]?.subject ?? 'Mail thread',
-        sourceProvider: 'mail-intelligence',
+        sourceProvider: payload.thread.sourceProvider ?? 'mail-intelligence',
         participants: payload.thread.participants,
         messageCount: payload.thread.count ?? messages.length,
         messageIds: payload.thread.messageIds,
@@ -164,7 +165,14 @@ export class MailIntelligenceAdapter implements MailSourcePort, MailAnalysisPort
       this.getJson('/api/portal/calendar-hints?sync=cache', calendarResponseSchema),
     ]);
 
-    const insight = insights.threads.find((item) => item.threadKey === thread.source.id);
+    let insight = insights.threads.find((item) => item.threadKey === thread.source.id);
+    if (!insight) {
+      const ingestInsights = await this.getJson(
+        '/api/portal/thread-insights?sync=cache&forIngest=1',
+        threadInsightsResponseSchema
+      );
+      insight = ingestInsights.threads.find((item) => item.threadKey === thread.source.id);
+    }
     if (!insight) {
       throw new Error(`Mail Intelligence thread ${thread.source.id} is not present in portal insights`);
     }

@@ -56,13 +56,17 @@ export class SyncMailIntelligence implements UseCase<SyncMailIntelligenceInput, 
         continue;
       }
 
+      const participants = [...new Set([
+        ...details.thread.participants,
+        ...details.messages.flatMap((message) => [message.sender, ...message.recipients]),
+      ].filter(Boolean))];
       const thread = new MailThread(
         globalThis.crypto.randomUUID(),
         new ExternalSourceId(snapshot.sourceProvider, snapshot.threadKey),
         snapshot.title,
-        [...new Set(snapshot.participants)],
+        participants,
         'ingested',
-        { summary: snapshot.summary, evidenceItems: snapshot.evidenceItems, ...snapshot.metadata }
+        { ...snapshot.metadata, summary: snapshot.summary, evidenceItems: snapshot.evidenceItems }
       );
       const messages = details.messages.map((message) => new MailMessage(
         globalThis.crypto.randomUUID(),

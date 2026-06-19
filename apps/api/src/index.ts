@@ -173,7 +173,6 @@ export function createPhase6Router(dependencies: Phase6ApiDependencies = {}): Ro
     try {
       const useCase = new IngestMailThread(mailAdapter, threadRepo);
       res.status(201).json(await useCase.execute({
-        sourceSystem: 'mail-intelligence',
         externalId: req.params.threadKey,
       }));
     } catch (error) {
