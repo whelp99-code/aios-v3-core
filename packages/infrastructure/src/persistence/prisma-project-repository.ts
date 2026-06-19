@@ -14,7 +14,12 @@ export class PrismaProjectRepository implements ProjectRepository {
       const row = await this.prisma.project.upsert({
         where: { candidateId: project.candidateId },
         create: this.toCreateData(project),
-        update: {},
+        update: {
+          status: project.status,
+          owner: project.owner,
+          dueDate: project.dueDate,
+          metadata: toJson(project.metadata),
+        },
       });
       return this.toDomain(row);
     }

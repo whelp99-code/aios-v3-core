@@ -1,5 +1,7 @@
 
 import type { UseCase } from '../index.js';
+import { PocPlanDraft } from '@aios/domain';
+import type { LifecycleRepository, ProjectRepository } from '../../ports/index.js';
 
 export interface GeneratePocPlanInput {
   projectId: string;
@@ -20,9 +22,23 @@ export interface GeneratePocPlanOutput {
  * Creates a POC plan draft.
  */
 export class GeneratePocPlan implements UseCase<GeneratePocPlanInput, GeneratePocPlanOutput> {
-  async execute(_input: GeneratePocPlanInput): Promise<GeneratePocPlanOutput> {
+  constructor(
+    private readonly projectRepo: ProjectRepository,
+    private readonly lifecycleRepo: LifecycleRepository
+  ) {}
+
+  async execute(input: GeneratePocPlanInput): Promise<GeneratePocPlanOutput> {
+    if (!await this.projectRepo.findById(input.projectId)) throw new Error(`Project ${input.projectId} not found`);
+    if (input.objectives.length === 0 || input.successCriteria.length === 0) {
+      throw new Error('POC plan requires objectives and success criteria');
+    }
+    const plan = new PocPlanDraft(
+      globalThis.crypto.randomUUID(), input.projectId, input.objectives,
+      input.scope, input.timeline, input.successCriteria
+    );
+    await this.lifecycleRepo.savePocPlan(plan);
     return {
-      pocPlanId: globalThis.crypto.randomUUID(),
+      pocPlanId: plan.id,
       status: 'draft',
     };
   }

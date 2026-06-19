@@ -7,7 +7,7 @@ import {
   ApproveAction
 } from '../src/use-cases/project/index.js';
 import { Project, ProjectCandidate, ApprovalRequest, ConfidenceScore } from '@aios/domain';
-import type { ProjectCandidateRepository, ApprovalRepository, ProjectRepository } from '../src/ports/index.js';
+import type { ProjectCandidateRepository, ApprovalRepository, LifecycleRepository, ProjectRepository } from '../src/ports/index.js';
 
 // --- Mock repositories ---
 
@@ -36,6 +36,21 @@ function mockProjectRepo(overrides: Partial<ProjectRepository> = {}): ProjectRep
     findById: vi.fn().mockResolvedValue(null),
     findByCandidateId: vi.fn().mockResolvedValue(null),
     ...overrides,
+  };
+}
+
+function mockLifecycleRepo(): LifecycleRepository {
+  return {
+    saveTasks: vi.fn().mockResolvedValue(undefined),
+    saveEstimate: vi.fn().mockResolvedValue(undefined),
+    saveProposal: vi.fn().mockResolvedValue(undefined),
+    savePocPlan: vi.fn().mockResolvedValue(undefined),
+    saveEmailDraft: vi.fn().mockResolvedValue(undefined),
+    saveCfoHandoff: vi.fn().mockResolvedValue(undefined),
+    saveCustomerProduct: vi.fn(async (product) => product),
+    findCustomerProduct: vi.fn().mockResolvedValue(null),
+    saveMaintenanceCase: vi.fn().mockResolvedValue(undefined),
+    saveSolutionProposal: vi.fn().mockResolvedValue(undefined),
   };
 }
 
@@ -120,7 +135,11 @@ describe('PromoteProjectCandidate', () => {
 
 describe('GenerateProjectTasks', () => {
   it('should generate default tasks', async () => {
-    const useCase = new GenerateProjectTasks();
+    const project = new Project('p1', 'Project', null, null, 'active');
+    const useCase = new GenerateProjectTasks(
+      mockProjectRepo({ findById: vi.fn().mockResolvedValue(project) }),
+      mockLifecycleRepo()
+    );
     const result = await useCase.execute({ projectId: 'p1' });
     expect(result.tasks.length).toBeGreaterThan(0);
     expect(result.tasks[0].title).toBeDefined();

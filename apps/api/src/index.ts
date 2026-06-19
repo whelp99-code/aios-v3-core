@@ -4,16 +4,28 @@ import { z } from 'zod';
 import {
   AnalyzeMailThread,
   ApproveAction,
+  CompleteProject,
+  GenerateCustomerEmail,
+  GenerateEstimate,
+  GeneratePocPlan,
+  GenerateProjectTasks,
+  GenerateProposal,
   IngestMailThread,
+  OpenMaintenanceCase,
+  PrepareCfoHandoff,
   PromoteProjectCandidate,
   RequestExternalActionApproval,
+  RegisterCustomerProduct,
   ReviewProjectCandidate,
+  ProposeNewSolution,
   SyncMailIntelligence,
   type ApprovalActor,
 } from '@aios/application';
 import {
   MailIntelligenceAdapter,
   PrismaApprovalRepository,
+  PrismaCustomerRepository,
+  PrismaLifecycleRepository,
   PrismaMailThreadRepository,
   PrismaMailAutomationRepository,
   PrismaProjectCandidateRepository,
@@ -46,6 +58,52 @@ const approvalRequestSchema = z.object({
 const decisionSchema = z.object({
   decision: z.enum(['approve', 'reject']),
   reason: z.string().trim().min(1).optional(),
+});
+
+const taskSchema = z.object({ template: z.string().trim().min(1).optional() });
+const lineItemSchema = z.object({
+  description: z.string().trim().min(1), quantity: z.number().nonnegative(),
+  unitPrice: z.number().nonnegative(), currency: z.string().trim().min(1),
+  taxRate: z.number().min(0).max(100),
+});
+const estimateSchema = z.object({
+  projectName: z.string().trim().min(1), customerName: z.string().trim().min(1),
+  items: z.array(lineItemSchema).min(1), validDays: z.number().int().positive().optional(),
+});
+const proposalSchema = z.object({
+  projectName: z.string().trim().min(1), customerName: z.string().trim().min(1),
+  sections: z.array(z.object({ title: z.string().min(1), content: z.string().min(1) })).min(1),
+});
+const pocSchema = z.object({
+  projectName: z.string().trim().min(1), objectives: z.array(z.string().min(1)).min(1),
+  scope: z.string().min(1),
+  timeline: z.array(z.object({ phase: z.string().min(1), duration: z.string().min(1) })),
+  successCriteria: z.array(z.string().min(1)).min(1),
+});
+const emailDraftSchema = z.object({
+  projectName: z.string().min(1), customerName: z.string().min(1),
+  recipientEmail: z.string().email(), purpose: z.enum(['estimate', 'proposal', 'poc', 'follow_up']),
+  customMessage: z.string().optional(),
+});
+const cfoSchema = z.object({
+  projectName: z.string().min(1),
+  items: z.array(z.object({
+    category: z.string().min(1), description: z.string().min(1),
+    amount: z.number().nonnegative(), currency: z.string().min(1),
+  })).min(1),
+});
+const productSchema = z.object({
+  projectId: z.string().min(1), projectName: z.string().min(1), productName: z.string().min(1),
+  version: z.string().min(1), installationDate: z.coerce.date(),
+});
+const maintenanceSchema = z.object({
+  customerId: z.string().min(1), productId: z.string().min(1), description: z.string().min(1),
+  priority: z.enum(['low', 'medium', 'high', 'critical']),
+});
+const solutionSchema = z.object({
+  customerId: z.string().min(1), description: z.string().min(1),
+  sourceEvidence: z.array(z.string().min(1)).min(1), estimatedValue: z.number().nonnegative().optional(),
+  currency: z.string().min(1).optional(),
 });
 
 function actorFromRequest(req: Request): ApprovalActor {
@@ -82,6 +140,8 @@ export function createPhase6Router(dependencies: Phase6ApiDependencies = {}): Ro
   const candidateRepo = new PrismaProjectCandidateRepository(prisma);
   const projectRepo = new PrismaProjectRepository(prisma);
   const approvalRepo = new PrismaApprovalRepository(prisma);
+  const customerRepo = new PrismaCustomerRepository(prisma);
+  const lifecycleRepo = new PrismaLifecycleRepository(prisma);
 
   router.get('/api/v2/mail/threads', async (req, res) => {
     try {
@@ -180,6 +240,92 @@ export function createPhase6Router(dependencies: Phase6ApiDependencies = {}): Ro
     } catch (error) {
       respondError(res, error);
     }
+  });
+
+  router.post('/api/v2/projects/:projectId/tasks', async (req, res) => {
+    try {
+      const input = taskSchema.parse(req.body ?? {});
+      res.status(201).json(await new GenerateProjectTasks(projectRepo, lifecycleRepo).execute({
+        projectId: req.params.projectId, ...input,
+      }));
+    } catch (error) { respondError(res, error); }
+  });
+
+  router.post('/api/v2/projects/:projectId/estimates', async (req, res) => {
+    try {
+      const input = estimateSchema.parse(req.body);
+      res.status(201).json(await new GenerateEstimate(projectRepo, lifecycleRepo).execute({
+        projectId: req.params.projectId, ...input,
+      }));
+    } catch (error) { respondError(res, error); }
+  });
+
+  router.post('/api/v2/projects/:projectId/proposals', async (req, res) => {
+    try {
+      const input = proposalSchema.parse(req.body);
+      res.status(201).json(await new GenerateProposal(projectRepo, lifecycleRepo).execute({
+        projectId: req.params.projectId, ...input,
+      }));
+    } catch (error) { respondError(res, error); }
+  });
+
+  router.post('/api/v2/projects/:projectId/poc-plans', async (req, res) => {
+    try {
+      const input = pocSchema.parse(req.body);
+      res.status(201).json(await new GeneratePocPlan(projectRepo, lifecycleRepo).execute({
+        projectId: req.params.projectId, ...input,
+      }));
+    } catch (error) { respondError(res, error); }
+  });
+
+  router.post('/api/v2/projects/:projectId/email-drafts', async (req, res) => {
+    try {
+      const input = emailDraftSchema.parse(req.body);
+      res.status(201).json(await new GenerateCustomerEmail(projectRepo, lifecycleRepo).execute({
+        projectId: req.params.projectId, ...input,
+      }));
+    } catch (error) { respondError(res, error); }
+  });
+
+  router.post('/api/v2/projects/:projectId/complete', async (req, res) => {
+    try {
+      res.json(await new CompleteProject(projectRepo).execute({
+        projectId: req.params.projectId,
+        completionNotes: typeof req.body?.completionNotes === 'string' ? req.body.completionNotes : undefined,
+      }));
+    } catch (error) { respondError(res, error); }
+  });
+
+  router.post('/api/v2/projects/:projectId/cfo-handoffs', async (req, res) => {
+    try {
+      const input = cfoSchema.parse(req.body);
+      res.status(201).json(await new PrepareCfoHandoff(projectRepo, lifecycleRepo).execute({
+        projectId: req.params.projectId, ...input,
+      }));
+    } catch (error) { respondError(res, error); }
+  });
+
+  router.post('/api/v2/customers/:customerId/products', async (req, res) => {
+    try {
+      const input = productSchema.parse(req.body);
+      res.status(201).json(await new RegisterCustomerProduct(
+        customerRepo, projectRepo, lifecycleRepo
+      ).execute({ customerId: req.params.customerId, ...input }));
+    } catch (error) { respondError(res, error); }
+  });
+
+  router.post('/api/v2/maintenance-cases', async (req, res) => {
+    try {
+      const input = maintenanceSchema.parse(req.body);
+      res.status(201).json(await new OpenMaintenanceCase(customerRepo, lifecycleRepo).execute(input));
+    } catch (error) { respondError(res, error); }
+  });
+
+  router.post('/api/v2/solution-proposals', async (req, res) => {
+    try {
+      const input = solutionSchema.parse(req.body);
+      res.status(201).json(await new ProposeNewSolution(customerRepo, lifecycleRepo).execute(input));
+    } catch (error) { respondError(res, error); }
   });
 
   return router;

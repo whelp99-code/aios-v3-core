@@ -1,6 +1,8 @@
 
 import type { UseCase } from '../index.js';
 import type { EstimateLineItem } from '@aios/domain';
+import { DecimalMoney, EstimateDraft } from '@aios/domain';
+import type { LifecycleRepository, ProjectRepository } from '../../ports/index.js';
 
 export interface GenerateEstimateInput {
   projectId: string;
@@ -26,17 +28,15 @@ export interface GenerateEstimateOutput {
  * Status is always 'draft' until approved.
  */
 export class GenerateEstimate implements UseCase<GenerateEstimateInput, GenerateEstimateOutput> {
+  constructor(
+    private readonly projectRepo: ProjectRepository,
+    private readonly lifecycleRepo: LifecycleRepository
+  ) {}
+
   async execute(input: GenerateEstimateInput): Promise<GenerateEstimateOutput> {
-    if (input.items.length === 0) {
-      return {
-        estimateId: globalThis.crypto.randomUUID(),
-        subtotal: 0,
-        tax: 0,
-        total: 0,
-        currency: 'KRW',
-        status: 'draft',
-      };
-    }
+    const project = await this.projectRepo.findById(input.projectId);
+    if (!project) throw new Error(`Project ${input.projectId} not found`);
+    if (input.items.length === 0) throw new Error('Estimate requires at least one line item');
 
     // Validate single currency
     const currencies = new Set(input.items.map((i) => i.currency));
@@ -54,30 +54,43 @@ export class GenerateEstimate implements UseCase<GenerateEstimateInput, Generate
       if (item.unitPrice < 0 || !Number.isFinite(item.unitPrice)) {
         throw new Error(`Invalid unitPrice: ${item.unitPrice}`);
       }
-      if (!Number.isFinite(item.taxRate) || item.taxRate < 0) {
+      if (!Number.isFinite(item.taxRate) || item.taxRate < 0 || item.taxRate > 100) {
         throw new Error(`Invalid taxRate: ${item.taxRate}`);
       }
     }
 
-    const { subtotal, tax, total } = input.items.reduce(
-      (acc, item) => {
-        const itemTotal = item.quantity * item.unitPrice;
-        const itemTax = itemTotal * (item.taxRate / 100);
-        return {
-          subtotal: acc.subtotal + itemTotal,
-          tax: acc.tax + itemTax,
-          total: acc.total + itemTotal + itemTax,
-        };
-      },
-      { subtotal: 0, tax: 0, total: 0 }
+    const currency = input.items[0].currency.toUpperCase();
+    let subtotal = DecimalMoney.zero(currency);
+    let tax = DecimalMoney.zero(currency);
+    for (const item of input.items) {
+      const lineTotal = DecimalMoney.from(item.unitPrice, currency).multiply(item.quantity);
+      subtotal = subtotal.add(lineTotal);
+      tax = tax.add(lineTotal.percentage(item.taxRate));
+    }
+    const total = subtotal.add(tax);
+    const validDays = input.validDays ?? 30;
+    if (!Number.isInteger(validDays) || validDays <= 0) throw new Error('validDays must be a positive integer');
+    const validUntil = new Date();
+    validUntil.setUTCDate(validUntil.getUTCDate() + validDays);
+    const estimate = new EstimateDraft(
+      globalThis.crypto.randomUUID(),
+      input.projectId,
+      input.projectName,
+      input.customerName,
+      input.items,
+      subtotal,
+      tax,
+      total,
+      validUntil
     );
+    await this.lifecycleRepo.saveEstimate(estimate);
 
     return {
-      estimateId: globalThis.crypto.randomUUID(),
-      subtotal: Math.round(subtotal * 100) / 100,
-      tax: Math.round(tax * 100) / 100,
-      total: Math.round((subtotal + tax) * 100) / 100,
-      currency: input.items[0].currency,
+      estimateId: estimate.id,
+      subtotal: subtotal.toNumber(),
+      tax: tax.toNumber(),
+      total: total.toNumber(),
+      currency,
       status: 'draft',
     };
   }

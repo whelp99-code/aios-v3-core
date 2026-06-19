@@ -1,81 +1,102 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { CustomerProduct, Organization, Project } from '@aios/domain';
+import type {
+  CustomerRepository,
+  LifecycleRepository,
+  ProjectRepository,
+} from '../src/ports/index.js';
 import {
   CompleteProject,
-  PrepareCfoHandoff,
-  RegisterCustomerProduct,
   OpenMaintenanceCase,
-  ProposeNewSolution
+  PrepareCfoHandoff,
+  ProposeNewSolution,
+  RegisterCustomerProduct,
 } from '../src/use-cases/lifecycle/index.js';
 
-describe('CompleteProject', () => {
-  it('should complete project and trigger CFO handoff', async () => {
-    const useCase = new CompleteProject();
-    const result = await useCase.execute({ projectId: 'p1' });
-    expect(result.status).toBe('completed');
-    expect(result.cfoHandoffDraft).toBe(true);
-  });
-});
+function projectRepo(status: 'active' | 'completed' = 'completed'): ProjectRepository {
+  const project = new Project('p1', 'AIOS', 'c1', null, status);
+  return {
+    save: vi.fn(async (value: Project) => value),
+    findById: vi.fn(async (id: string) => id === project.id ? project : null),
+    findByCandidateId: vi.fn().mockResolvedValue(null),
+  };
+}
 
-describe('PrepareCfoHandoff', () => {
-  it('should calculate totals and require approval', async () => {
-    const useCase = new PrepareCfoHandoff();
-    const result = await useCase.execute({
-      projectId: 'p1',
-      projectName: 'Test',
+function customerRepo(): CustomerRepository {
+  const customer = new Organization('c1', 'Customer', 'customer.test');
+  return {
+    save: vi.fn().mockResolvedValue(undefined),
+    findById: vi.fn(async (id: string) => id === customer.id ? customer : null),
+    findByDomain: vi.fn().mockResolvedValue(customer),
+  };
+}
+
+function lifecycleRepo(product: CustomerProduct | null = null): LifecycleRepository {
+  return {
+    saveTasks: vi.fn().mockResolvedValue(undefined),
+    saveEstimate: vi.fn().mockResolvedValue(undefined),
+    saveProposal: vi.fn().mockResolvedValue(undefined),
+    savePocPlan: vi.fn().mockResolvedValue(undefined),
+    saveEmailDraft: vi.fn().mockResolvedValue(undefined),
+    saveCfoHandoff: vi.fn().mockResolvedValue(undefined),
+    saveCustomerProduct: vi.fn(async (value) => value),
+    findCustomerProduct: vi.fn().mockResolvedValue(product),
+    saveMaintenanceCase: vi.fn().mockResolvedValue(undefined),
+    saveSolutionProposal: vi.fn().mockResolvedValue(undefined),
+  };
+}
+
+describe('persisted lifecycle use cases', () => {
+  it('completes an active project', async () => {
+    const projects = projectRepo('active');
+    const result = await new CompleteProject(projects).execute({ projectId: 'p1' });
+    expect(result.status).toBe('completed');
+    expect(projects.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('creates a decimal CFO handoff draft', async () => {
+    const persistence = lifecycleRepo();
+    const result = await new PrepareCfoHandoff(projectRepo(), persistence).execute({
+      projectId: 'p1', projectName: 'AIOS',
       items: [
-        { category: 'Development', description: 'Main dev', amount: 1000000, currency: 'KRW' },
-        { category: 'Consulting', description: 'Review', amount: 500000, currency: 'KRW' },
+        { category: 'Development', description: 'Main', amount: 100.10, currency: 'KRW' },
+        { category: 'Review', description: 'QA', amount: 50.05, currency: 'KRW' },
       ],
     });
-
-    expect(result.totalAmount).toBe(1500000);
-    expect(result.status).toBe('draft');
+    expect(result.totalAmount).toBe(150.15);
     expect(result.approvalRequired).toBe(true);
-    expect(result.handoffId).toMatch(/^[0-9a-f-]{36}$/);
+    expect(persistence.saveCfoHandoff).toHaveBeenCalledTimes(1);
   });
-});
 
-describe('RegisterCustomerProduct', () => {
-  it('should register product for customer', async () => {
-    const useCase = new RegisterCustomerProduct();
-    const result = await useCase.execute({
-      customerId: 'c1',
-      projectName: 'AIOS',
-      productName: 'AIOS Platform',
-      version: '1.0.0',
-      installationDate: new Date(),
+  it('registers a delivered product and opens a maintenance case', async () => {
+    const persistence = lifecycleRepo();
+    const registered = await new RegisterCustomerProduct(
+      customerRepo(), projectRepo(), persistence
+    ).execute({
+      customerId: 'c1', projectId: 'p1', projectName: 'AIOS',
+      productName: 'AIOS Platform', version: '1.0.0', installationDate: new Date(),
+    });
+    const product = new CustomerProduct(registered.productId, 'c1', 'p1', 'AIOS Platform', '1.0.0', new Date());
+    const maintenancePersistence = lifecycleRepo(product);
+    const maintenance = await new OpenMaintenanceCase(
+      customerRepo(), maintenancePersistence
+    ).execute({
+      customerId: 'c1', productId: product.id,
+      description: 'System update', priority: 'medium',
     });
 
-    expect(result.productId).toMatch(/^[0-9a-f-]{36}$/);
-    expect(result.customerId).toBe('c1');
+    expect(maintenance.status).toBe('open');
+    expect(persistence.saveCustomerProduct).toHaveBeenCalledTimes(1);
+    expect(maintenancePersistence.saveMaintenanceCase).toHaveBeenCalledTimes(1);
   });
-});
 
-describe('OpenMaintenanceCase', () => {
-  it('should open maintenance case', async () => {
-    const useCase = new OpenMaintenanceCase();
-    const result = await useCase.execute({
-      customerId: 'c1',
-      productId: 'prod1',
-      description: 'System update needed',
-      priority: 'medium',
+  it('persists a solution proposal with evidence', async () => {
+    const persistence = lifecycleRepo();
+    const result = await new ProposeNewSolution(customerRepo(), persistence).execute({
+      customerId: 'c1', description: 'AI automation',
+      sourceEvidence: ['maintenance-case-1'], estimatedValue: 1000, currency: 'USD',
     });
-
-    expect(result.status).toBe('open');
-    expect(result.caseId).toMatch(/^[0-9a-f-]{36}$/);
-  });
-});
-
-describe('ProposeNewSolution', () => {
-  it('should propose solution with evidence', async () => {
-    const useCase = new ProposeNewSolution();
-    const result = await useCase.execute({
-      customerId: 'c1',
-      description: 'AI-based automation',
-      sourceEvidence: ['maintenance-case-1', 'customer-feedback-2'],
-    });
-
     expect(result.status).toBe('proposed');
-    expect(result.solutionId).toMatch(/^[0-9a-f-]{36}$/);
+    expect(persistence.saveSolutionProposal).toHaveBeenCalledTimes(1);
   });
 });

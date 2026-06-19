@@ -56,6 +56,9 @@ model Organization {
 
   contacts      Contact[]
   projects      Project[]
+  products      CustomerProduct[]
+  maintenanceCases MaintenanceCase[]
+  solutionProposals SolutionProposal[]
 
   @@index([domain])
   @@index([type])
@@ -109,6 +112,12 @@ model Project {
 
   tasks         TaskCard[]
   approvals     ApprovalRequest[]
+  estimates     Estimate[]
+  proposals     Proposal[]
+  pocPlans      PocPlan[]
+  emailDrafts   EmailDraft[]
+  cfoHandoffs   CfoHandoff[]
+  products      CustomerProduct[]
 
   @@index([status])
   @@index([customerId])
@@ -196,4 +205,130 @@ model AuditEvent {
 
   @@index([aggregateType, aggregateId])
   @@index([createdAt])
+}
+
+model Estimate {
+  id           String   @id
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id])
+  projectName  String
+  customerName String
+  items        Json
+  subtotal     Decimal  @db.Decimal(18, 4)
+  tax          Decimal  @db.Decimal(18, 4)
+  total        Decimal  @db.Decimal(18, 4)
+  currency     String
+  validUntil   DateTime
+  status       String   @default("draft")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([projectId, status])
+}
+
+model Proposal {
+  id           String   @id
+  projectId    String
+  project      Project  @relation(fields: [projectId], references: [id])
+  projectName  String
+  customerName String
+  sections     Json
+  status       String   @default("draft")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([projectId, status])
+}
+
+model PocPlan {
+  id              String   @id
+  projectId       String
+  project         Project  @relation(fields: [projectId], references: [id])
+  objectives      Json
+  scope           String
+  timeline        Json
+  successCriteria Json
+  status          String   @default("draft")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([projectId, status])
+}
+
+model EmailDraft {
+  id             String   @id
+  projectId      String
+  project        Project  @relation(fields: [projectId], references: [id])
+  recipientEmail String
+  subject        String
+  body           String
+  purpose        String
+  status         String   @default("draft")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([projectId, status])
+}
+
+model CfoHandoff {
+  id          String   @id
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id])
+  items       Json
+  totalAmount Decimal  @db.Decimal(18, 4)
+  currency    String
+  status      String   @default("draft")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([projectId, status])
+}
+
+model CustomerProduct {
+  id               String   @id
+  customerId       String
+  customer         Organization @relation(fields: [customerId], references: [id])
+  projectId        String
+  project          Project  @relation(fields: [projectId], references: [id])
+  productName      String
+  version          String
+  installationDate DateTime
+  status           String   @default("active")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  maintenanceCases MaintenanceCase[]
+
+  @@unique([customerId, projectId, productName, version])
+  @@index([customerId, status])
+}
+
+model MaintenanceCase {
+  id          String   @id
+  customerId  String
+  customer    Organization @relation(fields: [customerId], references: [id])
+  productId   String
+  product     CustomerProduct @relation(fields: [productId], references: [id])
+  description String
+  priority    String
+  status      String   @default("open")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([customerId, status])
+  @@index([productId, status])
+}
+
+model SolutionProposal {
+  id             String   @id
+  customerId     String
+  customer       Organization @relation(fields: [customerId], references: [id])
+  description    String
+  sourceEvidence Json
+  estimatedValue Decimal? @db.Decimal(18, 4)
+  currency       String?
+  status         String   @default("proposed")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([customerId, status])
 }

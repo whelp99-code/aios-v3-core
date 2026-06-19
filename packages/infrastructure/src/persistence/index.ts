@@ -9,3 +9,4 @@ export { PrismaProjectCandidateRepository } from './prisma-project-candidate-rep
 export { PrismaApprovalRepository } from './prisma-approval-repository.js';
 export { PrismaProjectRepository } from './prisma-project-repository.js';
 export { PrismaMailAutomationRepository } from './prisma-mail-automation-repository.js';
+export { PrismaLifecycleRepository } from './prisma-lifecycle-repository.js';
