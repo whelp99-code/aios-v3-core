@@ -90,6 +90,23 @@ describe('persisted lifecycle use cases', () => {
     expect(maintenancePersistence.saveMaintenanceCase).toHaveBeenCalledTimes(1);
   });
 
+  it('rejects product registration when the project belongs to another customer', async () => {
+    const persistence = lifecycleRepo();
+    const otherCustomerProjectRepo: ProjectRepository = {
+      save: vi.fn(async (value: Project) => value),
+      findById: vi.fn().mockResolvedValue(new Project('p1', 'AIOS', 'c2', null, 'completed')),
+      findByCandidateId: vi.fn().mockResolvedValue(null),
+    };
+
+    await expect(new RegisterCustomerProduct(
+      customerRepo(), otherCustomerProjectRepo, persistence
+    ).execute({
+      customerId: 'c1', projectId: 'p1', projectName: 'AIOS',
+      productName: 'AIOS Platform', version: '1.0.0', installationDate: new Date(),
+    })).rejects.toThrow('not found for customer');
+    expect(persistence.saveCustomerProduct).not.toHaveBeenCalled();
+  });
+
   it('persists a solution proposal with evidence', async () => {
     const persistence = lifecycleRepo();
     const result = await new ProposeNewSolution(customerRepo(), persistence).execute({

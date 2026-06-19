@@ -31,6 +31,7 @@ export class GenerateProjectTasks implements UseCase<GenerateProjectTasksInput, 
 
   async execute(input: GenerateProjectTasksInput): Promise<GenerateProjectTasksOutput> {
     if (!await this.projectRepo.findById(input.projectId)) throw new Error(`Project ${input.projectId} not found`);
+    const template = input.template ?? 'default';
     const defaultTasks: TaskDefinition[] = [
       { title: '요구사항 분석', description: '프로젝트 요구사항 상세 분석' },
       { title: '기술 설계', description: '기술 아키텍처 및 상세 설계' },
@@ -39,15 +40,15 @@ export class GenerateProjectTasks implements UseCase<GenerateProjectTasksInput, 
       { title: '배포', description: '운영 환경 배포 및 모니터링' },
     ];
 
-    const tasks = defaultTasks.map((task) => new TaskCard(
-      globalThis.crypto.randomUUID(),
+    const tasks = defaultTasks.map((task, index) => new TaskCard(
+      `${input.projectId}:${template}:default-task:${index + 1}`,
       input.projectId,
       task.title,
       task.description ?? null,
       'pending',
       task.assignee ?? null,
       null,
-      { template: input.template ?? 'default' }
+      { template }
     ));
     await this.lifecycleRepo.saveTasks(tasks);
 
