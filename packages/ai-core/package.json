@@ -1,20 +1,28 @@
 {
   "name": "@aios/ai-core",
   "version": "0.1.0",
-  "description": "AIOS AI Core - Hybrid model routing and provider adapters",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./model-router": {
+      "import": "./dist/model-router.js",
+      "types": "./dist/model-router.d.ts"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "smoke": "node scripts/smoke-test.js",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "axios": "^1.6.0"
   }
 }
