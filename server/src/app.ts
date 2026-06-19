@@ -39,6 +39,15 @@ function apiKeyAuth(req: Request, res: Response, next: NextFunction): void {
     return;
   }
 
+  const actorId = process.env.API_ACTOR_ID?.trim();
+  const actorRoles = process.env.API_ACTOR_ROLES
+    ?.split(',')
+    .map((role) => role.trim().toLowerCase())
+    .filter(Boolean) ?? [];
+  if (actorId) {
+    res.locals.approvalPrincipal = { id: actorId, roles: actorRoles };
+  }
+
   next();
 }
 

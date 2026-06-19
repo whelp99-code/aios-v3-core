@@ -2,7 +2,8 @@
 import type { UseCase } from '../index.js';
 import type { EstimateLineItem } from '@aios/domain';
 import { DecimalMoney, EstimateDraft } from '@aios/domain';
-import type { LifecycleRepository, ProjectRepository } from '../../ports/index.js';
+import type { CustomerRepository, LifecycleRepository, ProjectRepository } from '../../ports/index.js';
+import { requireProjectCustomer, requireProjectInStatus } from '../../validation/lifecycle-state.js';
 
 export interface GenerateEstimateInput {
   projectId: string;
@@ -30,16 +31,18 @@ export interface GenerateEstimateOutput {
 export class GenerateEstimate implements UseCase<GenerateEstimateInput, GenerateEstimateOutput> {
   constructor(
     private readonly projectRepo: ProjectRepository,
+    private readonly customerRepo: CustomerRepository,
     private readonly lifecycleRepo: LifecycleRepository
   ) {}
 
   async execute(input: GenerateEstimateInput): Promise<GenerateEstimateOutput> {
-    const project = await this.projectRepo.findById(input.projectId);
-    if (!project) throw new Error(`Project ${input.projectId} not found`);
+    const project = await requireProjectInStatus(this.projectRepo, input.projectId, ['candidate', 'active']);
+    await requireProjectCustomer(project, this.customerRepo);
     if (input.items.length === 0) throw new Error('Estimate requires at least one line item');
 
     // Validate single currency
-    const currencies = new Set(input.items.map((i) => i.currency));
+    const currencies = new Set(input.items.map((item) => item.currency.trim().toUpperCase()));
+    if (currencies.has('')) throw new Error('Currency is required');
     if (currencies.size > 1) {
       throw new Error(
         `Mixed currencies not allowed: ${[...currencies].join(', ')}`
@@ -59,7 +62,7 @@ export class GenerateEstimate implements UseCase<GenerateEstimateInput, Generate
       }
     }
 
-    const currency = input.items[0].currency.toUpperCase();
+    const currency = input.items[0].currency.trim().toUpperCase();
     let subtotal = DecimalMoney.zero(currency);
     let tax = DecimalMoney.zero(currency);
     for (const item of input.items) {

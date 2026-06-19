@@ -31,6 +31,7 @@ export class OpenMaintenanceCase implements UseCase<OpenMaintenanceCaseInput, Op
     if (!product || product.customerId !== input.customerId) {
       throw new Error(`Product ${input.productId} not found for customer ${input.customerId}`);
     }
+    if (product.status !== 'active') throw new Error(`Product ${input.productId} is not active`);
     const maintenanceCase = new MaintenanceCase(
       globalThis.crypto.randomUUID(), input.customerId, input.productId,
       input.description, input.priority

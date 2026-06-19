@@ -41,9 +41,10 @@ export class PrepareCfoHandoff implements UseCase<PrepareCfoHandoffInput, Prepar
     if (!project) throw new Error(`Project ${input.projectId} not found`);
     if (project.status !== 'completed') throw new Error('CFO handoff requires a completed project');
     if (input.items.length === 0) throw new Error('CFO handoff requires at least one item');
-    const currencies = new Set(input.items.map((item) => item.currency.toUpperCase()));
+    const currencies = new Set(input.items.map((item) => item.currency.trim().toUpperCase()));
+    if (currencies.has('')) throw new Error('Currency is required');
     if (currencies.size !== 1) throw new Error('Mixed currencies not allowed in CFO handoff');
-    const currency = input.items[0].currency.toUpperCase();
+    const currency = input.items[0].currency.trim().toUpperCase();
     let total = DecimalMoney.zero(currency);
     for (const item of input.items) total = total.add(DecimalMoney.from(item.amount, currency));
     const handoff = new CfoHandoffDraft(

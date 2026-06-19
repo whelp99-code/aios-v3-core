@@ -1,7 +1,8 @@
 
 import type { UseCase } from '../index.js';
 import { ProposalDraft } from '@aios/domain';
-import type { LifecycleRepository, ProjectRepository } from '../../ports/index.js';
+import type { CustomerRepository, LifecycleRepository, ProjectRepository } from '../../ports/index.js';
+import { requireProjectCustomer, requireProjectInStatus } from '../../validation/lifecycle-state.js';
 
 export interface GenerateProposalInput {
   projectId: string;
@@ -22,11 +23,13 @@ export interface GenerateProposalOutput {
 export class GenerateProposal implements UseCase<GenerateProposalInput, GenerateProposalOutput> {
   constructor(
     private readonly projectRepo: ProjectRepository,
+    private readonly customerRepo: CustomerRepository,
     private readonly lifecycleRepo: LifecycleRepository
   ) {}
 
   async execute(input: GenerateProposalInput): Promise<GenerateProposalOutput> {
-    if (!await this.projectRepo.findById(input.projectId)) throw new Error(`Project ${input.projectId} not found`);
+    const project = await requireProjectInStatus(this.projectRepo, input.projectId, ['candidate', 'active']);
+    await requireProjectCustomer(project, this.customerRepo);
     if (input.sections.length === 0) throw new Error('Proposal requires at least one section');
     const proposal = new ProposalDraft(
       globalThis.crypto.randomUUID(), input.projectId, input.projectName,

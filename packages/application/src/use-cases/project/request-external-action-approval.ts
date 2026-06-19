@@ -1,8 +1,9 @@
 
 import type { UseCase } from '../index.js';
-import type { ApprovalRepository } from '../../ports/index.js';
+import type { ApprovalRepository, ProjectRepository } from '../../ports/index.js';
 import { ApprovalRequest, type ExternalActionType } from '@aios/domain';
 import { hashApprovalPayload } from '../../security/payload-hash.js';
+import { requireProjectInStatus } from '../../validation/lifecycle-state.js';
 
 export type { ExternalActionType } from '@aios/domain';
 
@@ -26,9 +27,17 @@ export interface RequestExternalActionApprovalOutput {
  * External actions are ALWAYS blocked until approved.
  */
 export class RequestExternalActionApproval implements UseCase<RequestExternalActionApprovalInput, RequestExternalActionApprovalOutput> {
-  constructor(private readonly approvalRepo: ApprovalRepository) {}
+  constructor(
+    private readonly projectRepo: ProjectRepository,
+    private readonly approvalRepo: ApprovalRepository
+  ) {}
 
   async execute(input: RequestExternalActionApprovalInput): Promise<RequestExternalActionApprovalOutput> {
+    await requireProjectInStatus(
+      this.projectRepo,
+      input.projectId,
+      ['candidate', 'active', 'completed']
+    );
     const approvalId = globalThis.crypto.randomUUID();
     const payloadHash = await hashApprovalPayload(input.payload);
     const request = new ApprovalRequest(

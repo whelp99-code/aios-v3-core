@@ -8,6 +8,23 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: aios
+          POSTGRES_PASSWORD: aios
+          POSTGRES_DB: aios_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U aios -d aios_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://aios:aios@localhost:5432/aios_test?schema=public
+      TEST_DATABASE_URL: postgresql://aios:aios@localhost:5432/aios_test?schema=public
     strategy:
       matrix:
         node-version: [20]
@@ -25,14 +42,32 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma client
+        run: pnpm --filter @aios/infrastructure exec prisma generate
+
+      - name: Apply disposable database migrations
+        run: pnpm --filter @aios/infrastructure exec prisma migrate deploy
+
       - name: Lint
         run: pnpm lint
 
       - name: Typecheck
         run: pnpm typecheck
 
-      - name: Test
-        run: pnpm test
+      - name: Unit tests
+        run: pnpm test:unit
+
+      - name: Integration tests
+        run: pnpm test:integration
+
+      - name: E2E tests
+        run: pnpm test:e2e
+
+      - name: Diff hygiene
+        run: git diff --check
 
       - name: Build
         run: pnpm build
+
+      - name: Verify build did not pollute source files
+        run: git diff --exit-code -- . ':(exclude)**/dist/**' ':(exclude)**/node_modules/**'

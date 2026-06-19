@@ -17,6 +17,7 @@ function projectRepo(status: 'active' | 'completed' = 'completed'): ProjectRepos
   const project = new Project('p1', 'AIOS', 'c1', null, status);
   return {
     save: vi.fn(async (value: Project) => value),
+    promoteCandidate: vi.fn(async (value: Project) => value),
     findById: vi.fn(async (id: string) => id === project.id ? project : null),
     findByCandidateId: vi.fn().mockResolvedValue(null),
   };

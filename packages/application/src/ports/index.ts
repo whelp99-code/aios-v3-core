@@ -116,6 +116,7 @@ export interface ProjectCandidateRepository {
 
 export interface ProjectRepository {
   save(project: Project): Promise<Project>;
+  promoteCandidate(project: Project): Promise<Project>;
   findById(id: string): Promise<Project | null>;
   findByCandidateId(candidateId: string): Promise<Project | null>;
 }

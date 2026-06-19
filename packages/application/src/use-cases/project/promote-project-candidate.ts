@@ -52,7 +52,7 @@ export class PromoteProjectCandidate implements UseCase<PromoteProjectCandidateI
       'candidate',
       input.owner ?? null
     );
-    const persisted = await this.projectRepo.save(project);
+    const persisted = await this.projectRepo.promoteCandidate(project);
 
     return {
       projectId: persisted.id,

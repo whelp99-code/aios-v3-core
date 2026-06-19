@@ -33,6 +33,7 @@ function mockApprovalRepo(overrides: Partial<ApprovalRepository> = {}): Approval
 function mockProjectRepo(overrides: Partial<ProjectRepository> = {}): ProjectRepository {
   return {
     save: vi.fn(async (project: Project) => project),
+    promoteCandidate: vi.fn(async (project: Project) => project),
     findById: vi.fn().mockResolvedValue(null),
     findByCandidateId: vi.fn().mockResolvedValue(null),
     ...overrides,
@@ -108,7 +109,7 @@ describe('PromoteProjectCandidate', () => {
     const result = await useCase.execute({ candidateId: 'pc1', projectName: 'New Project' });
     expect(result.projectId).toBeDefined();
     expect(result.candidateId).toBe('pc1');
-    expect(projectRepo.save).toHaveBeenCalledTimes(1);
+    expect(projectRepo.promoteCandidate).toHaveBeenCalledTimes(1);
   });
 
   it('should reject promotion of non-approved candidate', async () => {
@@ -169,7 +170,11 @@ describe('GenerateProjectTasks', () => {
 describe('RequestExternalActionApproval', () => {
   it('should create approval request with UUID', async () => {
     const repo = mockApprovalRepo();
-    const useCase = new RequestExternalActionApproval(repo);
+    const project = new Project('p1', 'Project', null, null, 'active');
+    const useCase = new RequestExternalActionApproval(
+      mockProjectRepo({ findById: vi.fn().mockResolvedValue(project) }),
+      repo
+    );
 
     const result = await useCase.execute({
       projectId: 'p1',
@@ -184,6 +189,18 @@ describe('RequestExternalActionApproval', () => {
     expect(result.approvalId).toBeDefined();
     expect(typeof result.approvalId).toBe('string');
     expect(repo.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('should reject approval requests for missing projects', async () => {
+    const useCase = new RequestExternalActionApproval(mockProjectRepo(), mockApprovalRepo());
+    await expect(useCase.execute({
+      projectId: 'missing',
+      actionType: 'api_call',
+      target: 'https://example.invalid',
+      payload: {},
+      description: 'Call external API',
+      requestedBy: 'user1',
+    })).rejects.toThrow('not found');
   });
 });
 
