@@ -9,6 +9,8 @@ export default defineConfig({
       'packages/*/tests/*.test.ts',
       'server/src/**/__tests__/*.test.ts',
       'server/tests/*.test.ts',
+      'tests/integration/*.test.ts',
+      'tests/e2e/*.test.ts',
     ],
     testTimeout: 30_000,
     hookTimeout: 10_000,

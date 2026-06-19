@@ -3,8 +3,8 @@ import yaml from 'js-yaml';
 export interface SkillMetadata {
   name: string;
   description: string;
-  input_schema: any;
-  output_schema: any;
+  input_schema: Record<string, unknown>;
+  output_schema: Record<string, unknown>;
   version?: string;
   author?: string;
 }
@@ -29,8 +29,8 @@ export class SkillParser {
     let metadata: SkillMetadata;
     try {
       metadata = yaml.load(yamlFrontmatter, { schema: yaml.DEFAULT_SCHEMA }) as SkillMetadata;
-    } catch (e: any) {
-      throw new Error(`Failed to parse SKILL.md YAML frontmatter: ${e.message}`);
+    } catch (e: unknown) {
+      throw new Error(`Failed to parse SKILL.md YAML frontmatter: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     const workflowStepsMatch = markdownContent.match(

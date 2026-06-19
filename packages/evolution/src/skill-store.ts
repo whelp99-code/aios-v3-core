@@ -95,7 +95,7 @@ export class SkillStore {
   findTopSkills(limit: number = 10): Skill[] {
     const rows = this.db
       .prepare('SELECT * FROM skills ORDER BY reward DESC, success_rate DESC LIMIT ?')
-      .all(limit) as any[];
+      .all(limit) as Record<string, unknown>[];
     return rows.map((row) => this.rowToSkill(row));
   }
 
@@ -142,7 +142,7 @@ export class SkillStore {
   findLatest(name: string): Skill | null {
     const row = this.db
       .prepare('SELECT * FROM skills WHERE name = ? ORDER BY version DESC LIMIT 1')
-      .get(name) as any;
+      .get(name) as Record<string, unknown>;
     return row ? this.rowToSkill(row) : null;
   }
 
@@ -168,19 +168,19 @@ export class SkillStore {
   }
 
   /** Convert a database row to a Skill object */
-  private rowToSkill(row: any): Skill {
+  private rowToSkill(row: Record<string, unknown>): Skill {
     return {
-      id: row.id,
-      name: row.name,
-      content: row.content,
-      version: row.version,
-      parentId: row.parent_id,
-      reward: row.reward,
-      usageCount: row.usage_count,
-      successRate: row.success_rate,
-      metadata: typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+      id: String(row.id),
+      name: String(row.name),
+      content: String(row.content),
+      version: Number(row.version),
+      parentId: row.parent_id as string | null,
+      reward: Number(row.reward),
+      usageCount: Number(row.usage_count),
+      successRate: Number(row.success_rate),
+      metadata: typeof row.metadata === 'string' ? JSON.parse(row.metadata as string) : (row.metadata as Record<string, unknown>),
+      createdAt: String(row.created_at),
+      updatedAt: String(row.updated_at),
     };
   }
 }

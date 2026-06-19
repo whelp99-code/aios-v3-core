@@ -5,12 +5,12 @@
 export interface WorkflowStep {
   id: string;
   name: string;
-  execute: (input: any) => Promise<any>;
+  execute: (input: unknown) => Promise<unknown>;
 }
 
 export interface WorkflowResult {
   success: boolean;
-  output: any;
+  output: unknown;
   steps: string[];
   duration: number;
   tokenUsage?: {

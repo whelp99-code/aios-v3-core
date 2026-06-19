@@ -10,9 +10,31 @@ export interface LangfuseConfig {
   flushInterval?: number;
 }
 
+/** Langfuse 트레이스 인터페이스 */
+export interface LangfuseTrace {
+  id: string;
+  name: string;
+  input?: unknown;
+  metadata?: Record<string, unknown>;
+  span: (params: { name: string; input?: unknown; metadata?: Record<string, unknown> }) => LangfuseSpan;
+  event: (params: { name: string; input?: unknown; metadata?: Record<string, unknown> }) => void;
+  end: (output?: unknown, metadata?: Record<string, unknown>) => void;
+}
+
+/** Langfuse 스팬 인터페이스 */
+export interface LangfuseSpan {
+  id: string;
+  traceId?: string;
+  name: string;
+  input?: unknown;
+  metadata?: Record<string, unknown>;
+  end: (output?: unknown, metadata?: Record<string, unknown>) => void;
+  update: (data: Record<string, unknown>) => void;
+}
+
 export interface TraceContext {
-  trace: any;
-  span: any;
+  trace: LangfuseTrace;
+  span: LangfuseSpan;
 }
 
 export interface TokenUsage {
@@ -38,5 +60,5 @@ export interface Alert {
   message: string;
   severity: 'low' | 'medium' | 'high';
   timestamp: Date;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }

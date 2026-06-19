@@ -7,7 +7,7 @@ import { WorkflowConfig, WorkflowResult } from './types.js';
 
 export class WorkflowEngine {
   private config: WorkflowConfig;
-  private steps: Array<{ name: string; execute: (input: any) => Promise<any> }> = [];
+  private steps: Array<{ name: string; execute: (input: unknown) => Promise<unknown> }> = [];
 
   constructor(config: WorkflowConfig) {
     this.config = config;
@@ -16,14 +16,14 @@ export class WorkflowEngine {
   /**
    * 스텝 추가
    */
-  addStep(name: string, execute: (input: any) => Promise<any>): void {
+  addStep(name: string, execute: (input: unknown) => Promise<unknown>): void {
     this.steps.push({ name, execute });
   }
 
   /**
    * 워크플로우 실행
    */
-  async execute(input: any): Promise<WorkflowResult> {
+  async execute(input: unknown): Promise<WorkflowResult> {
     const startTime = Date.now();
     const executedSteps: string[] = [];
     let currentInput = input;

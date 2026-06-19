@@ -35,7 +35,7 @@ export class BenchmarkRunner {
    * 벤치마크 실행
    */
   async run(
-    handler: (input: any) => Promise<any>
+    handler: (input: unknown) => Promise<unknown>
   ): Promise<BenchmarkResult[]> {
     this.results = [];
 
@@ -52,11 +52,11 @@ export class BenchmarkRunner {
    */
   private async runTask(
     task: BenchmarkTask,
-    handler: (input: any) => Promise<any>
+    handler: (input: unknown) => Promise<unknown>
   ): Promise<BenchmarkResult> {
     const startTime = Date.now();
     let success = false;
-    let output: any = null;
+    let output: unknown = null;
     let error: string | undefined;
 
     for (let i = 0; i < this.config.retries; i++) {
@@ -95,7 +95,7 @@ export class BenchmarkRunner {
   /**
    * 성능 메트릭 계산
    */
-  private calculateMetrics(task: BenchmarkTask, output: any): PerformanceMetrics {
+  private calculateMetrics(task: BenchmarkTask, output: unknown): PerformanceMetrics {
     // 단순 정확도 계산 (실제로는 더 정교한 계산 필요)
     const accuracy = output ? 0.8 : 0;
 
@@ -112,7 +112,7 @@ export class BenchmarkRunner {
   /**
    * 진화 메트릭 계산
    */
-  private calculateEvolution(task: BenchmarkTask, output: any): EvolutionMetrics {
+  private calculateEvolution(task: BenchmarkTask, output: unknown): EvolutionMetrics {
     return {
       reward: output ? 0.8 : 0,
       improvement: 0,

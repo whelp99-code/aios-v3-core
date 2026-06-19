@@ -51,8 +51,8 @@ export class DefaultLLMClient implements LLMClient {
       throw new Error(`LLM API error: ${response.status} ${response.statusText}`);
     }
 
-    const data = (await response.json()) as any;
-    return data.choices?.[0]?.message?.content ?? '{}';
+    const data = (await response.json()) as Record<string, unknown>;
+    return (data as {choices?: Array<{message?: {content?: string}}>}).choices?.[0]?.message?.content ?? '{}';
   }
 }
 
@@ -299,7 +299,7 @@ Return JSON with:
     // Count skills by evolution mode
     const byMode: Record<EvolutionMode, number> = { FIX: 0, DERIVED: 0, CAPTURED: 0 };
     for (const skill of topSkills) {
-      const mode = (skill.metadata as any)?.evolutionMode as EvolutionMode;
+      const mode = (skill.metadata as Record<string, unknown>)?.evolutionMode as EvolutionMode;
       if (mode && mode in byMode) {
         byMode[mode]++;
       }

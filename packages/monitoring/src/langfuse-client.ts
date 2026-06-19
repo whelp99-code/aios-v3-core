@@ -3,7 +3,7 @@
  * Langfuse 연결 관리 및 폴백 로직
  */
 
-import { LangfuseConfig } from './types.js';
+import { LangfuseConfig, LangfuseTrace, LangfuseSpan } from './types.js';
 
 export class LangfuseClient {
   private config: LangfuseConfig;
@@ -35,11 +35,11 @@ export class LangfuseClient {
    */
   createTrace(params: {
     name: string;
-    input?: any;
-    metadata?: Record<string, any>;
+    input?: unknown;
+    metadata?: Record<string, unknown>;
     userId?: string;
     sessionId?: string;
-  }): any {
+  }): LangfuseTrace {
     if (!this.isHealthy) {
       return this.createMockTrace(params.name);
     }
@@ -51,17 +51,20 @@ export class LangfuseClient {
       name: params.name,
       input: params.input,
       metadata: params.metadata,
+      span: (spanParams) => this.createSpan({ id: `trace-${this.traceIdCounter}` } as LangfuseTrace, spanParams),
+      event: () => {},
+      end: () => {},
     };
   }
 
   /**
    * 스팬 생성
    */
-  createSpan(trace: any, params: {
+  createSpan(trace: LangfuseTrace, params: {
     name: string;
-    input?: any;
-    metadata?: Record<string, any>;
-  }): any {
+    input?: unknown;
+    metadata?: Record<string, unknown>;
+  }): LangfuseSpan {
     if (!this.isHealthy) {
       return this.createMockSpan(params.name);
     }
@@ -72,19 +75,20 @@ export class LangfuseClient {
       name: params.name,
       input: params.input,
       metadata: params.metadata,
-      end: (output?: any, metadata?: Record<string, any>) => {
+      end: (output?: unknown, metadata?: Record<string, unknown>) => {
         console.log(`[Span] ${params.name} 종료`, { output, metadata });
       },
+      update: () => {},
     };
   }
 
   /**
    * 이벤트 생성
    */
-  createEvent(trace: any, params: {
+  createEvent(trace: LangfuseTrace, params: {
     name: string;
-    input?: any;
-    metadata?: Record<string, any>;
+    input?: unknown;
+    metadata?: Record<string, unknown>;
   }): void {
     if (!this.isHealthy) return;
 
@@ -107,17 +111,17 @@ export class LangfuseClient {
     return this.isHealthy;
   }
 
-  private createMockTrace(name: string): any {
+  private createMockTrace(name: string): LangfuseTrace {
     return {
       id: `mock-trace-${++this.traceIdCounter}`,
       name,
-      span: (params: any) => this.createMockSpan(params.name),
+      span: (params) => this.createMockSpan(params.name),
       event: () => {},
       end: () => {},
     };
   }
 
-  private createMockSpan(name: string): any {
+  private createMockSpan(name: string): LangfuseSpan {
     return {
       id: `mock-span-${Date.now()}`,
       name,

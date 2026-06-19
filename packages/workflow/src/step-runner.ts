@@ -12,7 +12,7 @@ export class StepRunner {
     this.steps.push(step);
   }
 
-  async execute(input: any): Promise<WorkflowResult> {
+  async execute(input: unknown): Promise<WorkflowResult> {
     const startTime = Date.now();
     const executedSteps: string[] = [];
     let currentInput = input;

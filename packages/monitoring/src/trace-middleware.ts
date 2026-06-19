@@ -14,7 +14,7 @@ export class TraceMiddleware {
    */
   async traceWorkflow<T>(
     name: string,
-    input: any,
+    input: unknown,
     fn: (ctx: TraceContext) => Promise<T>
   ): Promise<T> {
     const trace = this.client.createTrace({
@@ -52,7 +52,7 @@ export class TraceMiddleware {
   async traceStep<T>(
     ctx: TraceContext,
     stepName: string,
-    input: any,
+    input: unknown,
     fn: () => Promise<T>
   ): Promise<T> {
     const childSpan = this.client.createSpan(ctx.trace, {
@@ -88,7 +88,7 @@ export class TraceMiddleware {
     ctx: TraceContext,
     params: {
       model: string;
-      messages: any[];
+      messages: Array<{ role: string; content: string }>;
       temperature?: number;
     },
     fn: () => Promise<T>
@@ -130,7 +130,7 @@ export class TraceMiddleware {
     ctx: TraceContext,
     params: {
       toolName: string;
-      arguments: any;
+      arguments: Record<string, unknown>;
     },
     fn: () => Promise<T>
   ): Promise<T> {

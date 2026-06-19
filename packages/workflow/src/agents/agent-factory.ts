@@ -9,7 +9,7 @@ import { LLMAgent, AgentConfig, AgentPresets, createLLMAgent } from './llm-agent
 export interface Agent {
   id: string;
   name: string;
-  execute: (input: any) => Promise<any>;
+  execute: (input: unknown) => Promise<unknown>;
 }
 
 export class AgentFactory {
@@ -67,7 +67,7 @@ export class AgentFactory {
     return {
       id: 'planner',
       name: 'Planner Agent',
-      execute: async (input: any) => {
+      execute: async (input: unknown) => {
         return {
           plan: `Plan for: ${JSON.stringify(input).slice(0, 100)}`,
           steps: ['analyze', 'design', 'implement'],
@@ -87,7 +87,7 @@ export class AgentFactory {
     return {
       id: 'executor',
       name: 'Executor Agent',
-      execute: async (input: any) => {
+      execute: async (input: unknown) => {
         return {
           result: `Executed: ${JSON.stringify(input).slice(0, 100)}`,
           status: 'completed',
@@ -107,7 +107,7 @@ export class AgentFactory {
     return {
       id: 'critic',
       name: 'Critic Agent',
-      execute: async (input: any) => {
+      execute: async (input: unknown) => {
         return {
           score: 0.85,
           feedback: 'Good quality output',

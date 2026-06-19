@@ -6,8 +6,8 @@ export interface BenchmarkTask {
   id: string;
   name: string;
   category: string;
-  input: any;
-  expectedOutput?: any;
+  input: unknown;
+  expectedOutput?: unknown;
   timeout: number;
   tags: string[];
 }
@@ -16,7 +16,7 @@ export interface BenchmarkResult {
   taskId: string;
   taskName: string;
   success: boolean;
-  output: any;
+  output: unknown;
   metrics: PerformanceMetrics;
   evolution: EvolutionMetrics;
   stability: StabilityMetrics;

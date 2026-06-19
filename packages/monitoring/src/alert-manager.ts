@@ -21,7 +21,7 @@ export class AlertManager {
   /**
    * 에러 알림 생성
    */
-  createErrorAlert(message: string, metadata?: Record<string, any>): Alert {
+  createErrorAlert(message: string, metadata?: Record<string, unknown>): Alert {
     const alert: Alert = {
       id: `alert-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       type: 'error',
@@ -38,7 +38,7 @@ export class AlertManager {
   /**
    * 지연 시간 알림 생성
    */
-  createLatencyAlert(durationMs: number, metadata?: Record<string, any>): Alert {
+  createLatencyAlert(durationMs: number, metadata?: Record<string, unknown>): Alert {
     const severity = durationMs > (this.config.latencyThreshold ?? 5000) * 2
       ? 'high'
       : 'medium';
@@ -59,7 +59,7 @@ export class AlertManager {
   /**
    * 비용 알림 생성
    */
-  createCostAlert(costKRW: number, metadata?: Record<string, any>): Alert {
+  createCostAlert(costKRW: number, metadata?: Record<string, unknown>): Alert {
     const severity = costKRW > (this.config.costThreshold ?? 10000) * 2
       ? 'high'
       : 'medium';

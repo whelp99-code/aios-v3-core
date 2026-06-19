@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// canonical data model — normalized operational data
+model MailThread {
+  id            String   @id @default(cuid())
+  sourceSystem  String
+  externalId    String
+  subject       String
+  participants  Json     // normalized email addresses
+  status        String   @default("ingested") // ingested | analyzed | promoted
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  messages      MailMessage[]
+  candidates    ProjectCandidate[]
+
+  @@unique([sourceSystem, externalId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MailMessage {
+  id            String   @id @default(cuid())
+  threadId      String
+  thread        MailThread @relation(fields: [threadId], references: [id])
+  externalId    String
+  sender        String
+  recipients    Json
+  subject       String
+  bodyPreview   String
+  sentAt        DateTime
+  attachments   Json?    // attachment references (not binary)
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  @@unique([threadId, externalId])
+  @@index([sentAt])
+}
+
+model Organization {
+  id            String   @id @default(cuid())
+  name          String
+  domain        String?
+  type          String   @default("customer") // customer | partner | vendor
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  contacts      Contact[]
+  projects      Project[]
+
+  @@index([domain])
+  @@index([type])
+}
+
+model Contact {
+  id            String   @id @default(cuid())
+  organizationId String
+  organization  Organization @relation(fields: [organizationId], references: [id])
+  name          String
+  email         String
+  role          String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([organizationId, email])
+  @@index([email])
+}
+
+model ProjectCandidate {
+  id            String   @id @default(cuid())
+  threadId      String
+  thread        MailThread @relation(fields: [threadId], references: [id])
+  customerId    String?
+  confidence    Float    @default(0)
+  status        String   @default("proposed") // proposed | needs_review | approved | rejected
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  projects      Project[]
+
+  @@index([status])
+  @@index([confidence])
+}
+
+model Project {
+  id            String   @id @default(cuid())
+  name          String
+  customerId    String?
+  customer      Organization? @relation(fields: [customerId], references: [id])
+  candidateId   String?
+  candidate     ProjectCandidate? @relation(fields: [candidateId], references: [id])
+  status        String   @default("candidate") // candidate | active | completed | rejected
+  owner         String?
+  dueDate       DateTime?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tasks         TaskCard[]
+  approvals     ApprovalRequest[]
+
+  @@index([status])
+  @@index([customerId])
+}
+
+model TaskCard {
+  id            String   @id @default(cuid())
+  projectId     String
+  project       Project @relation(fields: [projectId], references: [id])
+  title         String
+  description   String?
+  status        String   @default("pending") // pending | in_progress | done
+  assignee      String?
+  dueDate       DateTime?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([projectId, status])
+}
+
+model ApprovalRequest {
+  id            String   @id @default(cuid())
+  projectId     String
+  project       Project @relation(fields: [projectId], references: [id])
+  type          String   @default("general") // general | external_send | budget
+  status        String   @default("pending") // pending | approved | rejected
+  requestedBy   String
+  decidedBy     String?
+  decidedAt     DateTime?
+  reason        String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status])
+  @@index([projectId])
+}

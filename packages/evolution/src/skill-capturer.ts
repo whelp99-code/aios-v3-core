@@ -71,11 +71,11 @@ export class LLMPatternExtractor implements PatternExtractor {
         throw new Error(`LLM API error: ${response.status} ${response.statusText}`);
       }
 
-      const data = (await response.json()) as any;
-      const content = data.choices?.[0]?.message?.content;
-      const parsed = JSON.parse(content);
+      const data = (await response.json()) as Record<string, unknown>;
+      const content = (data as {choices?: Array<{message?: {content?: string}}>}).choices?.[0]?.message?.content;
+      const parsed = JSON.parse(content ?? '{}');
 
-      return (parsed.patterns ?? []).map((p: any, i: number) => ({
+      return (parsed.patterns ?? []).map((p: Record<string, unknown>, i: number) => ({
         name: p.name ?? `captured_pattern_${i}`,
         content: p.content ?? '',
         confidence: typeof p.confidence === 'number' ? Math.min(1, Math.max(0, p.confidence)) : 0.5,

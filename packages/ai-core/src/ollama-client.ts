@@ -40,7 +40,7 @@ export class OllamaClient {
     }
   }
 
-  async chat(model: string, messages: any[]): Promise<string> {
+  async chat(model: string, messages: Array<{role: string; content: string}>): Promise<string> {
     try {
       const response = await this.client.post('/api/chat', {
         model,
@@ -54,7 +54,7 @@ export class OllamaClient {
     }
   }
 
-  async listModels(): Promise<any[]> {
+  async listModels(): Promise<Array<{name: string}>> {
     try {
       const response = await this.client.get('/api/tags');
       return response.data.models || [];
