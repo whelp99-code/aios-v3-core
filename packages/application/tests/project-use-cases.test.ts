@@ -145,6 +145,24 @@ describe('GenerateProjectTasks', () => {
     expect(result.tasks.length).toBeGreaterThan(0);
     expect(result.tasks[0].title).toBeDefined();
   });
+
+  it('should reuse task ids for repeated generation', async () => {
+    const project = new Project('p1', 'Project', null, null, 'active');
+    const lifecycleRepo = mockLifecycleRepo();
+    const useCase = new GenerateProjectTasks(
+      mockProjectRepo({ findById: vi.fn().mockResolvedValue(project) }),
+      lifecycleRepo
+    );
+
+    await useCase.execute({ projectId: 'p1' });
+    await useCase.execute({ projectId: 'p1' });
+
+    const calls = vi.mocked(lifecycleRepo.saveTasks).mock.calls;
+    const firstTaskIds = calls[0][0].map((task) => task.id);
+    const secondTaskIds = calls[1][0].map((task) => task.id);
+    expect(secondTaskIds).toEqual(firstTaskIds);
+    expect(new Set(firstTaskIds).size).toBe(firstTaskIds.length);
+  });
 });
 
 // --- RequestExternalActionApproval ---

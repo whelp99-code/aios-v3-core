@@ -4,7 +4,7 @@ import type { MailThreadRepository, MailSourcePort } from '../../ports/index.js'
 import { MailMessage, MailThread, ExternalSourceId } from '@aios/domain';
 
 export interface IngestMailThreadInput {
-  sourceSystem: string;
+  sourceSystem?: string;
   externalId: string;
 }
 
@@ -25,9 +25,11 @@ export class IngestMailThread implements UseCase<IngestMailThreadInput, IngestMa
   ) {}
 
   async execute(input: IngestMailThreadInput): Promise<IngestMailThreadOutput> {
+    const requestedSourceSystem = input.sourceSystem ?? 'mail-intelligence';
+
     // Check idempotency
     const existing = await this.threadRepo.findByExternalId(
-      input.sourceSystem,
+      requestedSourceSystem,
       input.externalId
     );
 
@@ -40,7 +42,18 @@ export class IngestMailThread implements UseCase<IngestMailThreadInput, IngestMa
 
     const details = await this.source.getThread(input.externalId);
     if (!details) {
-      throw new Error(`Mail thread ${input.externalId} not found in ${input.sourceSystem}`);
+      throw new Error(`Mail thread ${input.externalId} not found in ${requestedSourceSystem}`);
+    }
+
+    const sourceSystem = details.thread.sourceProvider || requestedSourceSystem;
+    if (sourceSystem !== requestedSourceSystem) {
+      const existingForProvider = await this.threadRepo.findByExternalId(sourceSystem, input.externalId);
+      if (existingForProvider) {
+        return {
+          threadId: existingForProvider.id,
+          idempotent: true,
+        };
+      }
     }
 
     const participants = [...new Set([
@@ -52,7 +65,7 @@ export class IngestMailThread implements UseCase<IngestMailThreadInput, IngestMa
     const threadId = globalThis.crypto.randomUUID();
     const thread = new MailThread(
       threadId,
-      new ExternalSourceId(input.sourceSystem, input.externalId),
+      new ExternalSourceId(sourceSystem, input.externalId),
       details.thread.title || '(no subject)',
       participants,
       'ingested',
