@@ -1,13 +1,16 @@
 
 import type { UseCase } from '../index.js';
 import type { ApprovalRepository } from '../../ports/index.js';
-import { ApprovalRequest } from '@aios/domain';
+import { ApprovalRequest, type ExternalActionType } from '@aios/domain';
+import { hashApprovalPayload } from '../../security/payload-hash.js';
 
-export type ExternalActionType = 'email_send' | 'document_share' | 'api_call';
+export type { ExternalActionType } from '@aios/domain';
 
 export interface RequestExternalActionApprovalInput {
   projectId: string;
   actionType: ExternalActionType;
+  target: string;
+  payload: Record<string, unknown>;
   description: string;
   requestedBy: string;
 }
@@ -27,13 +30,23 @@ export class RequestExternalActionApproval implements UseCase<RequestExternalAct
 
   async execute(input: RequestExternalActionApprovalInput): Promise<RequestExternalActionApprovalOutput> {
     const approvalId = globalThis.crypto.randomUUID();
+    const payloadHash = await hashApprovalPayload(input.payload);
     const request = new ApprovalRequest(
       approvalId,
       input.projectId,
       'external_send',
       input.requestedBy,
       'pending',
-      input.description
+      input.description,
+      {},
+      null,
+      null,
+      {
+        type: input.actionType,
+        target: input.target,
+        payload: input.payload,
+        payloadHash,
+      }
     );
 
     await this.approvalRepo.save(request);

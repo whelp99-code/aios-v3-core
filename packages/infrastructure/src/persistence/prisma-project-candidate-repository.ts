@@ -42,7 +42,7 @@ export class PrismaProjectCandidateRepository implements ProjectCandidateReposit
   }
 
   async findByThreadId(threadId: string): Promise<ProjectCandidate | null> {
-    const row = await this.prisma.projectCandidate.findFirst({ where: { threadId } });
+    const row = await this.prisma.projectCandidate.findUnique({ where: { threadId } });
     return row ? this.toDomain(row) : null;
   }
 

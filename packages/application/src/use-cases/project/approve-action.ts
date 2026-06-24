@@ -1,11 +1,11 @@
 
 import type { UseCase } from '../index.js';
-import type { ApprovalRepository } from '../../ports/index.js';
+import type { ApprovalActor, ApprovalRepository } from '../../ports/index.js';
 
 export interface ApproveActionInput {
   approvalId: string;
   decision: 'approve' | 'reject';
-  actor: string;
+  actor: ApprovalActor;
   reason?: string;
 }
 
@@ -37,25 +37,37 @@ export class ApproveAction implements UseCase<ApproveActionInput, ApproveActionO
       );
     }
 
-    if (request.requestedBy === input.actor) {
+    if (!input.actor.roles.some((role) => role === 'approver' || role === 'admin')) {
+      throw new Error(`Actor ${input.actor.id} is not authorized to decide approvals`);
+    }
+
+    if (request.requestedBy === input.actor.id) {
       throw new Error(
-        `Actor ${input.actor} cannot decide their own approval request`
+        `Actor ${input.actor.id} cannot decide their own approval request`
       );
     }
 
-    let decision;
-    if (input.decision === 'approve') {
-      decision = request.approve(input.actor);
-    } else {
-      decision = request.reject(input.actor, input.reason ?? 'No reason provided');
+    if (input.decision === 'reject' && !input.reason?.trim()) {
+      throw new Error('A rejection reason is required');
     }
 
-    await this.approvalRepo.save(request);
+    const decidedAt = new Date();
+    const decided = await this.approvalRepo.decidePending({
+      approvalId: input.approvalId,
+      decision: input.decision === 'approve' ? 'approved' : 'rejected',
+      actorId: input.actor.id,
+      reason: input.reason,
+      decidedAt,
+    });
+
+    if (!decided) {
+      throw new Error(`Approval request ${input.approvalId} was decided concurrently`);
+    }
 
     return {
-      approvalId: request.id,
-      decision: decision.decision,
-      decidedAt: decision.decidedAt,
+      approvalId: decided.id,
+      decision: decided.status,
+      decidedAt: decided.decidedAt ?? decidedAt,
     };
   }
 }

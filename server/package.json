@@ -11,6 +11,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@aios/api": "workspace:*",
     "@aios/lightrag": "workspace:*",
     "@aios/ai-core": "workspace:*",
     "@aios/sandbox": "workspace:*",

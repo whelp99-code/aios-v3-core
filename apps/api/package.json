@@ -1,5 +1,5 @@
 {
-  "name": "@aios/infrastructure",
+  "name": "@aios/api",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,21 +12,19 @@
     }
   },
   "scripts": {
-    "build": "prisma generate && tsc",
-    "typecheck": "prisma generate && tsc --noEmit",
-    "lint": "prisma generate && tsc --noEmit",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev"
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@aios/domain": "workspace:*",
     "@aios/application": "workspace:*",
+    "@aios/infrastructure": "workspace:*",
     "@prisma/client": "^6.0.0",
+    "express": "^4.21.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "prisma": "^6.0.0",
+    "@types/express": "^5.0.0",
     "typescript": "^5.0.0"
   }
 }

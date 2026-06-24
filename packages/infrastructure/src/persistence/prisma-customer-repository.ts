@@ -41,7 +41,7 @@ export class PrismaCustomerRepository implements CustomerRepository {
   }
 
   async findByDomain(domain: string): Promise<Organization | null> {
-    const row = await this.prisma.organization.findFirst({ where: { domain } });
+    const row = await this.prisma.organization.findUnique({ where: { domain } });
     return row ? this.toDomain(row) : null;
   }
 

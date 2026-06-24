@@ -1,10 +1,10 @@
 
 import type { UseCase } from '../index.js';
 import type { MailThreadRepository, MailSourcePort } from '../../ports/index.js';
-import { MailThread, ExternalSourceId } from '@aios/domain';
+import { MailMessage, MailThread, ExternalSourceId } from '@aios/domain';
 
 export interface IngestMailThreadInput {
-  sourceSystem: string;
+  sourceSystem?: string;
   externalId: string;
 }
 
@@ -25,9 +25,11 @@ export class IngestMailThread implements UseCase<IngestMailThreadInput, IngestMa
   ) {}
 
   async execute(input: IngestMailThreadInput): Promise<IngestMailThreadOutput> {
+    const requestedSourceSystem = input.sourceSystem ?? 'mail-intelligence';
+
     // Check idempotency
     const existing = await this.threadRepo.findByExternalId(
-      input.sourceSystem,
+      requestedSourceSystem,
       input.externalId
     );
 
@@ -38,28 +40,56 @@ export class IngestMailThread implements UseCase<IngestMailThreadInput, IngestMa
       };
     }
 
-    // Fetch from source (single message represents the thread anchor)
-    const raw = await this.source.fetchMessage(input.externalId);
-
-    // Build participants from message sender/recipients
-    const participants: string[] = [];
-    if (raw) {
-      if (raw.sender) participants.push(raw.sender);
-      if (Array.isArray(raw.recipients)) participants.push(...raw.recipients);
+    const details = await this.source.getThread(input.externalId);
+    if (!details) {
+      throw new Error(`Mail thread ${input.externalId} not found in ${requestedSourceSystem}`);
     }
+
+    const sourceSystem = details.thread.sourceProvider || requestedSourceSystem;
+    if (sourceSystem !== requestedSourceSystem) {
+      const existingForProvider = await this.threadRepo.findByExternalId(sourceSystem, input.externalId);
+      if (existingForProvider) {
+        return {
+          threadId: existingForProvider.id,
+          idempotent: true,
+        };
+      }
+    }
+
+    const participants = [...new Set([
+      ...details.thread.participants,
+      ...details.messages.flatMap((message) => [message.sender, ...message.recipients]),
+    ].filter(Boolean))];
 
     // Create domain entity
     const threadId = globalThis.crypto.randomUUID();
     const thread = new MailThread(
       threadId,
-      new ExternalSourceId(input.sourceSystem, input.externalId),
-      raw?.subject ?? '(no subject)',
+      new ExternalSourceId(sourceSystem, input.externalId),
+      details.thread.title || '(no subject)',
       participants,
       'ingested',
-      { raw }
+      {
+        summary: details.thread.summary,
+        evidenceItems: details.thread.evidenceItems,
+        sourceMetadata: details.thread.metadata,
+      }
     );
 
-    await this.threadRepo.save(thread);
+    const messages = details.messages.map((message) => new MailMessage(
+      globalThis.crypto.randomUUID(),
+      threadId,
+      message.id,
+      message.sender,
+      message.recipients,
+      message.subject,
+      message.bodyPreview,
+      message.sentAt,
+      [],
+      { ...message.metadata, attachments: message.attachments }
+    ));
+
+    await this.threadRepo.saveAggregate(thread, messages);
 
     return { threadId, idempotent: false };
   }

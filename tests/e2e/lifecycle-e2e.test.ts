@@ -17,12 +17,14 @@ import {
 } from '../../packages/application/src/index.js';
 import {
   ProjectCandidate,
+  Project,
   ApprovalRequest,
   ConfidenceScore,
 } from '../../packages/domain/src/index.js';
 import type {
   ProjectCandidateRepository,
   ApprovalRepository,
+  ProjectRepository,
 } from '../../packages/application/src/ports/index.js';
 
 /** In-memory mock candidate repo backed by a Map */
@@ -46,6 +48,30 @@ function createApprovalRepo(initial: ApprovalRequest[] = []): ApprovalRepository
     findPendingByProject: vi.fn(async (pid: string) =>
       [...store.values()].filter((a) => a.projectId === pid && a.status === 'pending')
     ),
+    decidePending: vi.fn(async (input) => {
+      const request = store.get(input.approvalId);
+      if (!request || request.status !== 'pending') return null;
+      if (input.decision === 'approved') request.approve(input.actorId);
+      else request.reject(input.actorId, input.reason ?? 'rejected');
+      store.set(request.id, request);
+      return request;
+    }),
+  };
+}
+
+function createProjectRepo(): ProjectRepository {
+  const store = new Map<string, Project>();
+  return {
+    save: vi.fn(async (project: Project) => {
+      const existing = [...store.values()].find((item) => item.candidateId === project.candidateId);
+      if (existing) return existing;
+      store.set(project.id, project);
+      return project;
+    }),
+    findById: vi.fn(async (id: string) => store.get(id) ?? null),
+    findByCandidateId: vi.fn(async (candidateId: string) =>
+      [...store.values()].find((project) => project.candidateId === candidateId) ?? null
+    ),
   };
 }
 
@@ -68,7 +94,7 @@ describe('Full AIOS Lifecycle E2E', () => {
     expect(reviewResult.status).toBe('approved');
 
     // Step 2: Promote to project
-    const promote = new PromoteProjectCandidate(candidateRepo);
+    const promote = new PromoteProjectCandidate(candidateRepo, createProjectRepo());
     const projectResult = await promote.execute({
       candidateId: 'candidate-1',
       projectName: 'AIOS Implementation',
@@ -133,6 +159,8 @@ describe('Full AIOS Lifecycle E2E', () => {
     const approvalResult = await approval.execute({
       projectId: projectResult.projectId,
       actionType: 'email_send',
+      target: 'contact@test.com',
+      payload: { draftId: emailResult.draftId },
       description: 'Send estimate to customer',
       requestedBy: 'user-1',
     });
@@ -143,7 +171,7 @@ describe('Full AIOS Lifecycle E2E', () => {
     const approveResult = await approve.execute({
       approvalId: approvalResult.approvalId,
       decision: 'approve',
-      actor: 'manager-1',
+      actor: { id: 'manager-1', roles: ['approver'] },
     });
     expect(approveResult.decision).toBe('approved');
 

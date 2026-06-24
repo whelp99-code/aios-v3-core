@@ -121,7 +121,15 @@ export function createCorsOptions() {
       }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'X-API-Key', 'X-Trace-Id', 'Idempotency-Key', 'X-Request-Id'],
+    allowedHeaders: [
+      'Content-Type',
+      'X-API-Key',
+      'X-Trace-Id',
+      'Idempotency-Key',
+      'X-Request-Id',
+      'X-Actor-Id',
+      'X-Actor-Roles',
+    ],
     maxAge: 86400,
   };
 }
