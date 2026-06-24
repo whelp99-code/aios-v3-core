@@ -160,7 +160,7 @@ $ curl -X POST http://localhost:8001/v1/chat/completions \
 ### 시작
 
 ```bash
-cd /Users/jmpark/Documents/Playground/aios-v3-core
+cd /Users/jmpark/Playground/aios-v3-core
 docker-compose up -d rapid-mlx
 ```
 

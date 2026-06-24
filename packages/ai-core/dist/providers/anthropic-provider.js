@@ -45,7 +45,7 @@ class AnthropicProvider {
                 content: m.content,
             })),
         });
-        const text = response.data.content.map((c) => c.text).join('\n');
+        const text = response.data.content.map((c) => c.text).join('\\n');
         return {
             id: response.data.id,
             object: 'chat.completion',
@@ -55,7 +55,6 @@ class AnthropicProvider {
                 {
                     index: 0,
                     message: { role: 'assistant', content: text },
-                    finish_reason: 'stop',
                 },
             ],
             usage: {

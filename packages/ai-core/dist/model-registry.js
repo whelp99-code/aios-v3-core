@@ -164,7 +164,7 @@ class ModelRegistry {
         const candidates = this.getForTask(taskType, provider);
         if (!candidates.length)
             return undefined;
-        return candidates.sort((a, b) => a.costPerToken - b.costPerToken || a.latencyMs - b.latencyMs)[0];
+        return candidates.sort((a, b) => (a.costPerToken ?? 0) - (b.costPerToken ?? 0) || (a.latencyMs ?? 0) - (b.latencyMs ?? 0))[0];
     }
     register(model) {
         this.models.set(`${model.provider}:${model.modelId}`, model);

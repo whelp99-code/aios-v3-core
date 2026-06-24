@@ -11,7 +11,7 @@
 ### 1.1. Docker 이미지 빌드 및 실행
 
 ```bash
-cd /Users/jmpark/Documents/Playground/aios-v3-core
+cd /Users/jmpark/Playground/aios-v3-core
 
 # Docker 이미지 빌드
 docker build -t rapid-mlx-engine .
@@ -61,7 +61,7 @@ RAPID_MLX_MAX_TOKENS=2048
 또는 `aios-v3-core/.env.agents-example` 파일을 복사:
 
 ```bash
-cp /Users/jmpark/Documents/Playground/aios-v3-core/.env.agents-example /path/to/your-agent/.env
+cp /Users/jmpark/Playground/aios-v3-core/.env.agents-example /path/to/your-agent/.env
 ```
 
 ### 2.2. Node.js 프로젝트 (Hermes, vibe-coding-os, ai-automation-work-portal)

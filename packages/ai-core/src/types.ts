@@ -8,6 +8,8 @@ export type ModelProvider = 'local' | 'mimo' | 'openai' | 'anthropic' | 'hugging
 
 export type SecurityLevel = 'local_only' | 'cloud_secure';
 
+export type ModelCapability = 'chat' | 'code_generation' | 'reasoning' | 'embedding' | 'tool_use' | 'multilingual';
+
 export interface EnginePreferences {
   mode: EngineMode;
   securityLevel?: SecurityLevel;
@@ -23,7 +25,7 @@ export interface RoleEngineOverride {
 export interface ModelEntry {
   modelId: string;
   provider: ModelProvider;
-  roles: AgentRole[];
+  roles?: AgentRole[];
   maxTokens?: number;
   contextWindow?: number;
   displayName?: string;
@@ -31,6 +33,7 @@ export interface ModelEntry {
   capabilities?: string[];
   costPerToken?: number;
   latencyMs?: number;
+  securityLevel?: SecurityLevel;
 }
 
 export interface RoutingDecision {

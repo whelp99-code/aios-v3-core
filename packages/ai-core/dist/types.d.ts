@@ -1,67 +1,42 @@
 export type TaskType = 'chat' | 'code' | 'reasoning' | 'embedding';
-export type AgentRole = 'planner' | 'executor' | 'critic' | 'knowledge_updater' | 'self_corrector';
-export type ModelProvider = 'local' | 'openai' | 'anthropic' | 'huggingface' | 'mimo';
-export type EngineMode = 'auto' | 'local' | 'cloud';
-export type ModelCapability = 'chat' | 'code_generation' | 'reasoning' | 'embedding' | 'tool_use' | 'multilingual';
+export type AgentRole = 'planner' | 'executor' | 'critic' | 'self_corrector' | 'knowledge_updater';
+export type EngineMode = 'local' | 'cloud' | 'auto';
+export type ModelProvider = 'local' | 'mimo' | 'openai' | 'anthropic' | 'huggingface';
 export type SecurityLevel = 'local_only' | 'cloud_secure';
-export interface ChatMessage {
-    role: 'system' | 'user' | 'assistant';
-    content: string;
+export type ModelCapability = 'chat' | 'code_generation' | 'reasoning' | 'embedding' | 'tool_use' | 'multilingual';
+export interface EnginePreferences {
+    mode: EngineMode;
+    securityLevel?: SecurityLevel;
+    preferredCloudProvider?: ModelProvider;
+    roleOverrides?: Partial<Record<AgentRole, RoleEngineOverride>>;
 }
-export interface ChatCompletionRequest {
-    model: string;
-    messages: ChatMessage[];
-    stream?: boolean;
-    temperature?: number;
-    max_tokens?: number;
-    tools?: unknown[];
-    tool_choice?: string;
-}
-export interface ChatCompletionResponse {
-    id: string;
-    object: string;
-    created: number;
-    model: string;
-    choices: Array<{
-        index: number;
-        message: {
-            role: string;
-            content: string;
-            tool_calls?: unknown[];
-        };
-        finish_reason: string;
-    }>;
-    usage: {
-        prompt_tokens: number;
-        completion_tokens: number;
-        total_tokens: number;
-    };
+export interface RoleEngineOverride {
+    provider: ModelProvider;
+    modelId: string;
 }
 export interface ModelEntry {
     modelId: string;
     provider: ModelProvider;
-    displayName: string;
-    capabilities: ModelCapability[];
-    costPerToken: number;
-    latencyMs: number;
-    securityLevel: SecurityLevel;
-    contextWindow: number;
-    status: 'active' | 'deprecated' | 'maintenance';
-}
-export interface RoleEngineOverride {
-    provider?: ModelProvider;
-    modelId?: string;
-}
-export interface EnginePreferences {
-    mode: EngineMode;
+    roles?: AgentRole[];
+    maxTokens?: number;
+    contextWindow?: number;
+    displayName?: string;
+    status?: 'active' | 'deprecated' | 'beta';
+    capabilities?: string[];
+    costPerToken?: number;
+    latencyMs?: number;
     securityLevel?: SecurityLevel;
-    roleOverrides?: Partial<Record<AgentRole, RoleEngineOverride>>;
-    preferredCloudProvider?: 'mimo' | 'openai' | 'anthropic' | 'huggingface';
 }
 export interface RoutingDecision {
     modelId: string;
     provider: ModelProvider;
     reason: string;
+}
+export interface ResourceSnapshot {
+    localHealthy: boolean;
+    localLoad: number;
+    cloudAvailable: boolean;
+    recommendedMode?: EngineMode;
 }
 export interface ProviderHealth {
     provider: ModelProvider;
@@ -69,10 +44,31 @@ export interface ProviderHealth {
     latencyMs?: number;
     error?: string;
 }
-export interface ResourceSnapshot {
-    localLoad: number;
-    localHealthy: boolean;
-    recommendedMode: EngineMode;
-    cloudAvailable: boolean;
+export interface ChatMessage {
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+}
+export interface ChatCompletionRequest {
+    model: string;
+    messages: ChatMessage[];
+    temperature?: number;
+    max_tokens?: number;
+    tools?: unknown[];
+    tool_choice?: string;
+}
+export interface ChatCompletionResponse {
+    choices: Array<{
+        message: {
+            role: string;
+            content: string;
+            tool_calls?: unknown[];
+        };
+        index?: number;
+    }>;
+    usage?: {
+        prompt_tokens: number;
+        completion_tokens: number;
+        total_tokens: number;
+    };
 }
 //# sourceMappingURL=types.d.ts.map

@@ -67,7 +67,7 @@ export class ResourceAllocator {
     if (requestedMode === 'cloud') {
       return snapshot.cloudAvailable ? 'cloud' : 'local';
     }
-    return snapshot.recommendedMode;
+    return snapshot.recommendedMode!;
   }
 
   pickCloudProvider(

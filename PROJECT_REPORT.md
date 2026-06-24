@@ -1,7 +1,7 @@
 # AIOS v3 Core 프로젝트 분석 보고서
 
 **작성일**: 2026-06-12  
-**프로젝트 경로**: `/Users/jmpark/Documents/Playground/F - aios-v3-core`  
+**프로젝트 경로**: `/Users/jmpark/Playground/F - aios-v3-core`  
 **상태**: ⚠️ **폐기됨 (Abandoned)** — 2026-06 중단
 
 ---

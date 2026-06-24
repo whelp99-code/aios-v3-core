@@ -18,7 +18,7 @@ class SkillParser {
             metadata = js_yaml_1.default.load(yamlFrontmatter, { schema: js_yaml_1.default.DEFAULT_SCHEMA });
         }
         catch (e) {
-            throw new Error(`Failed to parse SKILL.md YAML frontmatter: ${e.message}`);
+            throw new Error(`Failed to parse SKILL.md YAML frontmatter: ${e instanceof Error ? e.message : String(e)}`);
         }
         const workflowStepsMatch = markdownContent.match(/## Workflow Steps\n([\s\S]*?)(?:\n## Dependencies|\n## Usage Example|\n## Version|\n## Author|$)/);
         const dependenciesMatch = markdownContent.match(/## Dependencies\n([\s\S]*?)(?:\n## Usage Example|\n## Version|\n## Author|$)/);

@@ -1,8 +1,8 @@
 export interface SkillMetadata {
     name: string;
     description: string;
-    input_schema: any;
-    output_schema: any;
+    input_schema: Record<string, unknown>;
+    output_schema: Record<string, unknown>;
     version?: string;
     author?: string;
 }

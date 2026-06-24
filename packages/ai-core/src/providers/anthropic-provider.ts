@@ -60,7 +60,7 @@ export class AnthropicProvider implements ILLMProvider {
       })),
     });
 
-    const text = response.data.content.map((c) => c.text).join('\n');
+    const text = response.data.content.map((c) => c.text).join('\\n');
     return {
       id: response.data.id,
       object: 'chat.completion',
@@ -70,7 +70,6 @@ export class AnthropicProvider implements ILLMProvider {
         {
           index: 0,
           message: { role: 'assistant', content: text },
-          finish_reason: 'stop',
         },
       ],
       usage: {
@@ -78,7 +77,7 @@ export class AnthropicProvider implements ILLMProvider {
         completion_tokens: response.data.usage.output_tokens,
         total_tokens: response.data.usage.input_tokens + response.data.usage.output_tokens,
       },
-    };
+    } as any;
   }
 
   async listModels(): Promise<{ id: string }[]> {
